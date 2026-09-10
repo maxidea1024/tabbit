@@ -206,19 +206,19 @@ function recordRule(vm: Vm, row: EffectRow, rule: RuleKind, value: number,
 
   if (duration === Duration.ThisRound) {
     if (!vm.rebuilding) vm.state.roundRules.push(delta)
-    changeRule(vm, rule, value, absolute, row.suits)
+    changeRule(vm, rule, value, absolute, row.suits, `${row.source}.${row.owner}`)
     return
   }
 
   // **`Passive` 는 적지 않습니다.** 원인이 있는 동안만 걸리는 것이고, 다시 세울 때 그 원인을
   // 다시 훑으므로 적어 두면 두 번 얹힙니다.
   if (row.trigger !== Trigger.Passive && !vm.rebuilding) vm.state.ruleDeltas.push(delta)
-  changeRule(vm, rule, value, absolute, row.suits)
+  changeRule(vm, rule, value, absolute, row.suits, `${row.source}.${row.owner}`)
 }
 
 /** 규칙 하나를 바꿉니다. **목록이 여기 한 곳입니다.** */
 function changeRule(vm: Vm, rule: RuleKind, value: number, absolute: boolean,
-                    suits: readonly SuitKind[]): void {
+                    suits: readonly SuitKind[], from = ''): void {
   const rules = vm.state.rules
   const set = (key: keyof typeof rules, current: number) =>
     ((rules[key] as unknown as number) = absolute ? value : current + value)
@@ -317,6 +317,7 @@ function changeRule(vm: Vm, rule: RuleKind, value: number, absolute: boolean,
     before: moved === undefined ? null : Number(before[moved]),
     after: moved === undefined ? null : Number(rules[moved]),
     flag: moved !== undefined && typeof before[moved] === 'boolean',
+    from,
   })
 }
 
@@ -1071,7 +1072,7 @@ function report(vm: Vm, row: EffectRow, host: EffectHost, op: string,
           op, chips, mult, money,
           source: sourceOf(row),
         }
-        : { t: 'RunTriggered', owner: row.owner, op, chips, mult, money }
+        : { t: 'RunTriggered', owner: row.owner, source: row.source, op, chips, mult, money }
 
   if (event === undefined) return
   if (event.t === 'CardScored' && event.uid === 0) return

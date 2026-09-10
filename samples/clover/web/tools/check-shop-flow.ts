@@ -218,16 +218,15 @@ async function main(): Promise<number> {
     check(entering.some(one => one.focus && one.shopY > 300), '그동안 상점이 내려가 있습니다')
     check(!(await peek(page)).modalUp, '묻는 판은 뜨지 않습니다')
 
-    // 줄의 첫 조커를 누르고, 그 밑의 단추로 내놓습니다.
+    // **줄의 조커를 누르는 것이 곧 내놓는 것입니다.** 그 판이 이미 「내놓을 것을
+    // 고르십시오」이므로, 그 위에서 하나를 누르는 것은 묻고 있는 것에 대한 답입니다 —
+    // 그 밑에 단추를 한 번 더 세우고 그것을 누르게 하던 것을 걷었습니다.
+    const moneyBefore = (await peek(page)).money
     const first = await spot(page, 'joker:0')
     await page.mouse.click(first.x, first.y)
-    await pass(page, 260)
-    const give = (await peek(page)).spots?.held
-    check(give !== undefined, '줄의 조커를 누르면 그 밑에 내놓는 단추가 섭니다')
-    if (give) {
-      const where = await at(page, give.x, give.y)
-      const moneyBefore = (await peek(page)).money
-      await page.mouse.click(where.x, where.y)
+    {
+      check((await peek(page)).spots?.held === undefined,
+        '누른 것 밑에 단추가 서지 않습니다')
       // 타고(0.42) · 닿고(0.52) · 보고(0.8) · 상점이 올라와 서는 것까지입니다.
       const leaving = await track(page, 90)
       check(leaving.some(one => !one.focus), '내놓으면 화면이 걷힙니다')

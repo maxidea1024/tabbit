@@ -271,7 +271,7 @@ export function newRun(data: Data, seed: string, deckId: string, stake: string,
  * 3. 지금 있는 것들의 `Passive` — 덱 · 바우처 · 보스 · 조커 · 태그
  * 4. 이번 라운드에만 걸린 것
  */
-export function rebuildRules(vm: Vm, quiet = false): void {
+export function rebuildRules(vm: Vm, quiet = false, cause = ''): void {
   const state = vm.state
   state.rules = defaultRules(vm.data)
   applyStake(vm)
@@ -294,7 +294,7 @@ export function rebuildRules(vm: Vm, quiet = false): void {
   }
   vm.rebuilding = false
 
-  if (!quiet) reportRuleDiff(vm, was, state.rules)
+  if (!quiet) reportRuleDiff(vm, was, state.rules, cause)
 }
 
 /**
@@ -302,7 +302,7 @@ export function rebuildRules(vm: Vm, quiet = false): void {
  *
  * 판을 처음 열 때는 부르는 쪽이 `quiet` 로 끕니다.
  */
-function reportRuleDiff(vm: Vm, was: Rules, now: Rules): void {
+function reportRuleDiff(vm: Vm, was: Rules, now: Rules, cause: string): void {
   const keys = Object.keys(now) as (keyof Rules)[]
   for (const key of keys) {
     if (was[key] === now[key]) continue
@@ -312,6 +312,7 @@ function reportRuleDiff(vm: Vm, was: Rules, now: Rules): void {
       before: Number(was[key]),
       after: Number(now[key]),
       flag: typeof now[key] === 'boolean',
+      from: cause,
     })
   }
 }
@@ -488,7 +489,7 @@ function useTags(vm: Vm, trigger: Trigger): void {
   }
 
   // 태그가 규칙을 걸었을 수 있습니다. 들고 있는 목록이 바뀌었으므로 다시 세웁니다.
-  if (spent.length > 0) rebuildRules(vm)
+  if (spent.length > 0) rebuildRules(vm, false, `tag.${spent[0]}`)
 }
 
 /**
@@ -664,7 +665,7 @@ function sellJoker(vm: Vm, index: number): boolean {
   vm.events.push({ t: 'JokerDestroyed', uid: joker.uid, jokerId: joker.jokerId })
   runTrigger(vm, Trigger.OnJokerSold)
   // **판 조커의 규칙이 여기서 빠집니다.** 다시 세우면 그것이 없는 상태로 계산됩니다.
-  rebuildRules(vm)
+  rebuildRules(vm, false, `joker.${joker.jokerId}`)
   state.rules.debuffUntilJokerSold = false
   return true
 }
@@ -971,7 +972,7 @@ export function apply(data: Data, state: RunState, action: Action): Step {
       state.vouchers.push(state.shop.voucher)
       // **다시 세우면 산 바우처가 함께 얹힙니다.** 그 자리에서 한 줄만 돌리면 나중에 다시
       // 세울 때 그 바우처만 빠집니다.
-      rebuildRules(vm)
+      rebuildRules(vm, false, `voucher.${state.shop.voucher}`)
       state.shop.voucher = null
       state.shop.voucherBought = true
       break
@@ -1054,7 +1055,7 @@ function takeItem(vm: Vm, item: {
       vm.events.push({ t: 'JokerAdded', uid: state.nextUid - 1, jokerId: item.id })
       // **조커가 걸어 두는 규칙이 여기서 걸립니다.** 넣기만 하면 손패를 늘리는 조커를 사도
       // 손패가 그대로였습니다.
-      rebuildRules(vm)
+      rebuildRules(vm, false, `joker.${item.id}`)
       return true
     }
 

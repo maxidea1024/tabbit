@@ -301,7 +301,21 @@ export type GameEvent =
   | { t: 'HandEvaluated'; hand: PokerHandKind; level: number; chips: number; mult: number; cards: number[] }
   | { t: 'CardScored'; uid: number; op: string; chips: number; mult: number; money: number; source: string }
   | { t: 'JokerTriggered'; slot: number; jokerId: string; op: string; chips: number; mult: number; money: number }
-  | { t: 'RunTriggered'; owner: string; op: string; chips: number; mult: number; money: number }
+  | {
+    t: 'RunTriggered'
+    owner: string
+    /**
+     * 어느 표에서 온 것인가. **이름을 찾는 열쇠의 앞 토막입니다.**
+     *
+     * `owner` 만으로는 그것이 보스인지 바우처인지 덱인지 알 수 없고, 이름은 표마다
+     * 다른 열쇠에 있습니다 — 하나로 짐작해 두었더니 없는 열쇠가 화면에 그대로 떴습니다.
+     */
+    source: string
+    op: string
+    chips: number
+    mult: number
+    money: number
+  }
   | { t: 'JokerFizzled'; slot: number; jokerId: string; num: number; den: number }
   | { t: 'Retriggered'; uid: number; times: number }
   | { t: 'ChipsMultChanged'; chips: number; mult: number }
@@ -348,4 +362,12 @@ export type GameEvent =
     after: number | null
     /** 켜고 끄는 규칙인가. 수를 세는 규칙과 읽는 법이 다릅니다. */
     flag: boolean
+    /**
+     * 무엇이 걸었는가. `<표>.<식별자>` 이고 모르면 빈 문자열입니다.
+     *
+     * **앞 박자에서 짐작하지 않습니다.** 규칙은 다시 세우는 자리에서 견주어 나오므로 그
+     * 앞에 발동 이벤트가 없을 수 있고, 그때 앞의 것을 그대로 쓰면 아무 상관 없는 조커의
+     * 이름이 머리글에 뜹니다.
+     */
+    from: string
   }

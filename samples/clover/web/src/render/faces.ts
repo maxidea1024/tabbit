@@ -174,6 +174,22 @@ export function tagFace(tagId: string, size: number): Container {
 }
 
 /**
+ * 상점에 물건을 놓아 둔 것의 칩.
+ *
+ * **글이 아니라 칩입니다.** 상점의 칸은 카드와 값으로 이미 차 있어서 이름이 들어갈 자리가
+ * 없습니다 — 값과 겹쳐 적혀 있었고, 그것은 값도 이름도 읽히지 않는 상태였습니다. 말은
+ * 쪽지에 두고 칸에는 이 칩 하나를 얹습니다.
+ *
+ * 놓는 것은 태그이거나 조커입니다. 어느 쪽인지는 식별자만으로 알 수 없으므로 그림을 둘 다
+ * 찾아보고, 없으면 태그의 문양으로 떨어집니다.
+ */
+export function giftChip(id: string, size: number): Container {
+  const texture = artFor('tag', id) ?? artFor('joker', id)
+  if (texture) return roundArt(texture, size)
+  return tagFace(id, size)
+}
+
+/**
  * 보스의 인장.
  *
  * **보스마다 다른 표시가 있어야 합니다.** 이름과 효과만 적혀 있으면 28종이 한 갈래로

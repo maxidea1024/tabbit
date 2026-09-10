@@ -224,13 +224,25 @@ export class CardView extends Container {
    * **뽑을 때의 뒤집기와 같은 몸짓입니다.** 좁아졌다가 벌어지는 그 절반에서 얼굴이
    * 갈립니다 — 다른 것은 시작이 뒷면이 아니라 앞면이라는 것뿐입니다.
    */
-  turnInto(card: CardInstance, look?: EditionLook): void {
+  turnInto(card: CardInstance, look?: EditionLook,
+           tint?: [number, number, number]): void {
     this.flip = 1
-    this.turning = { card, look }
+    this.turning = { card, look, tint }
   }
 
-  /** 뒤집는 절반에서 갈아 끼울 카드. */
-  private turning?: { card: CardInstance; look?: EditionLook }
+  /**
+   * 이 카드가 줄에서 갖는 그리기 차례.
+   *
+   * **올렸다가 되돌릴 자리가 있어야 합니다.** 가리키거나 고른 카드는 위로 올라와야 하고,
+   * 떼면 줄의 차례로 돌아와야 합니다 — 돌아갈 값을 어디에도 두지 않으면 되돌릴 수
+   * 없습니다.
+   */
+  rowZ = 0
+
+  /** 뒤집는 절반에서 갈아 끼울 카드. 그 자리에서 테가 함께 답니다. */
+  private turning?: {
+    card: CardInstance; look?: EditionLook; tint?: [number, number, number]
+  }
 
   /** 타서 사라지는 중인가. */
   private dissolve?: DissolveFilter
@@ -440,16 +452,15 @@ export class CardView extends Container {
   }
 
   /**
-   * 갈리는 줄기가 한 번 지나갑니다.
+   * 테가 한 번 답니다.
    *
-   * **`turnInto` 와 함께 씁니다.** 카드가 그 자리에서 뒤집혀 다른 얼굴로 돌아오는 동안
-   * 줄기가 위에서 아래로 지나가고, 지나간 뒤에 필터를 뗍니다.
+   * **뒤집기와 함께 쓰는 것은 `turnInto` 가 스스로 부릅니다** — 얼굴이 갈리는 그 절반이
+   * 그 자리입니다. 이 함수를 직접 부르는 것은 뒤집지 않는 것, 곧 새로 더해진 카드입니다.
    */
   imprintNow(tint: [number, number, number] = [1.0, 0.82, 0.42]): void {
     this.imprint ??= new ImprintFilter()
     this.imprint.setTint(tint[0], tint[1], tint[2])
     this.imprint.amount = 1
-    this.imprint.sweep = 0
     this.imprinting = 0
     this.restack()
   }
@@ -632,16 +643,17 @@ export class CardView extends Container {
 
     // 갈리는 줄기가 지나갑니다. 다 지나가면 필터를 뗍니다 — 필터 하나가 곧 렌더 텍스처
     // 하나이고, 손패의 여덟 장이 그것을 내내 들고 있을 이유가 없습니다.
+    // 테가 잦아듭니다. **뒤집기(8분의 1초)보다 조금 길고, 그 뒤로 끌지 않습니다** — 다
+    // 뒤집힌 카드 위에 빛이 남아 있으면 그것은 갈린 표시가 아니라 얼룩입니다.
     if (this.imprinting !== undefined) {
-      this.imprinting += seconds / 0.42
+      this.imprinting += seconds / 0.2
       if (this.imprinting >= 1) {
         this.imprinting = undefined
         this.imprint = undefined
         this.restack()
       } else if (this.imprint) {
-        this.imprint.sweep = this.imprinting
-        // 끝으로 갈수록 잦아듭니다. 같은 세기로 끝나면 줄기가 카드 밖에서 끊깁니다.
-        this.imprint.amount = 1 - this.imprinting * this.imprinting
+        const left = 1 - this.imprinting
+        this.imprint.amount = left * left
       }
     }
 
@@ -670,6 +682,9 @@ export class CardView extends Container {
         const one = this.turning
         this.turning = undefined
         this.set(one.card, one.look)
+        // **테는 얼굴이 갈리는 그 순간에 답니다.** 부르는 자리에서 함께 시작하면 아직
+        // 앞면인 동안 테가 먼저 붙고, 그것은 갈린 표시로 읽히지 않습니다.
+        if (one.tint) this.imprintNow(one.tint)
         this.onFlipped?.()
       }
     }
@@ -713,6 +728,8 @@ export class CardView extends Container {
     // 뒤집는 동안 가로만 좁아집니다. **종이 한 장이 돌아가는 모습입니다.**
     const turn = this.flip > 0 ? Math.abs(Math.cos((1 - this.flip) * Math.PI)) : 1
     this.scale.set(this.motion.scale.value * Math.max(0.02, turn), this.motion.scale.value)
-    this.zIndex = this.hovered ? 200 : this.selected ? 100 : 0
+    // **겹치는 차례는 여기서 정하지 않습니다.** 줄이 정합니다(`Game.restackRow`) — 여기서
+    // 가리킨 것과 고른 것만 올리고 나머지를 0 으로 두었더니, 줄이 적어 둔 차례가 매 프레임
+    // 지워졌습니다. 손패는 9장부터 겹치고 그때 겹치는 차례는 발동하는 차례입니다.
   }
 }

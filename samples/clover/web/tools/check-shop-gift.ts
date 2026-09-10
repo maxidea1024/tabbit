@@ -4,6 +4,10 @@
 // 채로 상점에 서 있고, 왜 거기 있는지는 화면 어디에도 없었습니다 — 공짜 조커 하나가
 // 이유 없이 놓여 있는 것으로 보입니다.
 //
+// **글이 아니라 칩입니다.** 칸은 104 × 166 이고 그 안에 88 × 124 카드와 값이 들어갑니다 —
+// 이름이 들어갈 자리가 없어서 카드의 아랫변과 값 사이에 적었더니 값과 겹쳤습니다. 겹치지
+// 않는지를 눈이 아니라 숫자로 봅니다.
+//
 // `uncommon` 태그로 잽니다. 상점에 들 때 조커 하나를 공짜로 놓아 두는 태그입니다.
 import * as path from 'path'
 import { fileURLToPath } from 'url'
@@ -44,9 +48,19 @@ async function main(): Promise<number> {
   const gift = now.shopGift
   console.log('선물 칸이 알린 것', JSON.stringify(gift ?? null))
 
+  // **칩과 값이 겹치지 않아야 합니다.** 겹치면 둘 다 읽히지 않습니다.
+  const chip = gift?.chip
+  const price = gift?.price
+  const apart = chip !== undefined && price !== undefined
+    && (chip.y + chip.height <= price.y || price.y + price.height <= chip.y
+      || chip.x + chip.width <= price.x || price.x + price.width <= chip.x)
+  console.log('칩', chip ? `${chip.x},${chip.y} ${chip.width}×${chip.height}` : '없음',
+              '· 값', price ? `${price.x},${price.y} ${price.width}×${price.height}` : '없음',
+              '· 겹치지 않는가', apart)
+
   const good = now.phase === 'shop' && gift !== undefined && gift.slot === 0
-    && gift.from !== '' && gift.cost === 0
-  console.log(good ? '선물에 놓은 것의 이름이 적힙니다' : '어긋납니다')
+    && gift.from !== '' && gift.cost === 0 && apart
+  console.log(good ? '선물이 누가 놓은 것인지 나타납니다' : '어긋납니다')
 
   await browser.close()
   await server.close()

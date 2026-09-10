@@ -1242,6 +1242,7 @@
 	ui.note.cannot_sell	팔 수 없습니다	Cannot be sold	売れません	无法出售	無法出售	Nicht verkäuflich
 	ui.shop.voucher_taken	이번 안테의 바우처는 이미 샀습니다	You already bought this ante’s voucher	このアンティのバウチャーはもう買いました	本底注的优惠券已经买过了	本底注的優惠券已經買過了	Der Gutschein dieser Ante ist schon gekauft
 	ui.shop.sold_out	다 팔렸습니다	Everything is sold	すべて売れました	全部售出	全部售出	Alles ist verkauft
+	ui.shop.gift	{name:이} 놓아 둔 것입니다	left here by {name}	{name}が置いていったものです	由{name}留下	由{name}留下	von {name} hinterlassen
 	ui.edition.random	무작위 에디션	a random edition	ランダムなエディション	随机版本	隨機版本	eine zufällige Edition
 	ui.swap.title	자리가 없습니다	No Room	空きがありません	没有空位	沒有空位	Kein Platz
 	ui.swap.hint	자리 없음 — 눌러서 교체	No room — tap to swap	空きなし — 押して入れ替え	没有空位 — 点击替换	沒有空位 — 點擊替換	Kein Platz — antippen zum Tauschen
@@ -1562,8 +1563,8 @@
 	ui.quit.browser	탭은 스스로 닫히지 않습니다	This tab cannot close itself	タブは自分で閉じられません	标签页无法自行关闭	分頁無法自行關閉	Dieser Tab kann sich nicht selbst schließen
 	ui.quit.browserBody	브라우저에서 탭을 닫아 주십시오.	Close the tab in your browser.	ブラウザでタブを閉じてください。	请在浏览器中关闭标签页。	請在瀏覽器中關閉分頁。	Schließe den Tab in deinem Browser.
 	ui.button.give_up	내놓는다 +${n}	Give up +${n}	手放す +${n}	放弃 +${n}	放棄 +${n}	Abgeben +${n}
-	ui.focus.pick_joker	위 줄에서 내놓을 조커를 누르십시오. 누른 것 밑의 단추가 내놓습니다	Tap a Joker in the row above; the button under it gives it up	上の列から手放すジョーカーを押してください。下のボタンで手放します	点击上方一排中要放弃的小丑牌，其下方按钮确认放弃	點擊上方一排中要放棄的小丑牌，其下方按鈕確認放棄	Tippe oben einen Joker an; der Knopf darunter gibt ihn ab
-	ui.focus.pick_item	위 줄에서 내놓을 소모품을 누르십시오. 누른 것 밑의 단추가 내놓습니다	Tap a consumable in the row above; the button under it gives it up	上の列から手放す消費アイテムを押してください。下のボタンで手放します	点击上方一排中要放弃的消耗品，其下方按钮确认放弃	點擊上方一排中要放棄的消耗品，其下方按鈕確認放棄	Tippe oben einen Verbrauchsgegenstand an; der Knopf darunter gibt ihn ab
+	ui.focus.pick_joker	위 줄에서 내놓을 조커를 누르십시오	Tap a Joker in the row above	上の列から手放すジョーカーを押してください	点击上方一个小丑将其让出	點擊上方一個小丑將其讓出	Tippe oben auf einen Joker
+	ui.focus.pick_item	위 줄에서 내놓을 소모품을 누르십시오	Tap a consumable in the row above	上の列から手放す消費アイテムを押してください	点击上方一个消耗牌将其让出	點擊上方一個消耗牌將其讓出	Tippe oben auf eine Verbrauchskarte
 	ui.focus.cancel	그만둔다	Never mind	やめる	算了	算了	Doch nicht
 	ui.badge.next	다음은 {name}	Next: {name}	次は {name}	下一个：{name}	下一個：{name}	Als Nächstes: {name}
 	ui.badge.next_target	요구 점수 {n}	Target {n}	要求スコア {n}	要求分数 {n}	要求分數 {n}	Ziel {n}

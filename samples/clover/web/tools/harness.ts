@@ -55,14 +55,23 @@ export interface Peek {
   deckPeek?: boolean
   /** 규칙 알림 판이 차지한 사각형. 떠 있지 않으면 없습니다. */
   ruleBanner?: { x: number; y: number; width: number; height: number }
+  /** 그 판의 머리글. */
+  ruleBannerHead?: string
   /** 지금 시드는 중인 카드와 딱지의 수. */
   withering?: number
   /** 화면이 그린 박자들. 새것이 뒤입니다. */
   beats?: string[]
   /** 능력을 빌리는 줄이 그어져 있는가. */
   borrowLink?: boolean
+  /** 줄에 선 것들의 겹치는 차례. 가리킨 것과 고른 것이 위로 올라옵니다. */
+  stack?: { hand: number[]; joker: number[]; item: number[] }
   /** 상점에 놓인 선물. 몇째 칸이고 누가 놓았고 값이 얼마인가. */
-  shopGift?: { slot: number; from: string; cost: number }
+  shopGift?: {
+    slot: number; from: string; cost: number
+    /** 놓은 것의 칩과 값이 차지한 사각형. 겹치면 둘 다 읽히지 않습니다. */
+    chip?: { x: number; y: number; width: number; height: number }
+    price?: { x: number; y: number; width: number; height: number }
+  }
   /** 판이 몇 번 섰는가. */
   cardShows?: number
   /** 판 위로 나와 바뀌는 중인 카드들. */

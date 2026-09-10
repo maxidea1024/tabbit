@@ -159,6 +159,11 @@ export class JokerView extends Container {
    * **팔린 조커는 미끄러져 나가지 않습니다.** 나가는 것은 「치웠다」이고, 판 것은 없앤
    * 것입니다 — 종이가 타는 모습이 그 둘을 가릅니다.
    */
+  /**
+   * 이 딱지가 줄에서 갖는 그리기 차례. 되돌릴 값입니다 — 까닭은 `CardView.rowZ` 와 같습니다.
+   */
+  rowZ = 0
+
   /** 시드는 금. 번지는 동안만 걸립니다. */
   private blight?: BlightFilter
   /** 금이 어디까지 번졌는가. */
@@ -545,6 +550,7 @@ export class JokerView extends Container {
     const want = lifts ? 1.1 : 1
     if (Math.abs(this.motion.scale.target - want) > 0.001) this.motion.scale.target = want
     this.scale.set(this.motion.scale.value)
-    this.zIndex = this.hovered ? 300 : 0
+    // **겹치는 차례는 줄이 정합니다.** 까닭은 `CardView` 와 같습니다 — 여기서는 가리킨
+    // 것만 올렸으므로 고른 딱지가 올라오지 않았습니다.
   }
 }

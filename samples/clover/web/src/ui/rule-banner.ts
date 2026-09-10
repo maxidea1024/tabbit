@@ -61,6 +61,8 @@ export class RuleBanner extends Container {
   private life = 0
   /** 판의 세로 길이. `Container.height` 와 겹치지 않게 따로 셉니다. */
   private tall = 0
+  /** 머리글에 적은 것. 검증 도구가 묻는 값입니다. */
+  private headText = ''
   private showing = false
 
   constructor() {
@@ -85,6 +87,7 @@ export class RuleBanner extends Container {
     let y = PAD
 
     // 머리글 — 무엇이 걸었는가. **없으면 두지 않습니다.**
+    this.headText = from ?? ''
     if (from !== undefined && from !== '') {
       const head = new Text({
         text: from,
@@ -152,6 +155,11 @@ export class RuleBanner extends Container {
    */
   dismiss(): void {
     this.showing = false
+  }
+
+  /** 머리글에 적힌 것. */
+  get head(): string {
+    return this.headText
   }
 
   /** 서 있는가. 다른 것이 그 자리를 쓰려면 물어야 합니다. */

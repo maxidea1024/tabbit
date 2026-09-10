@@ -147,9 +147,15 @@ async function main(): Promise<number> {
     Math.abs(one.x - last.x) < 2 && Math.abs(one.y - last.y) < 2)
   console.log(flashed ? '제 칸에 먼저 한 번 보였습니다' : '제 칸에 먼저 보이지 않습니다')
 
+  // **한 번만 잡아야 합니다.** 상점과 팩은 자기가 오는 길을 잡고 박자도 그 붙듦을 자기
+  // 것으로 알아서 한 번 더 잡았습니다 — 소모품이 왼쪽에서 미끄러져 자리를 잡다가 사라지고
+  // 그다음에 산 것이 다시 날아왔습니다.
+  const asked = (await peek(page)).flyAsked ?? 0
+  console.log('자리를 잡아 준 횟수', asked, '(하나를 샀으므로 1이어야 합니다)')
+
   await browser.close()
   await server.close()
-  const good = moves >= 4 && !flashed
+  const good = moves >= 4 && !flashed && asked === 1
   console.log(good ? '오는 길이 보입니다' : '툭 나타납니다')
   return good ? 0 : 1
 }

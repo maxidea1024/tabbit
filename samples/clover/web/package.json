@@ -21,6 +21,7 @@
     "check:boss-cast": "tsx tools/check-boss-cast.ts",
     "check:joker-cast": "tsx tools/check-joker-cast.ts",
     "check:shop-gift": "tsx tools/check-shop-gift.ts",
+    "check:stack": "tsx tools/check-stack.ts",
     "check:made-item": "tsx tools/check-made-item.ts",
     "check:rule-banner": "tsx tools/check-rule-banner.ts",
     "check:act-beat": "tsx tools/check-act-beat.ts",

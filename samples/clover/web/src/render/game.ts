@@ -66,7 +66,7 @@ import { bakeCardFaces, cardFaceBakes, forgetCardFaces } from './card-face'
 import {
   blindFace, editionLookOf, faceEdition, faceOf, itemFace, kindName, MINI_RANK, packBlurb,
   packFace, packInk,
-  packInkLit, packName, shopLabel, SUIT_PIP, tagFace, voucherFace,
+  giftChip, packInkLit, packName, shopLabel, SUIT_PIP, tagFace, voucherFace,
 } from './faces'
 import { cardArtId, drawFace } from './pips'
 import { burst, groove, insetRadius, mix, slotStyle } from './skin'
@@ -470,6 +470,8 @@ const CELL_GAP = 12
 const GROUP_GAP = 20
 /** 물건이 칸에 내려와 앉는 거리. 위에서 옵니다 — 진열하는 손이 위에서 내려놓는 것입니다. */
 const STOCK_DROP = 22
+/** 놓아 둔 것의 칩 크기. 카드의 오른쪽 위 모서리에 걸칩니다. */
+const GIFT_CHIP = 26
 
 /**
  * 값을 바꾸는 연산의 이름.
@@ -606,6 +608,18 @@ const EMBER = 0xff8c2e
 const ROW_Z = 10
 /** 끄는 동안 들어 올리는 자리. **줄의 어느 것보다 위, 낸 카드보다 아래입니다.** */
 const DRAG_Z = 90
+/**
+ * 고른 것과 가리킨 것의 그리기 차례.
+ *
+ * **줄이 차면 겹칩니다.** 손패는 9장부터, 조커와 소모품은 자리가 좁아지면 겹치는데 그때
+ * 겹치는 차례는 발동하는 차례입니다 — 가리킨 것과 고른 것은 그 위로 올라와야 무엇을
+ * 가리키고 무엇을 고른 것인지 보이고, 떼면 줄의 차례로 돌아와야 합니다.
+ *
+ * **가리킨 것이 고른 것보다 위입니다.** 고른 것이 위에 굳어 있으면 그 뒤의 것을 가리켜도
+ * 가려집니다 — 지금 보려는 것이 언제나 위입니다.
+ */
+const PICK_Z = 60
+const HOVER_Z = 70
 /**
  * 펼친 팩의 카드가 서는 자리.
  *
@@ -1462,6 +1476,9 @@ export class Game {
   /** 판이 몇 번 섰는가. 검증 도구가 「한 번도 서지 않았다」를 가르는 값입니다. */
   private cardShowCount = 0
 
+  /** 선물 칸의 칩과 값. **겹치지 않는지를 도구가 봅니다.** */
+  private giftMark?: { chip: Container; price: Container }
+
   /**
    * 화면이 그린 박자들. **새것이 뒤입니다.**
    *
@@ -1608,6 +1625,8 @@ export class Game {
     /** 이 칸의 제자리. 들리는 것과 오는 것이 이 자리를 기준으로 얹힙니다. */
     baseX: number
     baseY: number
+    /** 이 칸이 줄에서 갖는 그리기 차례. 가리키던 커서를 떼면 돌아갈 값입니다. */
+    rowZ: number
   }[] = []
   /**
    * 타고 있는 소모품.
@@ -2240,7 +2259,14 @@ export class Game {
    * 놓여 있고, 다시 그려도 있는 것을 지우지는 않습니다. **사는 것은 줄의 끝에 붙으므로** 갈래와
    * 시각만 있으면 되고, 그 표시는 액션보다 먼저 세울 수 있습니다.
    */
-  private arriveHold?: { kind: 'joker' | 'item'; until: number }
+  /**
+   * 산 물건이 제 칸에 서는 것을 미루는 것.
+   *
+   * **누가 붙들었는지가 함께 적힙니다.** 상점과 팩은 자기가 붙들고 자기가 날리는데, 박자도
+   * 그 붙듦을 보고 「내 것」으로 알아서 한 번 더 날렸습니다 — 소모품이 왼쪽에서 미끄러져
+   * 자리를 잡다가 사라지고, 그다음에 산 것이 다시 날아왔습니다.
+   */
+  private arriveHold?: { kind: 'joker' | 'item'; until: number; byBeat?: boolean }
 
   /**
    * 소모품이 오는 길을 누가 드는가.
@@ -4577,7 +4603,7 @@ export class Game {
         && step.events.some(event => event.t === 'ConsumableAdded')) {
       // **넉넉한 천장입니다.** 박자가 이것을 걷으므로 이 값에 닿는 것은 박자가 오지 않은
       // 때뿐이고, 그때는 붙든 채로 두는 것보다 그냥 세우는 것이 낫습니다.
-      this.arriveHold = { kind: 'item', until: this.clock + 4 }
+      this.arriveHold = { kind: 'item', until: this.clock + 4, byBeat: true }
     }
     this.announce(step.events)
     this.startTimeline(step.events)
@@ -5531,8 +5557,10 @@ export class Game {
       case 'RunTriggered': {
         // 덱·바우처·보스가 한 것. **임자가 판돈 딱지입니다.**
         if (!VALUE_OPS.has(event.op)) {
+          // **표 이름이 열쇠의 앞 토막입니다.** `blind.` 하나로 짐작해 두었더니 보스와
+          // 바우처와 덱이 다 그 앞 토막을 가지지 않아, 없는 열쇠가 화면에 그대로 떴습니다.
           this.showAct(event.op, this.badgeMiddle(), beat.intensity,
-            this.localized(`blind.${event.owner}.name`) ?? undefined)
+            this.ownerName(event.source, event.owner))
           break
         }
         const mul = event.op === 'MulMult'
@@ -5757,7 +5785,9 @@ export class Game {
       // 소모품 하나가 생겼습니다. **누가 만들었는지의 자리에서 옵니다** — 상점과 팩은
       // 자기가 들므로 여기 오지 않습니다.
       case 'ConsumableAdded': {
-        if (this.arriveHold?.kind !== 'item') break
+        // **박자가 붙든 것만 박자가 놓습니다.** 상점과 팩이 붙든 것을 여기서 놓으면 같은
+        // 물건이 두 번 날아옵니다.
+        if (this.arriveHold?.kind !== 'item' || this.arriveHold.byBeat !== true) break
         this.arriveHold = undefined
         this.itemFlying(this.actorAt ?? { x: BOARD_X, y: JOKER_Y })
         this.audio.play('consumable_use', 4)
@@ -5915,8 +5945,14 @@ export class Game {
     const events = beat.rules ?? [beat.event]
     const notes: RuleNote[] = []
 
+    // **머리글은 이벤트가 들고 옵니다.** 앞 박자에서 짐작하면 규칙이 견주어 나오는 자리
+    // — 조커나 바우처를 산 자리 — 에서는 그 앞에 발동 이벤트가 없으므로, 아무 상관 없는
+    // 앞의 이름이 그대로 뜹니다.
+    let from: string | undefined
+
     for (const one of events) {
       if (one.t === 'RuleChanged') {
+        from = from ?? this.keyName(one.from)
         notes.push({
           title: this.ruleName(one.rule),
           change: ruleChange(one),
@@ -5935,7 +5971,7 @@ export class Game {
     }
     if (notes.length === 0) return
 
-    this.ruleBanner.show(notes, this.actorName)
+    this.ruleBanner.show(notes, from ?? this.actorName)
     this.placeRuleBanner()
     // **왼쪽 판의 그 줄이 함께 밝아집니다.**
     //
@@ -6073,10 +6109,9 @@ export class Game {
     const now = this.state.deck.find(card => card.uid === uid)
     if (!now) return
     this.pendingCards.delete(uid)
-    view.turnInto(now, this.editionLook(now.edition))
-    // **갈리는 줄기가 뒤집기와 함께 지나갑니다.** 「왔다」의 번쩍임과 다른 몸짓이어야
-    // 카드가 새로 온 것인지 갈린 것인지 화면에서 갈립니다.
-    view.imprintNow(rgbOf(UI.legendary))
+    // **테는 뒤집기가 스스로 답니다.** 얼굴이 갈리는 그 절반이 그 자리이고, 여기서 함께
+    // 시작하면 아직 앞면인 동안 테가 먼저 붙습니다.
+    view.turnInto(now, this.editionLook(now.edition), rgbOf(UI.legendary))
     this.audio.play('card_flip')
     this.audio.tone('glass', 7, 0.55)
     this.particles.burst(view.x, view.y, 16, UI.legendary, 0.95, 0.85)
@@ -7465,8 +7500,17 @@ export class Game {
       }
     }
 
-    for (const view of this.cards.values()) view.hovered = view === card
-    for (const view of this.jokers.values()) view.hovered = view === joker
+    for (const view of this.cards.values()) {
+      view.hovered = view === card
+      // **겹치는 차례도 커서를 따라갑니다.** 고른 것은 올라온 채로 남고, 가리킨 것은
+      // 가리키는 동안만 올라옵니다 — 떼면 줄의 차례로 돌아갑니다.
+      this.restackRow(view, view.hovered, this.selected.has(view.uid))
+    }
+    for (const view of this.jokers.values()) {
+      view.hovered = view === joker
+      this.restackRow(view, view.hovered,
+        this.held?.kind === 'joker' && this.held.uid === view.uid)
+    }
 
     // **여는 쪽만 커서의 움직임을 묻습니다.** 밑에 아무것도 없으면 커서가 가만히 있어도
     // 닫습니다 — 팔려 없어진 조커의 설명이 화면에 남으면 안 됩니다.
@@ -7501,6 +7545,18 @@ export class Game {
     // 이 프레임의 움직임은 여기서 다 쓰였습니다. **`updateHover` 가 프레임마다 한 번
     // 불리는 유일한 자리이므로** 여기서 내립니다.
     this.pointerMoved = false
+  }
+
+  /**
+   * 줄에 선 것 하나의 겹치는 차례.
+   *
+   * **끌고 있는 것은 건드리지 않습니다** — 그것은 이미 맨 위(`DRAG_Z`)이고, 그 값을
+   * 여기서 되돌리면 끌고 있는 카드가 줄 밑으로 들어갑니다.
+   */
+  private restackRow(view: { zIndex: number; rowZ: number }, hovered: boolean,
+                     picked: boolean): void {
+    if (view.zIndex === DRAG_Z) return
+    view.zIndex = hovered ? HOVER_Z : picked ? PICK_Z : view.rowZ
   }
 
   /**
@@ -7647,16 +7703,50 @@ export class Game {
       beats: this.beatLog.slice(),
       // 능력을 빌리는 줄이 그어져 있는가.
       borrowLink: this.borrowLink.visible,
+      // **줄에 선 것들의 겹치는 차례입니다.** 가리킨 것과 고른 것이 위로 올라오는지를
+      // 도구가 이 값으로 봅니다 — 겹침은 그림으로 판정할 수 없습니다.
+      // **줄에 선 차례 그대로입니다.** 표에 담긴 차례로 내면 정렬한 뒤에 배열의 자리와
+      // 화면의 자리가 어긋나, 도구가 「왼쪽부터 오르는가」를 물을 수 없습니다.
+      stack: {
+        hand: this.shown.hand
+          .map(uid => this.cards.get(uid)?.zIndex)
+          .filter((one): one is number => one !== undefined),
+        joker: this.state.jokers
+          .map(one => this.jokers.get(one.uid)?.zIndex)
+          .filter((one): one is number => one !== undefined),
+        item: this.state.consumables
+          .map(one => this.consumableTiles.find(row => row.uid === one.uid)?.tile.zIndex)
+          .filter((one): one is number => one !== undefined),
+      },
       // 상점에 놓인 선물. 몇째 칸이고 누가 놓았고 값이 얼마인가.
-      shopGift: ((): { slot: number; from: string; cost: number } | undefined => {
+      shopGift: ((): {
+        slot: number; from: string; cost: number
+        chip?: { x: number; y: number; width: number; height: number }
+        price?: { x: number; y: number; width: number; height: number }
+      } | undefined => {
         const at = this.state.shop.cards.findIndex(one => one.gift !== undefined)
         const one = at < 0 ? undefined : this.state.shop.cards[at]
-        return one ? { slot: at, from: one.gift ?? '', cost: one.cost } : undefined
+        if (!one) return undefined
+        const mark = this.giftMark
+        const box = (node: Container | undefined) => {
+          if (!node || node.destroyed) return undefined
+          const b = node.getBounds()
+          return {
+            x: Math.round(b.x), y: Math.round(b.y),
+            width: Math.round(b.width), height: Math.round(b.height),
+          }
+        }
+        return {
+          slot: at, from: one.gift ?? '', cost: one.cost,
+          chip: box(mark?.chip), price: box(mark?.price),
+        }
       })(),
       // 판이 몇 번 섰는가. 도구가 「한 번도 서지 않았다」와 「서고 걷혔다」를 가릅니다.
       cardShows: this.cardShowCount,
       // 규칙 알림 판이 차지한 사각형. 떠 있지 않으면 없습니다.
       ruleBanner: bannerBox(this.ruleBanner),
+      // 그 판의 머리글. **없는 열쇠가 그대로 떠 있는지를 도구가 이 값으로 봅니다.**
+      ruleBannerHead: this.ruleBanner.visible ? this.ruleBanner.head : undefined,
       // **판 위로 나와 바뀌는 중인 카드들.** 자리를 도구가 베껴 적지 않도록 화면이 알립니다.
       changeCards: (this.cardShow?.cards ?? [])
         .filter(one => !one.view.destroyed)
@@ -9467,6 +9557,24 @@ export class Game {
     return text(this.data, `rule.${snake(rule)}.name`)
   }
 
+  /**
+   * `<표>.<식별자>` 하나의 이름.
+   *
+   * **없는 열쇠는 비웁니다.** `text` 는 없는 열쇠를 그대로 돌려주므로, 그것을 화면에 쓰면
+   * `voucher.magic_trick.name` 이 머리글에 뜹니다 — 규칙 알림 판이 실제로 그랬습니다.
+   */
+  private keyName(prefix: string): string | undefined {
+    if (prefix === '' || prefix.endsWith('.')) return undefined
+    const key = `${prefix}.name`
+    const found = text(this.data, key)
+    return found === key ? undefined : found
+  }
+
+  /** 그 표의 그 식별자의 이름. 없으면 비웁니다. */
+  private ownerName(source: string, owner: string): string | undefined {
+    return this.keyName(`${source}.${owner}`)
+  }
+
   /** 글 표에 있으면 그 말, 없으면 적힌 그대로. */
   private localized(key: string | undefined): string | undefined {
     if (key === undefined || key === '') return undefined
@@ -10276,7 +10384,9 @@ export class Game {
       if (this.drag?.kind === 'hand' && this.drag.uid === card.uid && this.drag.moved) return
       // **겹치는 차례도 여기서 정합니다.** 손패는 9장부터 서로 겹치므로(간격이 카드보다
       // 좁아집니다) 이 값이 없으면 정렬한 뒤의 겹침이 깔린 순서로 남습니다.
-      view.zIndex = ROW_Z + index
+      view.rowZ = ROW_Z + index
+      view.zIndex = view.hovered ? HOVER_Z
+        : this.selected.has(card.uid) ? PICK_Z : view.rowZ
       // 갓 뽑힌 카드는 **절도 있게** 자리에 붙고, 나머지는 부드럽게 자리를 옮깁니다.
       // 뒤집는 시각은 깔기가 예약한 것입니다. 예약 없이 온 카드(판을 이어서 열 때)는
       // 닿을 즈음에 뒤집힙니다.
@@ -10390,7 +10500,8 @@ export class Game {
       const lifted = view.held ? HELD_RISE : 0
       // 손패와 같습니다 — 줄이 자리를 넘칠 만큼 차면 겹치므로, 겹치는 차례가 발동하는
       // 차례와 같아야 합니다.
-      view.zIndex = ROW_Z + index
+      view.rowZ = ROW_Z + index
+      view.zIndex = view.hovered ? HOVER_Z : view.held ? PICK_Z : view.rowZ
       view.place(spots.startX + index * spots.spacing, JOKER_Y - lifted)
     })
   }
@@ -10557,6 +10668,25 @@ export class Game {
       if (kind === 'joker' || kind === 'consumable') this.audio.play('joker_fizzle')
       return
     }
+
+    // **자리를 비우는 동안에는 누르는 것이 곧 고르는 것입니다.**
+    //
+    // 그 판이 이미 「내놓을 것을 고르십시오」이고, 내놓을 수 있는 것만 들려 있고 나머지는
+    // 물러나 있습니다 — 그 위에서 하나를 누르는 것은 묻고 있는 것에 대한 답이므로, 그 밑에
+    // 단추를 한 번 더 세우고 그것을 누르게 하는 것은 같은 답을 두 번 받는 것입니다.
+    //
+    // **그만두는 길은 그대로 있습니다** — 판의 「그만둔다」이고, 누르기 전이면 언제든
+    // 물러납니다.
+    if (this.focus) {
+      const index = kind === 'joker'
+        ? this.state.jokers.findIndex(one => one.uid === uid)
+        : this.state.consumables.findIndex(one => one.uid === uid)
+      if (index < 0) return
+      this.audio.play('card_select')
+      this.commitFocus(index)
+      return
+    }
+
     this.held = this.held?.kind === kind && this.held.uid === uid
       ? undefined : { kind, uid }
     this.audio.play('card_select')
@@ -10684,9 +10814,10 @@ export class Game {
       const price = sellValueOf(this.data, this.state, this.state.jokers[index])
       // **자리를 비우는 중이면 단추가 하나입니다.** 파는 것과 같은 값이 들어오지만 하는
       // 일은 「이것을 내놓고 그것을 받는다」이므로, 판다가 아니라 그 말로 적습니다.
+      // **자리를 비우는 동안에는 단추가 없습니다.** 누르는 것이 곧 고르는 것이므로
+      // (`pick`), 여기까지 오는 일이 없습니다.
       if (this.focus) {
-        buttons.push(new Button(tf('ui.button.give_up', { n: price }), 118, HELD_H, 'primary',
-          () => this.commitFocus(index)))
+        buttons.length = 0
       } else {
         buttons.push(new Button(tf('ui.button.sell', { n: price }), 92, HELD_H, 'danger', () => {
           this.held = undefined
@@ -10704,9 +10835,7 @@ export class Game {
       anchor = this.itemSpot(index).x
       this.heldNode = this.consumableTiles.find(one => one.uid === held.uid)?.tile
       if (this.focus) {
-        buttons.push(new Button(
-          tf('ui.button.give_up', { n: this.data.economy.sellMin }), 118, HELD_H, 'primary',
-          () => this.commitFocus(index)))
+        buttons.length = 0
       // **「사용」은 손패를 앞에 두었을 때만 놓입니다.** 상점과 블라인드 고르기에서는 팔 수만
       // 있습니다 — 쓸 수 없는 때에 단추가 놓여 있으면 눌러서 카드를 버리게 됩니다.
       //
@@ -11505,6 +11634,8 @@ export class Game {
     }
 
     this.consumableLayer.removeChildren().forEach(child => child.destroy())
+    // **겹치는 차례를 이 층이 정합니다.** 붙인 순서로만 두면 가리킨 칸을 올릴 수 없습니다.
+    this.consumableLayer.sortableChildren = true
     this.consumableTiles.length = 0
     // 없어진 것의 높이는 버립니다.
     for (const uid of [...this.consumableLift.keys()]) {
@@ -11558,11 +11689,32 @@ export class Game {
         if (this.ate()) return
         this.pick('consumable', item.uid)
       })
+      // **겹치는 차례도 커서를 따라갑니다.** 조커 줄과 같은 원리입니다 — 자리가 좁아지면
+      // 칸이 겹치므로, 가리킨 것은 가리키는 동안 올라오고 떼면 줄의 차례로 돌아갑니다.
+      //
+      // **칸은 다시 그릴 때마다 새로 만들어집니다.** 그래서 조커처럼 매 프레임 셈하지 않고
+      // 그 칸이 스스로 듣습니다 — 되돌릴 값은 아래에서 적어 둡니다.
+      tile.on('pointerover', () => {
+        if (tile.destroyed) return
+        tile.zIndex = HOVER_Z
+        this.consumableLayer.sortChildren()
+      })
+      tile.on('pointerout', () => {
+        if (tile.destroyed) return
+        const one = this.consumableTiles.find(row => row.uid === item.uid)
+        tile.zIndex = this.held?.kind === 'consumable' && this.held.uid === item.uid
+          ? PICK_Z : one?.rowZ ?? ROW_Z
+        this.consumableLayer.sortChildren()
+      })
       // **줄에 놓이는 것은 기울기도 따라갑니다.** 옆에 놓인 조커가 커서를 따라 기우는데
       // 소모품만 굳어 있으면 한 줄에 두 가지 규칙이 생깁니다. 칸은 다시 그릴 때마다 새로
       // 만들어지므로 자리는 값 하나로 잡아 둡니다.
       const anchorX = tile.x + SIZE.jokerWidth / 2
-      const entry = { uid: item.uid, tile, baseX: tile.x, baseY: tile.y,
+      // **고른 것은 올라온 채로 남습니다.** 되돌릴 값도 함께 적어 둡니다.
+      const rowZ = ROW_Z + index
+      tile.zIndex = this.held?.kind === 'consumable' && this.held.uid === item.uid
+        ? PICK_Z : rowZ
+      const entry = { uid: item.uid, tile, baseX: tile.x, baseY: tile.y, rowZ,
                       look: this.lookOf(face, () => this.tiltAt(anchorX)) }
       this.consumableTiles.push(entry)
       // **오는 중인 것은 첫 프레임부터 오는 자리에 둡니다.** 칸은 다시 그릴 때마다 새로
@@ -12194,24 +12346,21 @@ export class Game {
     const price = priceText(item.cost, afford)
     price.position.set(CELL_W / 2, CELL_H - 20)
 
-    // **누가 놓아 둔 것인지가 그 칸에 적힙니다.** 태그와 조커가 놓아 둔 것은 값이 0 인
-    // 물건으로만 보였고, 왜 거기 있는지는 화면 어디에도 없었습니다.
+    // **누가 놓아 둔 것인지는 칩 하나입니다. 글이 아닙니다.**
+    //
+    // 칸은 104 × 166 이고 그 안에 88 × 124 카드와 값이 들어갑니다 — 이름이 들어갈 자리가
+    // 없어서, 카드의 아랫변과 값 사이에 적었더니 값과 겹쳤습니다. 말은 쪽지에 두고 칸에는
+    // 놓은 것의 칩을 얹습니다. 태그의 칩은 이미 머리띠에 쓰는 그림이고, 조커는 그 조커의
+    // 그림입니다.
     if (item.gift !== undefined && item.gift !== '') {
-      const giver = new Text({
-        text: nameOf(this.data, 'tag', item.gift,
-          nameOf(this.data, 'joker', item.gift, item.gift)),
-        style: {
-          ...outlined(TEXT.mini - 1, UI.outline),
-          fill: UI.accentTerm, fontWeight: WEIGHT.bold,
-        },
-      })
-      giver.anchor.set(0.5, 0)
-      // 카드의 아랫변과 값 사이입니다. 카드는 8에서 시작해 높이만큼 내려옵니다.
-      giver.position.set(CELL_W / 2, 8 + SIZE.jokerHeight + 1)
-      // **칸보다 길면 줄입니다.** 이름의 길이는 말마다 다르므로 잘라 두면 어느 말에서만
-      // 잘립니다.
-      if (giver.width > CELL_W - 8) giver.scale.set((CELL_W - 8) / giver.width)
-      lift.addChild(giver)
+      const chip = giftChip(item.gift, GIFT_CHIP)
+      // 카드의 오른쪽 위 모서리에 걸칩니다. **카드 위입니다** — 칸의 여백에 두면 무엇에
+      // 딸린 것인지가 끊깁니다.
+      chip.position.set(CELL_W - (CELL_W - SIZE.jokerWidth) / 2 - GIFT_CHIP + 3, 5)
+      lift.addChild(chip)
+      // **값과 겹치지 않는지를 도구가 숫자로 봅니다.** 눈으로만 보던 자리이고, 글로 적었을
+      // 때 실제로 값과 겹쳐 있었습니다.
+      this.giftMark = { chip, price }
     }
 
     // **자리가 없다는 것은 적지 않습니다.** 사면 무엇과 바꿀지 고르는 화면이 서고 그것이
@@ -12247,7 +12396,8 @@ export class Game {
       this.pick('shop', slot)
     })
     this.tipOn(tile, at => {
-      this.tooltip.show(name, kindName(item.kind), rarity, lines, at, SIZE, item.cost)
+      this.tooltip.show(name, kindName(item.kind), rarity,
+        [...lines, ...this.giftLine(item.gift)], at, SIZE, item.cost)
     })
     this.reveal(tile)
     return () => {
@@ -13647,6 +13797,17 @@ export class Game {
       case ShopItemKind.Spectral: return this.consumableLines(3, item.id)
       default: return []
     }
+  }
+
+  /**
+   * 놓아 둔 것의 이름 한 줄. **쪽지에 들어갑니다.**
+   *
+   * 칸에는 칩만 얹습니다 — 그 칸에 이름이 들어갈 자리가 없습니다.
+   */
+  private giftLine(gift: string | undefined): string[] {
+    const name = gift === undefined || gift === '' ? undefined
+      : this.keyName(`tag.${gift}`) ?? this.keyName(`joker.${gift}`)
+    return name === undefined ? [] : [tf('ui.shop.gift', { name })]
   }
 }
 

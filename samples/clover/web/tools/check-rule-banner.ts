@@ -79,6 +79,7 @@ async function main(): Promise<number> {
   await clickSpot(page, 'voucher')
 
   let box: { x: number; y: number; width: number; height: number } | undefined
+  let head: string | undefined
   let seen = 0
   const heard = new Set<string>()
   for (let i = 0; i < 100; i++) {
@@ -86,6 +87,7 @@ async function main(): Promise<number> {
     if (now.ruleBanner) {
       seen++
       box = box ?? now.ruleBanner
+      head = head ?? now.ruleBannerHead
     }
     for (const cue of now.sounds ?? []) heard.add(cue)
     await pass(page, 40)
@@ -101,8 +103,14 @@ async function main(): Promise<number> {
   const middle = box !== undefined && Math.abs(box.x + box.width / 2 - 782) <= 40
   console.log('  손패 위에 섰는가', above, '· 가운데인가', middle)
 
+  // **머리글이 이름이어야 합니다.** 없는 열쇠는 `text` 가 그대로 돌려주므로, 짐작한 앞
+  // 토막을 쓰면 `voucher.magic_trick.name` 이 판에 그대로 떴습니다.
+  const named = head !== undefined && head !== '' && !head.includes('.name')
+    && !/^[a-z_]+\.[a-z_]+$/.test(head)
+  console.log('  머리글', JSON.stringify(head ?? null), '· 이름인가', named)
+
   const good = quiet.ruleBanner === undefined && seen > 0 && above && middle
-    && after.ruleBanner === undefined && levelled
+    && named && after.ruleBanner === undefined && levelled
   console.log(good ? '규칙 변경이 판으로 뜹니다' : '어긋납니다')
 
   await browser.close()
