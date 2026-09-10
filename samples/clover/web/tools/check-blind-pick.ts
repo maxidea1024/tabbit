@@ -19,7 +19,7 @@ import { fileURLToPath } from 'url'
 import { chromium, type Page } from 'playwright'
 import { createServer } from 'vite'
 import {
-  at, clickSpot, grantJoker, openRun, pass, peek, shopStanding, skipLogin, winRound,
+  at, clickSpot, grantJoker, openRun, pass, peek, settle, shopStanding, skipLogin, winRound,
 } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -71,7 +71,12 @@ async function leaveShop(page: Page): Promise<void> {
   await shopStanding(page)
   for (let tries = 0; tries < 30; tries++) {
     await pass(page, 300)
-    await clickSpot(page, 'nextBlind')
+    // **자리가 없으면 그냥 다시 돕니다.** 던지면 무엇이 어떤 상태였는지가 남지 않고,
+    // 판이 아직 올라오는 중인 것과 영영 서지 않는 것이 같은 오류가 됩니다.
+    const here = (await peek(page)).spots?.nextBlind
+    if (!here) continue
+    const at2 = await at(page, here.x, here.y)
+    await page.mouse.click(at2.x, at2.y)
     if ((await peek(page)).phase !== 'shop') return
   }
   throw new Error(`상점을 나서지 못했습니다 — ${await where(page)}`)
@@ -115,6 +120,10 @@ async function main(): Promise<number> {
   check(skipped.ms >= 400, `건너뛰기 연출이 끝난 뒤에 섭니다 (${skipped.ms}ms)`)
 
   // 3. 박자 하나짜리 조커. 전에는 여기서 판이 뜨지 않았습니다.
+  // **고르기 전에 연출이 끝나기를 기다립니다.** 도는 중에 누르면 `act` 가 그 누름을
+  // 버리고, 버렸다는 것은 화면 어디에도 적히지 않습니다 — 판이 선 것과 누를 수 있는 것은
+  // 다른 순간이고, 이 게이트가 재는 것은 앞엣것입니다.
+  await settle(page)
   await clickSpot(page, 'pick')
   await pass(page, 1500)
   await winRound(page)
@@ -127,6 +136,7 @@ async function main(): Promise<number> {
   if (one.ms < 0) console.log('    ', await where(page))
 
   // 4. 박자 둘과 동전. 동전이 닿은 뒤에 서야 합니다.
+  await settle(page)
   await clickSpot(page, 'pick')
   await pass(page, 1500)
   await winRound(page)

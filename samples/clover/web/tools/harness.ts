@@ -53,6 +53,17 @@ export interface Peek {
   packCards?: number
   /** 덱이 팩의 카드를 받으려고 나와 있는가. */
   deckPeek?: boolean
+  /** 규칙 알림 판이 차지한 사각형. 떠 있지 않으면 없습니다. */
+  ruleBanner?: { x: number; y: number; width: number; height: number }
+  /** 지금 시드는 중인 카드와 딱지의 수. */
+  withering?: number
+  /** 화면이 그린 박자들. 새것이 뒤입니다. */
+  beats?: string[]
+  /** 판이 몇 번 섰는가. */
+  cardShows?: number
+  /** 판 위로 나와 바뀌는 중인 카드들. */
+  changeCards?: { uid: number; kind: string; x: number; y: number
+                  to?: number; borrowed?: boolean }[]
   /** 연출의 시계. 초입니다. */
   clock: number
   phase: string
@@ -481,6 +492,35 @@ export async function grantTag(page: Page, tagId: string): Promise<void> {
   }, tagId)
 }
 
+/**
+ * 상점의 첫 카드 칸을 플레잉 카드로 바꿉니다. **개발 서버에서만 됩니다.**
+ *
+ * 그 칸은 `ShopAllowsPlayingCards` 를 켜는 것을 들고 있어야 나오고, 무엇이 그것을 켜는지도
+ * 언제 나오는지도 시드가 정하므로 도구가 고를 수 없습니다.
+ */
+export async function stockPlayingCard(page: Page, cardId?: string): Promise<void> {
+  await page.evaluate(id => {
+    const hook = (window as unknown as {
+      __clover: { stockPlayingCard?(cardId?: string): void }
+    }).__clover
+    hook.stockPlayingCard?.(id)
+  }, cardId)
+}
+
+/**
+ * 이번 안테의 보스를 지목합니다. **개발 서버에서만 됩니다.**
+ *
+ * 어느 보스가 오는지는 시드가 정하므로, 보스가 거는 것을 확인하려면 이 자리가 필요합니다.
+ */
+export async function forceBoss(page: Page, bossId: string): Promise<void> {
+  await page.evaluate(id => {
+    const hook = (window as unknown as {
+      __clover: { forceBoss?(bossId: string): void }
+    }).__clover
+    hook.forceBoss?.(id)
+  }, bossId)
+}
+
 /** 돈을 그냥 놓습니다. **개발 서버에서만 됩니다.** */
 export async function grantMoney(page: Page, amount: number): Promise<void> {
   await page.evaluate(many => {
@@ -489,6 +529,21 @@ export async function grantMoney(page: Page, amount: number): Promise<void> {
     }).__clover
     hook.grantMoney?.(many)
   }, amount)
+}
+
+/**
+ * 소모품 하나를 지목해 놓습니다. **개발 서버에서만 됩니다.**
+ *
+ * 어느 소모품이 오는지는 시드가 정하므로, 지목한 하나가 하는 일을 보려면 이 자리가
+ * 필요합니다.
+ */
+export async function grantConsumableId(page: Page, id: string): Promise<void> {
+  await page.evaluate(one => {
+    const hook = (window as unknown as {
+      __clover: { grantConsumableId?(id: string): void }
+    }).__clover
+    hook.grantConsumableId?.(one)
+  }, id)
 }
 
 /** 소모품을 그냥 놓습니다. **개발 서버에서만 됩니다.** */
