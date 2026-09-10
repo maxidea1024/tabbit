@@ -247,7 +247,9 @@ export function newRun(data: Data, seed: string, deckId: string, stake: string,
 
   const vm = newVm(data, state)
   runTrigger(vm, Trigger.OnRunStart)
-  rebuildRules(vm)
+  // **판을 여는 것은 규칙이 바뀌는 것이 아닙니다.** 덱과 챌린지가 거는 것으로 시작하는
+  // 것이므로, 견주면 그 전부가 「방금 바뀐 것」이 됩니다.
+  rebuildRules(vm, true)
   pickBoss(vm)
   rollTagOffer(data, state)
   state.target = blindTarget(vm)
@@ -269,13 +271,19 @@ export function newRun(data: Data, seed: string, deckId: string, stake: string,
  * 3. 지금 있는 것들의 `Passive` — 덱 · 바우처 · 보스 · 조커 · 태그
  * 4. 이번 라운드에만 걸린 것
  */
-export function rebuildRules(vm: Vm): void {
+export function rebuildRules(vm: Vm, quiet = false): void {
   const state = vm.state
   state.rules = defaultRules(vm.data)
   applyStake(vm)
 
   // **다시 세우는 동안에는 아무것도 적지 않습니다.** 그러지 않으면 다시 얹는 것이 그때마다
   // 목록에 한 줄씩 더해져 규칙이 걸릴수록 불어납니다.
+  // **앞뒤를 견주어 실제로 달라진 것만 냅니다.** 다시 세우는 것은 걸려 있는 것을 전부
+  // 처음부터 다시 얹는 일이므로, 얹을 때마다 알리면 조커 하나를 사는 것이 규칙 수십 개가
+  // 바뀐 것이 됩니다 — 그러면서도 `Passive` 로만 걸리는 규칙은 여기 말고 알릴 자리가
+  // 없습니다. 견주는 것이 그 둘을 함께 풉니다.
+  const was = { ...state.rules }
+
   vm.rebuilding = true
   for (const delta of state.ruleDeltas) {
     changeRule(vm, delta.rule as RuleKind, delta.value, delta.absolute, [])
@@ -285,6 +293,27 @@ export function rebuildRules(vm: Vm): void {
     changeRule(vm, delta.rule as RuleKind, delta.value, delta.absolute, [])
   }
   vm.rebuilding = false
+
+  if (!quiet) reportRuleDiff(vm, was, state.rules)
+}
+
+/**
+ * 다시 세운 결과가 이전과 다른 것들.
+ *
+ * 판을 처음 열 때는 부르는 쪽이 `quiet` 로 끕니다.
+ */
+function reportRuleDiff(vm: Vm, was: Rules, now: Rules): void {
+  const keys = Object.keys(now) as (keyof Rules)[]
+  for (const key of keys) {
+    if (was[key] === now[key]) continue
+    vm.events.push({
+      t: 'RuleChanged',
+      rule: key,
+      before: Number(was[key]),
+      after: Number(now[key]),
+      flag: typeof now[key] === 'boolean',
+    })
+  }
 }
 
 /** 스테이크가 더하는 규칙. 표의 값이 그 스테이크에서의 최종값입니다. */

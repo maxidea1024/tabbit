@@ -319,6 +319,23 @@ export type GameEvent =
   | { t: 'PackOpened'; packId: string }
   | { t: 'PackClosed' }
   | { t: 'JokerDestroyed'; uid: number; jokerId: string }
+  /** 조커의 판(에디션)이 갈렸습니다. */
+  | { t: 'JokerModified'; uid: number; jokerId: string; edition: number }
+  /** 조커 하나가 다른 조커의 능력을 빌립니다. */
+  | { t: 'JokerCopied'; uid: number; jokerId: string; fromUid: number; fromJokerId: string }
+  /** 조커 하나가 이번 판 동안 꺼졌습니다. **보스가 겁니다.** */
+  | { t: 'JokerDisabled'; uid: number; jokerId: string }
+  /** 조커의 차례가 섞였습니다. **섞은 뒤의 차례입니다.** */
+  | { t: 'JokersShuffled'; uids: number[] }
+  /**
+   * 카드들이 무력해졌습니다. **보스가 겁니다.**
+   *
+   * 어느 카드인지가 담깁니다 — 무늬 하나만 거는 보스가 있어서, 수만 알리면 화면이 어느
+   * 장을 표시할지 알 수 없습니다.
+   */
+  | { t: 'CardsDebuffed'; uids: number[] }
+  /** 손패의 카드들이 엎어졌습니다. **보스가 겁니다.** */
+  | { t: 'CardsHidden'; uids: number[] }
   | { t: 'ConsumableAdded'; uid: number; id: string }
   | { t: 'ConsumableUsed'; id: string }
   | { t: 'HandLevelled'; hand: PokerHandKind; level: number }

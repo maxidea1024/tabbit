@@ -306,6 +306,11 @@ function changeRule(vm: Vm, rule: RuleKind, value: number, absolute: boolean,
   // 이름으로 글과 단위를 찾고, 쪽지가 `RuleKind` 의 이름으로 알리면 같은 규칙이 두 이름을
   // 가지게 됩니다 — `BlindSizeScale` 과 `blindSizeScaleBp` 가 그렇게 갈라져 있었습니다.
   // 값을 남기지 않는 규칙만 `RuleKind` 의 이름입니다. 그것들은 `Rules` 에 필드가 없습니다.
+  // **다시 세우는 동안에는 알리지 않습니다.** 규칙을 다시 세우는 것은 지금 걸려 있는 것을
+  // 전부 처음부터 다시 얹는 일이라, 그때마다 알리면 조커 하나를 사는 것이 규칙 수십 개가
+  // 바뀐 것이 됩니다 — 실제로 달라진 것은 `rebuildRules` 가 앞뒤를 견주어 냅니다.
+  if (vm.rebuilding) return
+
   vm.events.push({
     t: 'RuleChanged',
     rule: moved ?? RuleKind[rule],
@@ -505,11 +510,64 @@ export function apply(vm: Vm, row: EffectRow, host: EffectHost): void {
 
   // 이 효과가 낸 이벤트가 시작하는 자리. `report` 가 「누가 했는가」를 여기에 끼웁니다.
   const outer = vm.mark
-  vm.mark = vm.events.length
+  const outerReported = vm.reported
+  const outerChanged = vm.changed
+  const began = vm.events.length
+  vm.mark = began
+  vm.reported = false
+  vm.changed = false
 
   runOp(vm, row, host, op, state)
 
+  // **값을 바꾸지 않은 효과도 누가 했는지를 냅니다.**
+  //
+  // `report` 를 부르는 자리는 값을 바꾸는 연산 7가지뿐이었습니다. 그래서 카드를 만들고
+  // 부수고 바꾸고 규칙을 거는 조커는 발동해도 이벤트를 하나도 내지 않았고, 화면은 받을
+  // 것이 없으므로 딱지가 흔들리지도 글이 뜨지도 않았습니다 — 발동하는 조커 439종 중
+  // 113종이 그랬습니다.
+  //
+  // **무엇이 바뀌었는지는 연산이 낸 이벤트에 있고, 여기서 내는 것은 「누가」입니다.** 값은
+  // 셋 다 0 이고 `op` 에 무엇을 한 것인지가 담깁니다 — `GrowSelf` 가 이미 그 모양입니다.
+  //
+  // 셋을 걸러 냅니다. 규칙을 다시 세우는 동안은 발동이 아니고(`rebuilding`), 계속 걸려
+  // 있는 것도 발동이 아니며(`Passive`), **아무것도 바꾸지 못한 것도 발동이 아닙니다** —
+  // 부술 조커가 없는데 부수는 효과가 돌면 상태는 그대로이고, 그때 알리면 화면에 이유 없는
+  // 몸짓이 하나 납니다.
+  if (!vm.reported && !vm.rebuilding && row.trigger !== Trigger.Passive
+      && !OWN_BEAT.has(op.kind)
+      && (didChange(vm) || vm.events.length > began)) {
+    report(vm, row, host, actName(op), 0, 0, 0)
+  }
+
   vm.mark = outer
+  vm.reported = outerReported
+  vm.changed = outerChanged
+}
+
+/**
+ * 자기 박자를 이미 가진 연산들.
+ *
+ * **두 번 알리지 않습니다.** 재발동은 `Retriggered` 가, 금액은 `MoneyChanged` 가 그
+ * 순간을 이미 그립니다 — 그 위에 「누가 했는가」를 하나 더 얹으면 같은 일이 화면에 두 번
+ * 일어난 것으로 보이고, 값을 낸 것도 아닌데 값의 가락에 한 음이 얹힙니다.
+ */
+const OWN_BEAT: ReadonlySet<string> = new Set([
+  'OpRetrigger', 'OpSetMoney', 'OpMulMoney',
+])
+
+/**
+ * 이 연산이 상태를 바꾸었는가.
+ *
+ * **함수로 묻습니다.** `vm.changed = false` 를 적은 자리에서 그대로 읽으면 타입이 `false`
+ * 로 좁혀져, 연산이 그것을 참으로 바꾸는 것을 컴파일러가 알지 못합니다.
+ */
+function didChange(vm: Vm): boolean {
+  return vm.changed === true
+}
+
+/** 연산의 이름에서 `Op` 를 뗀 것. 값 연산이 쓰는 이름과 같은 표기입니다. */
+function actName(op: Operation): string {
+  return op.kind.startsWith('Op') ? op.kind.slice(2) : op.kind
 }
 
 function runOp(vm: Vm, row: EffectRow, host: EffectHost, op: Operation,
@@ -723,7 +781,13 @@ function runOp(vm: Vm, row: EffectRow, host: EffectHost, op: Operation,
 
     case 'OpModifyJoker':
       for (const joker of jokerTargets(vm, row, host)) {
+        const before = joker.edition
         joker.edition = op.random ? randomEdition(vm) : op.edition
+        if (joker.edition === before) continue
+        vm.events.push({
+          t: 'JokerModified', uid: joker.uid, jokerId: joker.jokerId,
+          edition: joker.edition,
+        })
       }
       break
 
@@ -740,6 +804,22 @@ function runOp(vm: Vm, row: EffectRow, host: EffectHost, op: Operation,
       if (!source) break
       // 복사는 그 자리에서 능력을 빌리는 것이므로, 상태를 복제하지 않고 임자만 바꿉니다.
       vm.copyTarget = source
+      // **계속 걸려 있는 것은 알리지 않습니다.**
+      //
+      // 능력을 빌리는 것은 순간이 아니라 상태입니다 — `Passive` 로 걸린 것은 규칙을 다시
+      // 세울 때마다 돌고 그 조커의 효과를 모을 때마다 다시 돕니다. 그때마다 알리면 한
+      // 라운드에 「빌렸다」가 수십 번이고, 그중 어느 것도 지금 일어난 일이 아닙니다.
+      //
+      // **그 자리에 알릴 것이 없는 것은 아닙니다** — 빌리고 있다는 것은 딱지에 계속
+      // 나타나야 하는 것이고, 그것은 박자가 아니라 그림입니다.
+      if (host.joker && !vm.rebuilding && row.trigger !== Trigger.Passive) {
+        vm.events.push({
+          t: 'JokerCopied',
+          uid: host.joker.uid, jokerId: host.joker.jokerId,
+          fromUid: source.uid, fromJokerId: source.jokerId,
+        })
+      }
+      vm.changed = true
       break
     }
 
@@ -747,17 +827,27 @@ function runOp(vm: Vm, row: EffectRow, host: EffectHost, op: Operation,
       const cards = op.debuff === DebuffKind.AllCards
         ? state.deck
         : state.deck.filter(card => matchesDebuff(vm, card, op.debuff, op.suit || undefined))
-      for (const card of cards) card.debuffed = true
+      const hit: number[] = []
+      for (const card of cards) {
+        if (card.debuffed) continue
+        card.debuffed = true
+        hit.push(card.uid)
+      }
       state.bossTriggeredThisHand = true
+      // **어느 카드가 무력해졌는지가 담깁니다.** 무늬 하나만 거는 보스가 있어서, 수만
+      // 알리면 화면이 어느 장을 표시할지 알 수 없습니다.
+      if (hit.length > 0) vm.events.push({ t: 'CardsDebuffed', uids: hit })
       break
     }
 
     case 'OpDisableBoss':
       state.bossDisabled = true
+      vm.changed = true
       break
 
     case 'OpPreventLoss':
       vm.lossPrevented = true
+      vm.changed = true
       break
 
     case 'OpChangeRule':
@@ -788,6 +878,7 @@ function runOp(vm: Vm, row: EffectRow, host: EffectHost, op: Operation,
     }
 
     case 'OpShopGift':
+      vm.changed = true
       vm.shopGifts.push({
         create: op.create,
         rarity: op.rarity || undefined,
@@ -799,41 +890,63 @@ function runOp(vm: Vm, row: EffectRow, host: EffectHost, op: Operation,
 
     case 'OpDuplicateNextTag':
       state.duplicateNextTag = true
+      vm.changed = true
       break
 
     case 'OpRerollBoss':
       vm.rerollBoss = true
+      vm.changed = true
       break
 
     case 'OpForceDiscard': {
       const held = state.hand.map(uid => cardOf(vm, uid))
+      const taken: number[] = []
       for (const card of pickMany(vm, held, op.count)) {
         state.hand = state.hand.filter(uid => uid !== card.uid)
         state.discarded.push(card.uid)
+        taken.push(card.uid)
       }
       state.bossTriggeredThisHand = true
+      // **버리는 것과 같은 이벤트입니다.** 손에서 빠져 나가는 것이므로 화면이 하는 일이
+      // 같고, 갈래를 나누면 같은 몸짓을 두 곳에 적게 됩니다.
+      if (taken.length > 0) vm.events.push({ t: 'HandDiscarded', uids: taken })
       break
     }
 
     case 'OpDrawFaceDown': {
       const cards = state.hand.map(uid => cardOf(vm, uid))
       const cardClass = op.cardClass
+      const hidden: number[] = []
       for (const card of cards) {
         if (cardClass === CardClass.Face && !isFace(card, state.rules)) continue
+        if (card.faceDown) continue
         card.faceDown = true
+        hidden.push(card.uid)
       }
       state.bossTriggeredThisHand = true
+      // **어느 카드가 엎어졌는지가 담깁니다.** 손패 전체가 엎어지는 보스도 있고 그림 카드만
+      // 엎는 보스도 있어서, 수만 알리면 화면이 어느 장을 뒤집을지 알 수 없습니다.
+      if (hidden.length > 0) vm.events.push({ t: 'CardsHidden', uids: hidden })
       break
     }
 
     case 'OpFlipJokers':
-      state.rng.Boss.shuffle(state.jokers)
+      if (state.jokers.length > 1) {
+        state.rng.Boss.shuffle(state.jokers)
+        // 섞은 뒤의 차례입니다. 화면이 이 차례로 딱지를 옮깁니다.
+        vm.events.push({
+          t: 'JokersShuffled', uids: state.jokers.map(joker => joker.uid),
+        })
+      }
       state.bossTriggeredThisHand = true
       break
 
     case 'OpDisableRandomJoker': {
       const pick = pickMany(vm, state.jokers.slice(), 1)[0]
-      if (pick) pick.disabled = true
+      if (pick) {
+        pick.disabled = true
+        vm.events.push({ t: 'JokerDisabled', uid: pick.uid, jokerId: pick.jokerId })
+      }
       state.bossTriggeredThisHand = true
       break
     }
@@ -962,6 +1075,7 @@ function report(vm: Vm, row: EffectRow, host: EffectHost, op: string,
   if (event === undefined) return
   if (event.t === 'CardScored' && event.uid === 0) return
 
+  vm.reported = true
   vm.events.splice(vm.mark ?? vm.events.length, 0, event)
 }
 
