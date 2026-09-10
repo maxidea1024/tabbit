@@ -13,6 +13,7 @@ import { tf } from '../core/strings'
 import { EditionKind } from '../generated/enums/edition-kind'
 import type { JokerInstance } from '../core/state'
 import { DissolveFilter } from '../shader/dissolve'
+import { BlightFilter } from '../shader/blight'
 import { ArriveFilter } from '../shader/arrive'
 import { EDITION_SHADER, EditionFilter, type EditionLook } from '../shader/editions'
 import { insetRadius } from './skin'
@@ -158,6 +159,10 @@ export class JokerView extends Container {
    * **팔린 조커는 미끄러져 나가지 않습니다.** 나가는 것은 「치웠다」이고, 판 것은 없앤
    * 것입니다 — 종이가 타는 모습이 그 둘을 가릅니다.
    */
+  /** 시드는 금. 번지는 동안만 걸립니다. */
+  private blight?: BlightFilter
+  /** 금이 어디까지 번졌는가. */
+  private blighting?: number
   private dissolve?: DissolveFilter
   private burn = 0
   private burning = false
@@ -359,7 +364,24 @@ export class JokerView extends Container {
     this.body.filters = onBody
     const onSheet: Filter[] = []
     if (this.arrive) onSheet.push(this.arrive)
+    // 시드는 금은 맨 위입니다. 무늬 위를 지나가야 그 딱지에서 일어난 일로 보입니다.
+    if (this.blight) onSheet.push(this.blight)
     this.sheet.filters = onSheet
+  }
+
+  /**
+   * 무력해집니다. **보스가 조커 하나를 끄는 것이 이 자리입니다.**
+   *
+   * 카드가 죽는 것과 같은 몸짓이고 같은 셰이더입니다 — 꺼진 딱지가 옅어져 있는 것은
+   * 그 뒤의 모습이고, 여기서 보이는 것은 그렇게 되는 순간입니다.
+   */
+  wither(): void {
+    if (this.burning) return
+    this.blight ??= new BlightFilter()
+    this.blight.amount = 1
+    this.blight.spread = 0
+    this.blighting = 0
+    this.restack()
   }
 
   place(x: number, y: number): void {
@@ -373,7 +395,14 @@ export class JokerView extends Container {
     this.burn = 0
     this.eventMode = 'none'
     this.arrive = undefined
+    this.blight = undefined
+    this.blighting = undefined
     this.restack()
+  }
+
+  /** 지금 시드는 중인가. **검증 도구가 묻는 값입니다.** */
+  get blighted(): boolean {
+    return this.blighting !== undefined
   }
 
   /** 다 탔는가. 그때 지웁니다. */
@@ -466,6 +495,18 @@ export class JokerView extends Container {
       if (this.warp <= 0 && this.glow <= 0) {
         this.arrive = undefined
         this.restack()
+      }
+    }
+
+    if (this.blighting !== undefined) {
+      this.blighting += seconds / 0.52
+      if (this.blighting >= 1) {
+        this.blighting = undefined
+        this.blight = undefined
+        this.restack()
+      } else if (this.blight) {
+        this.blight.spread = this.blighting
+        this.blight.amount = this.blighting < 0.8 ? 1 : (1 - this.blighting) / 0.2
       }
     }
 

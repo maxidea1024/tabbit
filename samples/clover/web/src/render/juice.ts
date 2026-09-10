@@ -12,12 +12,46 @@ import type { FeelConstants } from '../core/data'
 import type { GameEvent } from '../core/state'
 
 /** 화면에서 한 번에 일어나는 것. */
+/**
+ * 한 박자로 묶이는 카드 변화들.
+ *
+ * **13장이 바뀌면 13번 하지 않습니다.** 한 몸짓에 13장을 담는 것이지 12장을 빼는 것이
+ * 아닙니다 — 연달아 오는 것을 묶는 자리가 여기입니다.
+ */
+export interface CardChanges {
+  modified: number[]
+  destroyed: number[]
+  added: number[]
+}
+
+/** 연달아 오면 한 박자로 묶는 이벤트들. */
+const CARD_CHANGE: ReadonlySet<string> = new Set([
+  'CardModified', 'CardDestroyed', 'CardAdded',
+])
+
+/**
+ * 규칙 변화도 묶입니다.
+ *
+ * **한 액션에 여럿 걸립니다.** 챌린지와 보스와 바우처가 그렇고, 판 여럿이 잇달아 뜨면
+ * 어느 것이 방금 온 것인지 알 수 없습니다 — 한 판에 담습니다.
+ */
+const RULE_CHANGE: ReadonlySet<string> = new Set(['RuleChanged', 'HandLevelled'])
+
 export interface Beat {
   /** 시작 시각. 밀리초 */
   at: number
   /** 이 박자의 길이 */
   hold: number
   event: GameEvent
+  /**
+   * 이 박자에 묶인 카드 변화들. **`CardModified` 계열의 박자에만 있습니다.**
+   *
+   * 이벤트는 카드 한 장에 하나씩 오는데 화면이 하는 일은 한 몸짓이므로, 묶은 것을 박자가
+   * 들고 갑니다 — 이벤트 쪽을 굵게 내면 토스트와 인사이트가 세는 수가 달라집니다.
+   */
+  cards?: CardChanges
+  /** 이 박자에 묶인 규칙 변화들. **`RuleChanged` 계열의 박자에만 있습니다.** */
+  rules?: GameEvent[]
   /** 0 부터 1. 흔들림 · 숫자 크기 · 음높이가 전부 이것을 씁니다. */
   intensity: number
   /**
@@ -113,6 +147,18 @@ function holdOf(event: GameEvent, feel: Feel): number {
     // 우르르 붙고, 다 붙은 뒤에 왼쪽부터 파도로 뒤집힙니다. 둘을 합한 것이 자기 몫입니다.
     case 'HandDrawn':
       return event.uids.length * (feel.drawStaggerMs + feel.flipStaggerMs) + feel.drawLandMs
+    // **보스가 거는 것도 사건입니다.** 카드 몇 장이 한꺼번에 표시되므로 그것을 읽는
+    // 시간이고, 족보 이름을 읽는 박자와 같은 몫입니다.
+    case 'CardsDebuffed':
+    case 'CardsHidden': return feel.handLabelMs
+    // 조커에 걸리는 것들. **조커가 값을 내는 것과 같은 한 박자입니다** — 새 상수를 두지
+    // 않는 것은 이것들이 조커 딱지 하나에서 일어나는 일이기 때문입니다.
+    // 생긴 소모품이 만든 자리에서 날아오는 데까지.
+    case 'ConsumableAdded':
+    case 'JokerDisabled':
+    case 'JokersShuffled':
+    case 'JokerModified':
+    case 'JokerCopied': return feel.jokerStepMs
     // 값이 바뀐 것을 알리는 이벤트는 자기 시간을 쓰지 않습니다 — 앞의 박자에 얹힙니다.
     case 'ChipsMultChanged': return 0
     default: return 0
@@ -131,7 +177,49 @@ export function buildTimeline(events: readonly GameEvent[], feel: Feel): Beat[] 
   let chips = 0
   let mult = 10_000
 
-  for (const event of events) {
+  for (let i = 0; i < events.length; i++) {
+    const event = events[i]
+
+    // **카드 변화는 연달아 오는 것을 통째로 묶습니다.** 타로 하나가 다섯 장을 바꾸면
+    // `CardModified` 가 다섯 개 오는데, 화면이 하는 일은 다섯 장이 함께 나와 뒤집히는 한
+    // 몸짓입니다 — 박자를 다섯으로 두면 같은 판이 다섯 번 서고 걷힙니다.
+    if (CARD_CHANGE.has(event.t)) {
+      const cards: CardChanges = { modified: [], destroyed: [], added: [] }
+      let end = i
+      while (end < events.length && CARD_CHANGE.has(events[end].t)) {
+        const one = events[end]
+        if (one.t === 'CardModified') cards.modified.push(one.uid)
+        else if (one.t === 'CardDestroyed') cards.destroyed.push(one.uid)
+        else if (one.t === 'CardAdded') cards.added.push(one.uid)
+        end++
+      }
+      const count = cards.modified.length + cards.destroyed.length + cards.added.length
+      beats.push({
+        at, hold: cardChangeHold(count, feel), event, cards,
+        intensity: intensityOf(mult, feel), chips, mult,
+      })
+      at += beats[beats.length - 1].hold
+      i = end - 1
+      continue
+    }
+
+    // 규칙 변화도 연달아 오는 것을 묶습니다. **판 하나에 담깁니다.**
+    if (RULE_CHANGE.has(event.t)) {
+      const rules: GameEvent[] = []
+      let end = i
+      while (end < events.length && RULE_CHANGE.has(events[end].t)) {
+        rules.push(events[end])
+        end++
+      }
+      beats.push({
+        at, hold: feel.handLabelMs, event, rules,
+        intensity: intensityOf(mult, feel), chips, mult,
+      })
+      at += feel.handLabelMs
+      i = end - 1
+      continue
+    }
+
     if (event.t === 'ChipsMultChanged') {
       chips = event.chips
       mult = event.mult
@@ -162,6 +250,18 @@ export function buildTimeline(events: readonly GameEvent[], feel: Feel): Beat[] 
   }
 
   return beats
+}
+
+/**
+ * 카드가 판 위로 나와 바뀌고 돌아가는 데 걸리는 시간.
+ *
+ * **나오는 데 · 한 장씩 뒤집히는 데 · 보고 나서 돌아가는 데** 셋입니다. 새 상수를 두지
+ * 않는 것은 셋 다 이미 카드가 쓰는 시간이기 때문입니다 — 나오고 돌아가는 것은 뽑는 것과
+ * 같고, 장마다의 간격은 내는 것과 같습니다.
+ */
+export function cardChangeHold(count: number, feel: Feel): number {
+  if (count === 0) return 0
+  return feel.drawLandMs + count * feel.playStaggerMs + feel.handLabelMs
 }
 
 /** 타임라인 전체의 길이. */

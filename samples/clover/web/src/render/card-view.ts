@@ -15,6 +15,9 @@ import type { CardInstance } from '../core/state'
 import { EDITION_SHADER, EditionFilter, type EditionLook } from '../shader/editions'
 import { roundedMask } from '../shader/mask'
 import { PickFilter } from '../shader/pick'
+import { DissolveFilter } from '../shader/dissolve'
+import { ImprintFilter } from '../shader/imprint'
+import { BlightFilter } from '../shader/blight'
 import {
   cardFaceTexture, clearCardFace, drawCardFaceVector, faceInk,
 } from './card-face'
@@ -211,6 +214,41 @@ export class CardView extends Container {
     this.render()
   }
 
+  /**
+   * 그 자리에서 한 번 뒤집혀 **다른 카드가 되어 돌아옵니다.**
+   *
+   * 얼굴을 그 프레임에 갈아 끼우면 카드가 이미 바뀐 채로 그려지고, 무엇이 무엇으로 바뀐
+   * 것인지가 화면에 남지 않습니다 — 타로를 써도 인장을 붙여도 화면에서 일어나는 것이
+   * 같았던 까닭이 그것입니다.
+   *
+   * **뽑을 때의 뒤집기와 같은 몸짓입니다.** 좁아졌다가 벌어지는 그 절반에서 얼굴이
+   * 갈립니다 — 다른 것은 시작이 뒷면이 아니라 앞면이라는 것뿐입니다.
+   */
+  turnInto(card: CardInstance, look?: EditionLook): void {
+    this.flip = 1
+    this.turning = { card, look }
+  }
+
+  /** 뒤집는 절반에서 갈아 끼울 카드. */
+  private turning?: { card: CardInstance; look?: EditionLook }
+
+  /** 타서 사라지는 중인가. */
+  private dissolve?: DissolveFilter
+  private burn = 0
+  private burning = false
+
+  /** 갈리는 줄기. 지나가는 동안만 걸립니다. */
+  private imprint?: ImprintFilter
+  /** 줄기가 어디까지 갔는가. `undefined` 면 지나가는 중이 아닙니다. */
+  private imprinting?: number
+
+  /** 시드는 금. 번지는 동안만 걸립니다. */
+  private blight?: BlightFilter
+  /** 금이 어디까지 번졌는가. */
+  private blighting?: number
+  /** 다 번진 자리에서 갈아 끼울 카드. 죽은 얼굴입니다. */
+  private withering?: { card: CardInstance; look?: EditionLook }
+
   private render(): void {
     if (!this.last) return
     const { card, look } = this.last
@@ -326,6 +364,15 @@ export class CardView extends Container {
    * 뿌옇게 됩니다.
    */
   private restack(): void {
+    // **타는 동안은 그것 하나입니다.** 다른 필터를 함께 걸면 재가 되어 가는 종이 위에서
+    // 무늬가 계속 흐르고, 그것은 타는 것으로 읽히지 않습니다.
+    if (this.burning) {
+      this.dissolve ??= new DissolveFilter()
+      this.body.filters = [this.dissolve]
+      this.filters = []
+      return
+    }
+
     const lit = this.pickMode !== 0 || this.glow > 0
     // 득점의 빛이 도는 동안은 그 모드가 앞섭니다 — 득점하는 카드는 물러나 있지 않습니다.
     // **걸지 않을 것이면 만들지도 않습니다.**
@@ -338,8 +385,73 @@ export class CardView extends Container {
     const stack: Filter[] = []
     if (this.edition) stack.push(this.edition)
     if (lit) stack.push(this.picker())
+    // **갈리는 줄기는 맨 위입니다.** 무늬 위를 지나가야 그 카드에서 일어난 일로 보입니다.
+    if (this.imprint) stack.push(this.imprint)
+    // 시드는 것도 맨 위입니다. 둘이 함께 걸릴 일은 없습니다 — 갈리는 것과 죽는 것입니다.
+    if (this.blight) stack.push(this.blight)
     this.body.filters = stack
     this.filters = []
+  }
+
+  /**
+   * 무력해집니다.
+   *
+   * **있던 그대로 죽는 일입니다.** 금이 가운데에서 바깥으로 번지고, 번진 자리는 색이
+   * 빠집니다 — 다 번지면 죽은 얼굴로 갈아 끼웁니다. 카드가 이미 죽은 채로 그려져 있으면
+   * 무엇이 방금 일어난 것인지 화면에 없습니다.
+   *
+   * @param card 다 번진 자리의 카드. 넘기지 않으면 얼굴은 그대로입니다.
+   */
+  wither(card?: CardInstance, look?: EditionLook): void {
+    this.blight ??= new BlightFilter()
+    this.blight.amount = 1
+    this.blight.spread = 0
+    this.blighting = 0
+    this.withering = card ? { card, look } : undefined
+    this.restack()
+  }
+
+  /**
+   * 타서 사라집니다.
+   *
+   * **조커가 없어지는 것과 같은 몸짓입니다.** 카드가 부서지는 것도 없어지는 일이므로,
+   * 옅어지며 지워지면 「치웠다」이지 「없앴다」가 아닙니다 — 아래에서 불이 붙어 위로 번지고
+   * 종이가 조금 떠오릅니다.
+   */
+  ignite(): void {
+    if (this.burning) return
+    this.burning = true
+    this.burn = 0
+    this.eventMode = 'none'
+    this.imprint = undefined
+    this.blight = undefined
+    this.blighting = undefined
+    this.restack()
+  }
+
+  /** 지금 시드는 중인가. **검증 도구가 묻는 값입니다.** */
+  get blighted(): boolean {
+    return this.blighting !== undefined
+  }
+
+  /** 다 탔는가. 그때 지웁니다. */
+  get burnt(): boolean {
+    return this.burning && this.burn >= 1
+  }
+
+  /**
+   * 갈리는 줄기가 한 번 지나갑니다.
+   *
+   * **`turnInto` 와 함께 씁니다.** 카드가 그 자리에서 뒤집혀 다른 얼굴로 돌아오는 동안
+   * 줄기가 위에서 아래로 지나가고, 지나간 뒤에 필터를 뗍니다.
+   */
+  imprintNow(tint: [number, number, number] = [1.0, 0.82, 0.42]): void {
+    this.imprint ??= new ImprintFilter()
+    this.imprint.setTint(tint[0], tint[1], tint[2])
+    this.imprint.amount = 1
+    this.imprint.sweep = 0
+    this.imprinting = 0
+    this.restack()
   }
 
   /**
@@ -489,6 +601,50 @@ export class CardView extends Container {
   advance(seconds: number, time: number): void {
     this.motion.advance(seconds)
 
+    if (this.burning) {
+      // **아래에서 위로, 그리고 조금 떠오릅니다.** 종이가 타면 가벼워집니다.
+      this.burn = Math.min(1, this.burn + seconds * 1.7)
+      if (this.dissolve) this.dissolve.burn = this.burn
+      this.y -= seconds * 22
+      this.rotation += seconds * 0.1
+      return
+    }
+
+    // 금이 번집니다. **다 번지는 자리에서 얼굴이 갈립니다** — 그 앞에서 갈면 아직 살아
+    // 있는 자리가 죽은 얼굴로 그려집니다.
+    if (this.blighting !== undefined) {
+      this.blighting += seconds / 0.52
+      if (this.withering && this.blighting >= 0.72) {
+        const one = this.withering
+        this.withering = undefined
+        this.set(one.card, one.look)
+      }
+      if (this.blighting >= 1) {
+        this.blighting = undefined
+        this.blight = undefined
+        this.restack()
+      } else if (this.blight) {
+        this.blight.spread = this.blighting
+        // 다 번진 뒤에는 잦아듭니다. 죽은 모습은 얼굴이 들고 있습니다.
+        this.blight.amount = this.blighting < 0.8 ? 1 : (1 - this.blighting) / 0.2
+      }
+    }
+
+    // 갈리는 줄기가 지나갑니다. 다 지나가면 필터를 뗍니다 — 필터 하나가 곧 렌더 텍스처
+    // 하나이고, 손패의 여덟 장이 그것을 내내 들고 있을 이유가 없습니다.
+    if (this.imprinting !== undefined) {
+      this.imprinting += seconds / 0.42
+      if (this.imprinting >= 1) {
+        this.imprinting = undefined
+        this.imprint = undefined
+        this.restack()
+      } else if (this.imprint) {
+        this.imprint.sweep = this.imprinting
+        // 끝으로 갈수록 잦아듭니다. 같은 세기로 끝나면 줄기가 카드 밖에서 끊깁니다.
+        this.imprint.amount = 1 - this.imprinting * this.imprinting
+      }
+    }
+
     if (this.slamming && this.motion.x.settled && this.motion.y.settled) {
       this.slamming = false
       this.motion.soft()
@@ -508,6 +664,12 @@ export class CardView extends Container {
         this.render()
         // **뒤집히는 그 순간에 소리가 나야 합니다.** 뽑는 것은 무엇이 올지 모르는 채로
         // 기다리는 일이고, 그 기다림이 끝나는 자리가 여기입니다.
+        this.onFlipped?.()
+      } else if (this.turning !== undefined && this.flip <= 0.5) {
+        // 앞면에서 앞면으로. **갈리는 자리도 같은 절반입니다.**
+        const one = this.turning
+        this.turning = undefined
+        this.set(one.card, one.look)
         this.onFlipped?.()
       }
     }
