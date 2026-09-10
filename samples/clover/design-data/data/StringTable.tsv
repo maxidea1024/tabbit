@@ -1140,6 +1140,11 @@
 	ui.label.lost	패배	Defeat	敗北	失败	失敗	Niederlage
 	ui.label.next_up	다음 차례	Next up	次	接下来	接下來	Als Nächstes
 	ui.label.triggered	발동	Triggered	発動	触发	觸發	Ausgelöst
+	ui.act.make	만듭니다	creates	作ります	生成	生成	erzeugt
+	ui.act.break	부숩니다	destroys	壊します	摧毁	摧毀	zerstört
+	ui.act.change	바꿉니다	changes	変えます	改变	改變	ändert
+	ui.act.rule	규칙이 바뀝니다	rule changed	ルールが変わります	规则改变	規則改變	Regel geändert
+	ui.act.boss	보스가 겁니다	boss effect	ボスの効果	Boss 效果	Boss 效果	Boss-Effekt
 	ui.money.interest	이자	Interest	利息	利息	利息	Zinsen
 	ui.money.sell	판 값	Sold	売却	出售所得	出售所得	Verkauf
 	ui.money.spent	구입	Bought	購入	购买	購買	Kauf
