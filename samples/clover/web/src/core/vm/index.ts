@@ -4,8 +4,9 @@
 // 「첫 대상만」은 그 트리거 안에서 한 번입니다. 순서가 바뀌면 같은 패에서 다른 점수가
 // 나옵니다.
 
+import { JokerPick } from '../../generated/enums/joker-pick'
 import { Trigger } from '../../generated/enums/trigger'
-import type { EffectRow } from '../data'
+import type { Data, EffectRow } from '../data'
 import type { JokerInstance } from '../state'
 import { holds } from './conditions'
 import { apply } from './operations'
@@ -32,6 +33,29 @@ export function rowsForJoker(vm: Vm, joker: JokerInstance, slot: number): readon
   if (!target || target === joker) return []
   const borrowed = vm.data.jokerEffects.get(target.jokerId) ?? []
   return borrowed.filter(row => row.operation.kind !== 'OpCopyJoker')
+}
+
+/**
+ * 이 조커가 계속 능력을 빌리고 있는 상대.
+ *
+ * **순간이 아니라 상태입니다.** 그래서 이벤트로 내지 않고 화면이 물어 갑니다 — 딱지에
+ * 계속 나타나야 하는 것이고, 박자로 내면 한 라운드에 수십 번이 됩니다.
+ *
+ * **난수를 쓰지 않습니다.** 무작위로 고르는 것은 고를 때마다 달라지므로 계속 나타낼
+ * 것이 없고, 굴리는 것만으로 그 판이 달라집니다 — 오른쪽과 맨 왼쪽만 답이 있습니다.
+ */
+export function borrowedFrom(data: Data, jokers: readonly JokerInstance[],
+                             slot: number): JokerInstance | undefined {
+  const self = jokers[slot]
+  if (!self) return undefined
+  const row = (data.jokerEffects.get(self.jokerId) ?? [])
+    .find(one => one.operation.kind === 'OpCopyJoker' && one.trigger === Trigger.Passive)
+  if (!row || row.operation.kind !== 'OpCopyJoker') return undefined
+
+  const found = row.operation.pick === JokerPick.Right ? jokers[slot + 1]
+    : row.operation.pick === JokerPick.Leftmost ? jokers[0]
+      : undefined
+  return found === self ? undefined : found
 }
 
 /** 복사 조커가 가리킨 것을 꺼내고 비웁니다. */

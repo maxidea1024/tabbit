@@ -89,9 +89,13 @@ async function main(): Promise<number> {
   let dealt = 0
   let withered = 0
   let atOnce = 0
+  let told = 0
   for (let i = 0; i < 200; i++) {
     const now = await peek(page)
     dealt = Math.max(dealt, now.hand.length)
+    // **덱이 나와서 알립니다.** 걸리는 순간에 화면에 카드가 하나도 없으므로, 덱이 나와
+    // 한 번 눌리고 몇 장인지가 그 위에 뜹니다.
+    if (now.deckPeek === true) told++
     // **한 프레임에 몇 장이 시들었는가.** 여덟 장이 한꺼번이면 한 덩어리가 죽은 것으로
     // 보이므로, 차례로 걸리는지가 이 값으로 확인됩니다.
     atOnce = Math.max(atOnce, now.withering ?? 0)
@@ -100,6 +104,7 @@ async function main(): Promise<number> {
   }
   const after = await peek(page)
   console.log(`  깔린 손패 ${dealt} · 시드는 것이 보인 표본 ${withered} · 한 번에 가장 많이 ${atOnce}`)
+  check(told > 0, '화면에 카드가 없을 때는 덱이 나와 알립니다')
   check(dealt > 0 && withered > 0, '깔리는 카드가 그 자리에서 시듭니다')
   check(atOnce < dealt, '한꺼번에 걸리지 않고 차례로 걸립니다')
   check((after.withering ?? 0) === 0, '다 걸리고 나면 걷힙니다')

@@ -138,6 +138,13 @@ export interface ShopGift {
   edition?: number
   free: boolean
   count: number
+  /**
+   * 누가 놓아 둔 것인가.
+   *
+   * **다음 상점에서야 뜻을 가지는 것입니다.** 그때 그 물건이 그 조커 덕분이라는 것이
+   * 화면에 없으면, 공짜 조커 하나가 이유 없이 놓여 있는 것으로 보입니다.
+   */
+  from: string
 }
 
 export function newVm(data: Data, state: RunState): Vm {

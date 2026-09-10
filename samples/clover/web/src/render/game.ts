@@ -80,6 +80,7 @@ import { loadProgress, saveProgress, type ChallengeProgress } from '../ui/challe
 import {
   discover, loadCollection, saveCollection, sightings, type CollectionProgress,
 } from '../core/collection'
+import { borrowedFrom } from '../core/vm'
 import { RunPanel } from '../ui/run-panel'
 import { RuleBanner, bannerBox, type RuleNote } from '../ui/rule-banner'
 import { randomSeed, Title } from '../ui/title'
@@ -1485,6 +1486,17 @@ export class Game {
    * 그 카드를 제자리로 도로 당겨, 나온 카드가 줄과 판 위 사이에서 떨립니다.
    */
   private readonly borrowed = new Set<number>()
+
+  /**
+   * 능력을 빌리는 딱지와 빌려주는 딱지를 잇는 표시.
+   *
+   * **순간이 아니라 상태입니다.** 빌리는 것은 그 조커가 있는 내내 이어지는 일이므로
+   * 박자로 낼 것이 아니라 계속 보여야 합니다 — 그러지 않으면 왼쪽 조커가 왜 오른쪽
+   * 것과 같은 값을 내는지 화면 어디에도 없습니다.
+   *
+   * 두 딱지의 아래를 잇는 줄 하나입니다. 딱지 위를 지나가면 그림을 가립니다.
+   */
+  private readonly borrowLink = new Graphics()
 
   /**
    * 아직 화면에 없는 카드에 걸린 것. **그 카드가 깔릴 때 걸립니다.**
@@ -4006,6 +4018,8 @@ export class Game {
     // **판 위로 나와 있던 카드를 먼저 걷습니다.** 손패에서 빌려 온 것이 있으므로, 손패를
     // 지우기 전에 돌려주지 않으면 이미 지워진 뷰를 붙들고 있게 됩니다.
     this.beatLog.length = 0
+    this.borrowLink.clear()
+    this.borrowLink.visible = false
     this.endCardShow()
     this.borrowed.clear()
     this.pendingCards.clear()
@@ -4346,6 +4360,10 @@ export class Game {
 
     // **고른 것의 단추는 판이 아니라 그 위의 층입니다.** 판에 두면 뜯은 팩이 판 전체를
     // 덮으므로 그 팩에서 집는 단추가 자기가 덮은 것 뒤로 들어갑니다.
+    // **딱지 아래입니다.** 줄이 딱지 위로 지나가면 그림을 가리고, 그러면 이어져 있다는
+    // 것보다 무엇이 그어져 있다는 것이 먼저 읽힙니다.
+    this.borrowLink.zIndex = -2
+    this.board.addChild(this.borrowLink)
     this.board.addChild(this.deckLayer, this.headline, this.jokerCount,
       this.consumableCount, this.consumableLayer, this.tagLayer, this.activeLayer,
       this.hint, this.panelFlash)
@@ -6125,10 +6143,33 @@ export class Game {
    */
   private witherCards(uids: readonly number[]): void {
     const shown = this.stagger(uids, 'wither', (view, uid) => this.witherOne(view, uid))
-    if (shown === 0) return
+    // **화면에 한 장도 없으면 덱이 알립니다.** 덱 전체에 거는 보스가 그렇습니다 — 무늬
+    // 하나면 13장이고, 그 13장은 아직 덱 안에 있습니다.
+    if (shown === 0) {
+      this.tellDeck(uids.length, UI.bad, 'boss_reveal')
+      return
+    }
     this.audio.play('boss_reveal')
     this.jolt(6 + Math.min(shown, 6), 1.7, 0.4)
     this.flashPanel(UI.bad, 0.75)
+  }
+
+  /**
+   * 덱 안의 카드 몇 장에 무엇이 걸렸다는 것을 덱이 알립니다.
+   *
+   * **덱은 라운드 사이에 화면 오른쪽으로 물러나 있습니다.** 그래서 덱 안의 카드를
+   * 건드리는 것은 일어난 자리가 화면에 없습니다 — 덱이 나와 한 번 눌리고, 그 위에 몇
+   * 장인지가 뜹니다. 어느 장인지는 그 카드가 깔릴 때 그 자리에서 보입니다.
+   */
+  private tellDeck(count: number, tint: number, cue: string): void {
+    if (count <= 0) return
+    this.deckPeekUntil = Math.max(this.deckPeekUntil, this.clock + DECK_PEEK)
+    this.deckBump.kick(220)
+    this.audio.play(cue)
+    this.particles.burst(DECK_X, DECK_Y, 16, tint, 1, 0.9)
+    this.popAt({ x: DECK_X - 36, y: DECK_Y - RISER_ON_CARD }, `${count}`, tint, 0.6)
+    this.jolt(6, 1.5, 0.35)
+    this.flashPanel(tint, 0.7)
   }
 
   /**
@@ -6139,7 +6180,10 @@ export class Game {
    */
   private hideCards(uids: readonly number[]): void {
     const shown = this.stagger(uids, 'hide', (view, uid) => this.hideOne(view, uid))
-    if (shown === 0) return
+    if (shown === 0) {
+      this.tellDeck(uids.length, UI.inkDim, 'card_flip')
+      return
+    }
     this.audio.play('card_flip')
     this.audio.tone('pluck', -4, 0.6)
     this.jolt(5 + Math.min(shown, 5), 1.4, 0.3)
@@ -6966,6 +7010,11 @@ export class Game {
     // 빌려 오지 않은 것만 옮깁니다.
     this.advanceCardShow(seconds)
     this.ruleBanner.advance(seconds)
+    // 이어져 있는 줄은 숨 쉬듯 짙어졌다 옅어집니다. **다시 긋지 않습니다** — 그리는
+    // 것은 자리가 바뀔 때뿐이고, 여기서는 짙기 하나만 옮깁니다.
+    if (this.borrowLink.visible) {
+      this.borrowLink.alpha = 0.5 + 0.25 * Math.sin(this.clock * 2.2)
+    }
     const before = this.playedViews.length
     this.reapPlayArea()
     if (before > 0 && this.playedViews.length === 0) {
@@ -7587,6 +7636,14 @@ export class Game {
         + [...this.jokers.values()].filter(view => view.blighted).length,
       // 화면이 그린 박자들. 새것이 뒤입니다.
       beats: this.beatLog.slice(),
+      // 능력을 빌리는 줄이 그어져 있는가.
+      borrowLink: this.borrowLink.visible,
+      // 상점에 놓인 선물. 몇째 칸이고 누가 놓았고 값이 얼마인가.
+      shopGift: ((): { slot: number; from: string; cost: number } | undefined => {
+        const at = this.state.shop.cards.findIndex(one => one.gift !== undefined)
+        const one = at < 0 ? undefined : this.state.shop.cards[at]
+        return one ? { slot: at, from: one.gift ?? '', cost: one.cost } : undefined
+      })(),
       // 판이 몇 번 섰는가. 도구가 「한 번도 서지 않았다」와 「서고 걷혔다」를 가릅니다.
       cardShows: this.cardShowCount,
       // 규칙 알림 판이 차지한 사각형. 떠 있지 않으면 없습니다.
@@ -10226,6 +10283,39 @@ export class Game {
     })
   }
 
+  /**
+   * 능력을 빌리는 줄을 다시 긋습니다.
+   *
+   * **매 프레임 다시 긋지 않습니다.** 줄이 바뀌는 것은 자리가 바뀔 때뿐이고, 숨 쉬는
+   * 것은 짙기 하나로 충분합니다 — 그리는 것은 다시 세울 때만 합니다.
+   */
+  private syncBorrow(spots: { startX: number; spacing: number }): void {
+    const g = this.borrowLink
+    g.clear()
+    g.visible = false
+    if (this.scene !== 'run') return
+
+    const jokers = this.state.jokers
+    for (let slot = 0; slot < jokers.length; slot++) {
+      const lender = borrowedFrom(this.data, jokers, slot)
+      if (!lender) continue
+      const to = jokers.indexOf(lender)
+      if (to < 0) continue
+
+      const from = spots.startX + slot * spots.spacing
+      const at = spots.startX + to * spots.spacing
+      // 딱지의 아랫변 바로 밑입니다. 둘을 잇고 양 끝에서 딱지 쪽으로 짧게 올립니다.
+      const base = JOKER_Y + SIZE.jokerHeight / 2 + 5
+      const lift = 6
+      g.moveTo(from, base - lift).lineTo(from, base)
+        .lineTo(at, base).lineTo(at, base - lift)
+        .stroke({ color: UI.legendary, width: 2, alpha: 0.9 })
+      // 빌려오는 쪽 끝에 점 하나. **어느 쪽이 빌리는 것인지가 줄만으로는 없습니다.**
+      g.circle(from, base, 3).fill({ color: UI.legendary })
+      g.visible = true
+    }
+  }
+
   private syncJokers(): void {
     const wanted = new Set(this.state.jokers.map(joker => joker.uid))
 
@@ -10242,6 +10332,7 @@ export class Game {
     // 자리 안에서 몇 개가 어디에 서는가. **개수마다 달라지므로 한 번 세어 돌려 씁니다.**
     const spots = trayRow(JOKER_TRAY, this.state.jokers.length)
     this.publishRowSpots('joker', spots, this.state.jokers.length)
+    this.syncBorrow(spots)
 
     this.state.jokers.forEach((joker, index) => {
       const row = this.data.tables.joker.findByJokerId(joker.jokerId)
@@ -12093,6 +12184,26 @@ export class Game {
     card.position.set((CELL_W - SIZE.jokerWidth) / 2, 8)
     const price = priceText(item.cost, afford)
     price.position.set(CELL_W / 2, CELL_H - 20)
+
+    // **누가 놓아 둔 것인지가 그 칸에 적힙니다.** 태그와 조커가 놓아 둔 것은 값이 0 인
+    // 물건으로만 보였고, 왜 거기 있는지는 화면 어디에도 없었습니다.
+    if (item.gift !== undefined && item.gift !== '') {
+      const giver = new Text({
+        text: nameOf(this.data, 'tag', item.gift,
+          nameOf(this.data, 'joker', item.gift, item.gift)),
+        style: {
+          ...outlined(TEXT.mini - 1, UI.outline),
+          fill: UI.accentTerm, fontWeight: WEIGHT.bold,
+        },
+      })
+      giver.anchor.set(0.5, 0)
+      // 카드의 아랫변과 값 사이입니다. 카드는 8에서 시작해 높이만큼 내려옵니다.
+      giver.position.set(CELL_W / 2, 8 + SIZE.jokerHeight + 1)
+      // **칸보다 길면 줄입니다.** 이름의 길이는 말마다 다르므로 잘라 두면 어느 말에서만
+      // 잘립니다.
+      if (giver.width > CELL_W - 8) giver.scale.set((CELL_W - 8) / giver.width)
+      lift.addChild(giver)
+    }
 
     // **자리가 없다는 것은 적지 않습니다.** 사면 무엇과 바꿀지 고르는 화면이 서고 그것이
     // 이미 그 말입니다 — 칸마다 붉은 글 한 줄을 더 두면 값보다 그것이 먼저 읽힙니다.

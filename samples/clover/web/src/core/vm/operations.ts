@@ -880,6 +880,7 @@ function runOp(vm: Vm, row: EffectRow, host: EffectHost, op: Operation,
     case 'OpShopGift':
       vm.changed = true
       vm.shopGifts.push({
+        from: row.owner,
         create: op.create,
         rarity: op.rarity || undefined,
         edition: op.edition || undefined,

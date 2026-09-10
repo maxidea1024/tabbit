@@ -80,7 +80,11 @@ async function main(): Promise<number> {
   // 지금 일어난 일이 아닙니다. 빌리고 있다는 것은 딱지에 계속 나타나야 하는 것이고,
   // 그것은 박자가 아니라 그림입니다.
   await grantJoker(page, 'tracing')
+  // **오른쪽에 빌려줄 딱지가 있어야 합니다.** 줄의 끝에 서면 빌릴 것이 없습니다.
+  await grantJoker(page, 'twig')
   await pass(page, 400)
+  // 빌리는 것은 순간이 아니라 상태이므로 딱지에 계속 나타납니다.
+  check((await peek(page)).borrowLink === true, '빌리는 딱지와 빌려주는 딱지가 이어집니다')
   await playHand(page)
   await settle(page)
   const copies = ((await peek(page)).beats ?? []).filter(one => one === 'JokerCopied').length

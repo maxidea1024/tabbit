@@ -26,6 +26,13 @@ export interface ShopItem {
   /** 플레잉 카드에만 붙습니다. 표준 팩에서 나온 카드가 강화와 인장을 달고 옵니다. */
   enhancement?: EnhancementKind
   seal?: SealKind
+  /**
+   * 태그나 조커가 놓아 둔 것인가. 놓아 둔 것의 이름입니다.
+   *
+   * **그 자리에 이유가 있어야 합니다.** 공짜 조커 하나가 상점에 놓여 있는데 왜 거기
+   * 있는지가 화면에 없으면, 그것은 그냥 값이 0인 물건입니다.
+   */
+  gift?: string
 }
 
 /**
@@ -269,6 +276,7 @@ export function stock(vm: Vm, shop: ShopState): void {
       id: row.jokerId,
       cost: gift.free ? 0 : discounted(vm, row.cost),
       edition: (gift.edition ?? EditionKind.Base) as EditionKind,
+      gift: gift.from,
     })
   }
   vm.shopGifts = []

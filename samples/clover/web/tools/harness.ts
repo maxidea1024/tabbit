@@ -59,6 +59,10 @@ export interface Peek {
   withering?: number
   /** 화면이 그린 박자들. 새것이 뒤입니다. */
   beats?: string[]
+  /** 능력을 빌리는 줄이 그어져 있는가. */
+  borrowLink?: boolean
+  /** 상점에 놓인 선물. 몇째 칸이고 누가 놓았고 값이 얼마인가. */
+  shopGift?: { slot: number; from: string; cost: number }
   /** 판이 몇 번 섰는가. */
   cardShows?: number
   /** 판 위로 나와 바뀌는 중인 카드들. */
