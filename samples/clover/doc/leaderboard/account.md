@@ -23,7 +23,7 @@
 |서버|켤 제공자를 `AUTH_PROVIDERS` 환경변수로 받고, **`NODE_ENV=production` 에서 `github` 이 있으면 부팅하지 않습니다.** 환경변수 하나로 새는 것이므로 확인이 부팅에 있어야 합니다|
 |클라이언트|로그인 판의 GitHub 단추가 `import.meta.env.DEV` 안에만 있습니다. **`vite build` 의 산출물에는 그 단추의 코드 자체가 없습니다** — 조건이 아니라 빌드가 지우는 것입니다. 서버가 목록에 `github` 을 보내더라도 배포 빌드는 그리지 않습니다|
 
-`import.meta.env.DEV` 는 이미 [game.ts](../../web/src/render/game.ts) 의 개발용 단추가 쓰는 자리입니다 — 같은 규약입니다.
+`import.meta.env.DEV` 는 이미 [session.ts](../../web/src/game/session.ts) 의 개발용 단추가 쓰는 자리입니다 — 같은 규약입니다.
 
 **셋 다 OAuth 2.0 authorization code 입니다.** Apple 만 `id_token` 을 함께 주고 이름을 처음
 한 번만 주므로, 첫 로그인에서 표시 이름을 받는 것은 어느 제공자에서나 같게 우리 판에서

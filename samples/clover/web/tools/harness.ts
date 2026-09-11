@@ -1,6 +1,6 @@
 // 화면을 실제로 눌러 판을 두는 도구들.
 //
-// **좌표가 `render/game.ts` 의 상수와 같아야 합니다.** 그래서 한 자리에 모읍니다 — 도구마다
+// **좌표가 `game/game.ts` 의 상수와 같아야 합니다.** 그래서 한 자리에 모읍니다 — 도구마다
 // 따로 적어 두면 배치를 고칠 때 한쪽만 고쳐지고, 그 도구는 엉뚱한 곳을 눌러 놓고 아무 말도
 // 하지 않습니다.
 
@@ -886,7 +886,7 @@ export async function handSpot(page: Page, index: number, held: number):
   return at(page, startX + index * spacing, HAND_Y)
 }
 
-// 화면의 자리들. `render/game.ts` 의 상수와 같아야 합니다.
+// 화면의 자리들. `game/game.ts` 의 상수와 같아야 합니다.
 export const STAGE_W = 1280
 export const STAGE_H = 800
 export const BOARD_X = (16 + 264 + 20 + STAGE_W) / 2

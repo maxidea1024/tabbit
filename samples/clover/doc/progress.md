@@ -167,7 +167,7 @@ npx tsx tools/shoot.ts     # 화면을 굽습니다
 |에디션 셰이더 4종|`shader/editions.ts`. 파라미터가 `EditionVisual` 테이블입니다|
 |연출|`render/juice.ts`. 이벤트를 박자로 만드는 것과 재생하는 것이 갈려 있습니다|
 |소리|`feedback/audio.ts`. **음원 파일이 없습니다** — 파형을 만듭니다|
-|화면|`render/game.ts` · `ui/widgets.ts`|
+|화면|`game/` 의 부분들 · `ui/widgets.ts`|
 
 ### 판정
 
@@ -221,9 +221,9 @@ npx tsx tools/shoot.ts     # 화면을 굽습니다
 |무엇|어디|
 |--|--|
 |논리 크기로 재기|`main.ts`. 스크린샷 도구도 1600 × 1000 · 밀도 2로 올려 같은 조건을 만듭니다|
-|**쉬는 자리로 호버 판정**|`render/game.ts` 의 `updateHover`. 이벤트를 쓰지 않고 마우스 자리와 카드가 쉬는 네모를 견줍니다. 조커도 같은 문제가 있었으므로 같이 고쳤습니다|
+|**쉬는 자리로 호버 판정**|`game/input.ts` 의 `updateHover`. 이벤트를 쓰지 않고 마우스 자리와 카드가 쉬는 네모를 견줍니다. 조커도 같은 문제가 있었으므로 같이 고쳤습니다|
 |게임 방법 판|`ui/guide.ts`. 첫 판에서 한 번 저절로 열리고, 그 뒤로는 버튼입니다|
-|지시문 한 줄|`render/game.ts` 의 `hintText`. 국면마다 다음에 누를 것을 적습니다|
+|지시문 한 줄|`game/input.ts` 의 `hintText`. 국면마다 다음에 누를 것을 적습니다|
 
 ## 부스터 팩
 
@@ -237,7 +237,7 @@ npx tsx tools/shoot.ts     # 화면을 굽습니다
 |뜯어 놓은 팩|`state.pack`. 펼쳐진 것과 앞으로 몇 장 더 고를 수 있는가|
 |액션 3개|`buy_pack` · `pick_pack` · `skip_pack`|
 |무엇이 들어 있는가|`core/shop.ts` 의 `rollPackCard`. 갈래가 어느 표에서 뽑을지를 정합니다|
-|화면|`render/game.ts` 의 `drawPackRow` 와 `syncPack`|
+|화면|`game/pack.ts` 의 `buildPack` 과 `syncPack`|
 
 규칙 셋을 규격으로 둡니다.
 
@@ -446,7 +446,7 @@ entry.name === state.stake || String(entry.stake) === state.stake
 |--|--|
 |찾는 자리를 하나로|`core/stake.ts` 의 `stakeRow`. 셋 다 받습니다 — enum 이름 · 숫자 문자열 · 표시 이름|
 |부르는 쪽 넷|`core/run.ts` 의 `applyStake` · `targetOf` · `rewardOf`, 그리고 `core/metrics.ts` 의 `stakeIndexOf`|
-|런 정보 패널|`render/game.ts`. 지금 스테이크에 띠가 그려지지 않았고 이름이 현지화되지 않았습니다 — `stake.<슬러그>.name` 을 읽습니다|
+|런 정보 패널|`game/panels.ts`. 지금 스테이크에 띠가 그려지지 않았고 이름이 현지화되지 않았습니다 — `stake.<슬러그>.name` 을 읽습니다|
 |리플레이 8개|`stake-white` 에서 `stake-gold` 까지. 한 시드(`CLOVER-0009`)에 스테이크만 바꿉니다|
 
 흰색 리플레이 13개의 해시는 한 개도 움직이지 않았습니다. **바뀌지 않는 것이 판정입니다** —

@@ -72,7 +72,7 @@
 **어느 그림이 왔는지를 보지 않는 것이 요점입니다.** 도착한 것은 텍스처 하나인데 격자 전체가
 그 신호를 받습니다.
 
-`render/game.ts` 도 같은 신호를 받습니다 — 그쪽은 `artDirty` 를 세우고 `tick` 이 **전체
+`game/game.ts` 도 같은 신호를 받습니다 — 그쪽은 `artDirty` 를 세우고 `tick` 이 **전체
 `refresh()`** 를 부릅니다. 콜렉션을 굴리는 동안 판의 `syncShop` · `syncConsumables` ·
 `syncActive` 가 계속 다시 세워집니다.
 

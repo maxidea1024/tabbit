@@ -99,17 +99,17 @@
 
 |하지 않습니다|합니다|고친 자리|
 |--|--|--|
-|번쩍이는 동안 매 프레임 `setTags(tagChips())` 로 칩 전부를 다시 만들고 칩마다 `new ArriveFilter()`|칩은 `refresh` 에서 한 번 만들고 `TagCell` 기록을 남깁니다. `advanceTagFlash` 는 알파·크기·유니폼만 만지고 필터는 칩마다 하나를 재사용합니다|`render/game.ts` `advanceTagFlash` · `tagChips`|
-|블라인드 판이 들어오는 1초 동안 매 프레임 카드 셋과 글 25개를 다시 만들기|`drawBlindPick` 이 만들고 `BlindGroup` 을 남깁니다. 프레임마다는 `placeBlindGroup` 이 자리와 알파만 옮깁니다|`render/game.ts` `placeBlindGroup`|
+|번쩍이는 동안 매 프레임 `setTags(tagChips())` 로 칩 전부를 다시 만들고 칩마다 `new ArriveFilter()`|칩은 `refresh` 에서 한 번 만들고 `TagCell` 기록을 남깁니다. `advanceTagFlash` 는 알파·크기·유니폼만 만지고 필터는 칩마다 하나를 재사용합니다|`game/blind.ts` `advanceTagFlash` · `tagChips`|
+|블라인드 판이 들어오는 1초 동안 매 프레임 카드 셋과 글 25개를 다시 만들기|`drawBlindPick` 이 만들고 `BlindGroup` 을 남깁니다. 프레임마다는 `placeBlindGroup` 이 자리와 알파만 옮깁니다|`game/blind.ts` `placeBlindGroup`|
 |판때기를 그릴 때마다 `new FillGradient`|높이와 두 색이 같으면 같은 그라디언트입니다. `Map` 에 둡니다|`render/skin.ts` `gradient`|
 |점수가 굴러가는 동안 단계마다 판때기 재삼각화|빛의 세기를 16단계로 끊어 열쇠가 바뀔 때만 그립니다|`render/hud.ts` `Slot.draw`|
 |글자마다 물결이 도는 수를 자릿수가 바뀔 때마다 `Text` 를 만들고 버리기|글자 통은 만들어 두고 돌려 씁니다. 자릿수가 줄면 남는 것을 숨기고, **바뀐 글자에만 새 글을 넣습니다** — 넣는 순간 그 글자가 캔버스에 다시 구워지므로 「1,234」 가 「1,235」 가 될 때 굽는 것이 다섯이 아니라 하나입니다. 글자 폭은 글자와 크기마다 한 번만 잽니다|`render/hud.ts` `Digits`|
-|칩 × 배수의 바탕 번쩍임을 매 프레임 `clear()` 후 다시 그리기|두 칸의 세기를 8단계로 끊어 열쇠가 바뀔 때만 그립니다|`render/game.ts` `paintScoreFlash`|
-|게이지를 매 프레임 `clear()` 후 3개 `roundRect`|채운 길이(픽셀)가 같으면 돌아갑니다|`render/game.ts` `drawGauge`|
-|번쩍임의 모양을 매 프레임 다시 그려 잦아들게 하기|모양은 테두리 굵기 8단계로만 다시 그리고, 잦아드는 것은 컨테이너의 `alpha` 입니다|`render/game.ts` `decayFlashes`|
-|`refresh` 마다 `world` 아래 노드 전부를 걷어 `Text` 해상도 맞추기|화면 배율이 1 이하면 새 글은 이미 렌더러 해상도입니다. 배율이 1을 넘을 때만 걷습니다|`render/game.ts` `refresh`|
-|그림 파일 하나가 도착할 때마다 `refresh()` 전체|`artDirty` 표시만 남기고 `tick` 이 한 프레임에 한 번 처리합니다|`render/game.ts` `onArtReady`|
-|검증 도구용 `window.__clover` 를 매 프레임 40개 키로 다시 만들기|`Object.defineProperty` 의 getter 입니다. 읽는 순간에만 만듭니다|`render/game.ts` `peek`|
+|칩 × 배수의 바탕 번쩍임을 매 프레임 `clear()` 후 다시 그리기|두 칸의 세기를 8단계로 끊어 열쇠가 바뀔 때만 그립니다|`game/chrome.ts` `paintScoreFlash`|
+|게이지를 매 프레임 `clear()` 후 3개 `roundRect`|채운 길이(픽셀)가 같으면 돌아갑니다|`ui/parts.ts` `ProgressBar`|
+|번쩍임의 모양을 매 프레임 다시 그려 잦아들게 하기|모양은 테두리 굵기 8단계로만 다시 그리고, 잦아드는 것은 컨테이너의 `alpha` 입니다|`game/show.ts` `decayFlashes`|
+|`refresh` 마다 `world` 아래 노드 전부를 걷어 `Text` 해상도 맞추기|화면 배율이 1 이하면 새 글은 이미 렌더러 해상도입니다. 배율이 1을 넘을 때만 걷습니다|`game/game.ts` `refresh`|
+|그림 파일 하나가 도착할 때마다 `refresh()` 전체|`artDirty` 표시만 남기고 `tick` 이 한 프레임에 한 번 처리합니다|`game/game.ts` `onArtReady` · `tick`|
+|검증 도구용 `window.__clover` 를 매 프레임 40개 키로 다시 만들기|`Object.defineProperty` 의 getter 입니다. 읽는 순간에만 만듭니다|`game/probe.ts` `peek`|
 |`refresh` 마다 같은 에디션의 `EditionFilter` 를 새로 만들기|에디션이 같으면 그대로 둡니다. `joker-view.ts` 가 하던 방식을 `card-view.ts` 에도 두었습니다|`render/card-view.ts` `applyEdition`|
 |`set()` 마다 조커의 아트 `Sprite` 를 버리고 새로 만들기|텍스처가 같으면 그대로 둡니다|`render/joker-view.ts` `set`|
 |카드 뒷면을 인스턴스마다 벡터로 그리기|`generateTexture` 로 무늬·색·크기·밀도별 한 번 굽고 `Sprite` 를 냅니다. 렌더러를 받기 전에는 벡터로 그립니다|`render/card-back.ts` `bakeCardBacks`|
@@ -121,9 +121,9 @@
 |휠 한 칸마다 `content.height` 로 자식 전부의 경계 세기|내용이 바뀌는 길(`refresh` · `toTop` · `reveal`)에서만 재고 굴릴 때는 그 값을 씁니다|`ui/scroll.ts` `setOffset`|
 |같은 글을 다시 적어 단추 글자를 최대 6번 다시 굽기|같은 글이면 돌아갑니다|`ui/widgets.ts` `Button.text`|
 |쪽을 넘길 때마다 500행을 두 번 정렬|기준이 같으면 세워 둔 줄을 씁니다. 말이 바뀌면 비웁니다|`ui/joker-pool.ts` `rows`|
-|전체화면 블러 2개를 렌더러 해상도로|`resolution: 0.5`. 흐린 그림은 해상도를 낮춰도 흐린 그림이고 텍셀이 4분의 1입니다. 반지름은 텍셀 단위라 반으로 적었습니다|`render/game.ts` `blur` · `blurBack`|
+|전체화면 블러 2개를 렌더러 해상도로|`resolution: 0.5`. 흐린 그림은 해상도를 낮춰도 흐린 그림이고 텍셀이 4분의 1입니다. 반지름은 텍셀 단위라 반으로 적었습니다|`game/show.ts` `blur` · `blurBack`|
 |상점 칸마다 조커 500행을 다시 거르기|풀·챌린지·희귀도로 한 번 거른 것을 데이터별로 둡니다|`core/pool.ts` `jokerPool`|
-|부분집합 2ⁿ 개를 전부 배열로 만들고 나서 5장 넘는 것을 버리기|비트 수를 먼저 세어 만들지 않습니다. `refresh` 마다 도는 힌트는 패가 같으면 다시 세지 않고 `act` 가 비웁니다|`core/suggest.ts` · `render/game.ts` `updateHints`|
+|부분집합 2ⁿ 개를 전부 배열로 만들고 나서 5장 넘는 것을 버리기|비트 수를 먼저 세어 만들지 않습니다. `refresh` 마다 도는 힌트는 패가 같으면 다시 세지 않고 `act` 가 비웁니다|`core/suggest.ts` · `game/input.ts` `updateHints`|
 
 ---
 

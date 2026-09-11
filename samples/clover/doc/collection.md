@@ -140,7 +140,7 @@
 |무엇|어디|
 |--|--|
 |발견의 판정과 저장|`core/collection.ts` — `sightings` · `discover` · `loadCollection` · `saveCollection`|
-|얼굴 함수|`render/faces.ts`. `tagFace` · `blindFace` · `bossFace` · `itemFace` · `voucherFace` · `packFace` 가 `render/game.ts` 의 private 메서드였고, 게임과 도감이 이제 같은 것을 부릅니다|
+|얼굴 함수|`render/faces.ts`. `tagFace` · `blindFace` · `bossFace` · `itemFace` · `voucherFace` · `packFace` 가 `game/game.ts` 의 private 메서드였고, 게임과 도감이 이제 같은 것을 부릅니다|
 |도감 판|`ui/collection.ts`. `ui/joker-pool.ts` 는 조커 탭이 되어 없어졌습니다|
 |풀 단추|`ui/setup.ts`. `RunSetup` 에 `pool` 이 더해졌습니다|
 |글|`ui.button.collection` · `ui.collection.*` 넷 · `ui.kind.*` 일곱. **6개 언어로 12행**입니다|

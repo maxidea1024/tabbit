@@ -57,6 +57,47 @@ core.snapshotHash() → string
 데스크탑(Electron)과 안드로이드(Capacitor)는 **같은 웹 빌드를 담습니다.** 코어도 연출도
 하나입니다.
 
+## 화면의 부분 12개
+
+화면은 `web/src/game/` 아래에 있고, 판 하나와 부분 12개입니다.
+
+|파일|무엇|
+|--|--|
+|[`game.ts`](../web/src/game/game.ts)|판. 부분을 들고, 매 프레임 부분마다 한 번씩 시킵니다|
+|[`show.ts`](../web/src/game/show.ts)|연출. 박자 하나를 화면의 움직임으로 옮깁니다|
+|[`chrome.ts`](../web/src/game/chrome.ts)|왼쪽 판의 칸과 아래 단추|
+|[`cards.ts`](../web/src/game/cards.ts)|카드와 조커의 뷰. 나눠주기와 덱으로 걷기|
+|[`tray.ts`](../web/src/game/tray.ts)|조커·소모품이 놓이는 줄과 그 줄에서 집은 것|
+|[`blind.ts`](../web/src/game/blind.ts)|블라인드를 고르는 자리와 태그|
+|[`shop.ts`](../web/src/game/shop.ts)|상점의 딱지와 값 치르기|
+|[`pack.ts`](../web/src/game/pack.ts)|팩을 펼쳐 고르는 것|
+|[`payout.ts`](../web/src/game/payout.ts)|정산의 줄과 동전|
+|[`panels.ts`](../web/src/game/panels.ts)|족보·덱·실행 중인 것·메뉴, 그리고 쪽지에 적는 말|
+|[`input.ts`](../web/src/game/input.ts)|꾸욱 누르기·호버·끌어 옮기기와 지시문 한 줄|
+|[`session.ts`](../web/src/game/session.ts)|씬 전환·판의 저장과 복구·계정·옵션·끝난 판|
+|[`probe.ts`](../web/src/game/probe.ts)|`window.__clover`. 검증 도구가 조회하는 것|
+
+그 밖에 수치와 표가 따로 있습니다 — [`metrics.ts`](../web/src/game/metrics.ts)(좌표와
+시간), [`tables.ts`](../web/src/game/tables.ts)(이름으로 찾는 표),
+[`types.ts`](../web/src/game/types.ts)(화면이 스스로 들고 있는 것들의 꼴),
+[`helpers.ts`](../web/src/game/helpers.ts)(상태를 읽지 않는 작은 것들).
+
+**부분끼리는 판을 거쳐 서로에게 닿습니다.** 부분은 판을 생성자로 받아 `this.game` 하나만
+들고 있고, 다른 부분의 것은 `this.game.panels.modals` 처럼 판을 지나서 읽습니다 — 부분이
+서로를 직접 들고 있으면 둘을 함께 만들어야 하고, 하나를 지울 때 다른 하나를 함께 뒤져야
+합니다.
+
+**판에 남는 것은 셋뿐입니다.**
+
+|판이 들고 있는 것|왜 부분이 아닌가|
+|--|--|
+|상태·시계·소리·박자 재생기·층|부분 절반 이상이 읽습니다. `state` 를 읽는 자리가 189곳, `clock` 이 101곳입니다|
+|`tick`·`step`·`refresh`·`dropRun`|**부분마다 같은 것을 한 번씩 시키는 것입니다.** `tick` 은 부분의 `advance` 를 차례로 부르는 목록입니다|
+|`act`·`announce`·`later`·`guard`|액션을 코어에 넘기고 이벤트를 부분에 나누는 자리|
+
+**`refresh` 안에서 걸쇠를 굳히지 않는 규약은 부분마다 그대로입니다** —
+[렌더 성능 규약](performance.md)에 있습니다.
+
 ## 코어를 한 번만 쓰는 이유
 
 규칙이 데이터에 있으므로 **구현을 늘려서 얻을 것이 없습니다.** 같은 시트를 읽는 두 번째

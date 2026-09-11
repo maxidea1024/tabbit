@@ -194,7 +194,7 @@
 1. 이 문서와 [줄의 목록](insight/rules.md)
 2. `core/dry-run.ts` → `Vm.chanceMode` → `core/insight.ts`. 게이트를 함께 씁니다
 3. `StringTable` 에 `ui.insight.*` 44줄 × 6개 언어. 변환과 `font.py` 를 다시 돌립니다
-4. `render/game.ts` 의 갈래와 줄 그리기
+4. `game/panels.ts` 의 갈래와 줄 그리기
 5. `tools/check-insight.ts`
 6. 문서 갱신 · 문체 검사기 · `npm run check` · `npm run test`
 
