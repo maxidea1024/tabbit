@@ -3,8 +3,8 @@
 // **무엇을 하는지 얼굴에 적혀 있어야 합니다.** 이름만으로는 살지 말지를 정할 수 없고,
 // 그 설명은 `core/describe.ts` 가 효과 행에서 만듭니다 — 손으로 적은 문장이 아닙니다.
 //
-// 그림 파일이 아직 없으므로 식별자에서 만든 문양으로 그립니다. 같은 조커는 언제나 같은
-// 모양이고, 희귀도가 테두리 색입니다.
+// 그림은 `render/art.ts` 가 읽어 오고 희귀도가 테두리 색입니다. **그림이 닿기 전에는
+// 스켈레톤입니다**(`render/skeleton.ts`) — 식별자에서 뽑은 무늬를 세우지 않습니다.
 
 import { COLOR, PAINT } from './ink'
 import { Container, type Filter, Graphics, Sprite, Text } from 'pixi.js'
@@ -19,7 +19,8 @@ import { EDITION_SHADER, EditionFilter, type EditionLook } from '../shader/editi
 import { insetRadius } from './skin'
 import { roundedMask } from '../shader/mask'
 import { artFor } from './art'
-import { drawGlyph, glyphFor, hashOf, hsl, shade, tintUp } from './glyph'
+import { skeletonCard } from './skeleton'
+import { drawGlyph, shade, tintUp } from './glyph'
 import { fraction, Motion, sway } from './motion'
 import { pinBox } from './pin'
 import { UI, SIZE, rarityColor } from './theme'
@@ -28,11 +29,6 @@ import { type MotesHandle, startMotes } from './motes-layer'
 /** 카드의 모서리와 이름 띠의 높이. */
 const RADIUS = 9
 const BAND = 26
-
-/** 식별자에서 색상 하나. 같은 조커는 언제나 같은 색입니다. */
-function hueOf(text: string): number {
-  return hashOf(text) % 360
-}
 
 /**
  * 카드의 테두리. **금속 테 하나에 리벳 넷입니다.**
@@ -173,12 +169,18 @@ export class JokerView extends Container {
   private readonly clip = new Graphics()
   /** 이름이 앉는 띠. 그림 위에 얹힙니다. */
   private readonly band = new Graphics()
+  /**
+   * 이름 띠를 세우는가.
+   *
+   * **판에서는 띠가 곧 이름입니다** — 딱지 아래에 글을 적을 자리가 없습니다. 도감의 칸은
+   * 아래에 이름을 따로 적으므로, 띠까지 세우면 같은 이름이 한 칸에 두 번 적힙니다.
+   */
+  private nameShown = true
   /** 테두리. 희귀도의 색입니다. */
   private readonly frame = new Graphics()
   /** 누적값이 앉는 바탕. */
   private readonly counterPlate = new Graphics()
-  private readonly emblem = new Graphics()
-  /** 그림이 있으면 이것이 문양을 대신합니다. */
+  /** 그림 한 장. 닿기 전에는 없고, 그동안은 맨 판이 보입니다. */
   private art?: Sprite
   private readonly nameText = new Text({
     text: '',
@@ -294,7 +296,7 @@ export class JokerView extends Container {
     super()
     this.uid = joker.uid
     this.look = look
-    this.body.addChild(this.plate, this.emblem, this.clip)
+    this.body.addChild(this.plate, this.clip)
     this.face.addChild(this.band, this.frame, this.nameText, this.counterPlate, this.counter)
     // **둘 다 필터가 걸리는 통입니다.** 경계와 필터 사각형을 함께 고정합니다 — 하나만
     // 두면 구운 사진에서 이 통이 빠집니다(`pin.ts`).
@@ -313,14 +315,13 @@ export class JokerView extends Container {
     this.look = look
     const w = SIZE.jokerWidth
     const h = SIZE.jokerHeight
-    const hue = hueOf(joker.jokerId)
     const edge = rarityColor(look.rarity)
 
     this.shadow.clear()
     this.shadow.roundRect(3, 5, w, h, RADIUS).fill({ color: PAINT.veil, alpha: 0.4 })
 
-    // 카드의 바탕. **그림이 덮으므로 보이는 것은 모서리뿐입니다** — 그림이 아직 안 읽혔을
-    // 때 흰 자리가 번쩍이지 않게 어두운 색을 깝니다.
+    // 카드의 바탕. **그림이 덮으므로 보이는 것은 모서리뿐입니다** — 그림이 아직 안 닿았을
+    // 때는 이것이 보이는 전부이므로, 흰 자리가 번쩍이지 않게 어두운 색을 깝니다.
     // **조커마다의 색조를 걷었습니다.** 그림의 배경이 이제 소재마다 다른 색이므로, 판까지
     // 색을 돌리면 두 색이 겹쳐 부딪칩니다. 중립으로 둡니다.
     this.plate.clear()
@@ -354,17 +355,9 @@ export class JokerView extends Container {
       this.body.addChildAt(sprite, this.body.getChildIndex(this.plate) + 1)
     }
 
-    // 그림이 아직 없으면 문양 하나를 그립니다. **202장을 한 번에 만들지 않으므로 절반만
-    // 있는 상태에서도 화면이 돌아야 합니다.**
-    this.emblem.clear()
-    if (!texture) {
-      const glyphInk = tintUp(hsl(hue, 0.7, 0.62), 0.25)
-      this.emblem.roundRect(0, 0, w, h, RADIUS).fill(hsl((hue + 22) % 360, 0.6, 0.12))
-      drawGlyph(this.emblem, glyphFor(joker.jokerId), w / 2, h / 2 - 8, 46, {
-        fill: glyphInk,
-        line: shade(glyphInk, 0.62),
-      })
-    }
+    // 그림이 아직 닿지 않았습니다. **판 위에 스켈레톤을 얹습니다** — 까닭은
+    // `render/skeleton.ts` 의 머리에 있습니다.
+    if (!texture) skeletonCard(this.plate, w, h, RADIUS)
 
     // 이름 띠. **그림 위에 얹힙니다** — 카드 아래를 덮어야 이름이 그림의 일부가 아니라
     // 이 카드의 이름으로 읽힙니다.
@@ -442,9 +435,27 @@ export class JokerView extends Container {
       this.restack()
     }
 
-    // **다시 그려도 보이는 면은 그대로입니다.** 줄은 매 프레임 상태에 맞춰 다시 그리므로,
-    // 여기서 맞추지 않으면 뒤집혀 있던 딱지가 다음 `refresh` 에 앞면으로 돌아옵니다.
+    // **다시 그려도 보이는 면과 이름 띠는 그대로입니다.** 줄은 매 프레임 상태에 맞춰 다시
+    // 그리므로, 여기서 맞추지 않으면 뒤집혀 있던 딱지가 다음 `refresh` 에 앞면으로
+    // 돌아오고 접어 둔 띠가 되살아납니다.
     this.applyFace()
+    this.applyName()
+  }
+
+  /**
+   * 이름 띠를 접습니다. **도감의 칸이 부릅니다.**
+   *
+   * `set` 이 띠와 글을 다시 그리므로 값으로 들고 있다가 그릴 때마다 맞춥니다 — 한 번
+   * 숨기고 끝내면 다음 `set` 에서 되살아납니다.
+   */
+  hideName(): void {
+    this.nameShown = false
+    this.applyName()
+  }
+
+  private applyName(): void {
+    this.band.visible = this.nameShown
+    this.nameText.visible = this.nameShown
   }
 
   /** 지금 보이는 면. 뒷면이면 그림과 글을 접고 뒷면 한 장을 세웁니다. */

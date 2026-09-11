@@ -42,6 +42,11 @@ import {
   SessionPart, ShopPart, ShowPart, TrayPart,
 } from './parts'
 import * as account from '../net/session'
+/** 그림이 들어온 뒤 이만큼 더 들어오지 않으면 다시 그립니다. 초입니다. */
+const ART_QUIET = 0.1
+/** 그림이 잇달아 들어와도 첫 도착에서 이만큼 지나면 다시 그립니다. 초입니다. */
+const ART_WAIT = 0.3
+
 export class Game {
 
   // 부분들. **판이 들고 있고, 부분끼리는 판을 거쳐 서로에게 닿습니다.**
@@ -179,8 +184,12 @@ export class Game {
    */
   readonly spotNodes = new Map<string, ToolSpot>()
 
-  /** 그림이 새로 들어왔는가. `tick` 이 한 프레임에 한 번 처리합니다. */
+  /** 그림이 놓였는가. `tick` 이 그 프레임에 처리합니다. */
   private artDirty = false
+  /** 마지막 그림이 들어온 뒤 이만큼 조용하면 다시 그립니다. */
+  private artQuietAt = Infinity
+  /** 그림이 계속 들어와도 이때는 다시 그립니다. 첫 도착에서 셉니다. */
+  private artDueAt = Infinity
 
   /** 점수가 멈춘 뒤 낸 카드를 얼마나 붙잡아 두었는가. */
   holdAfterScore = 0
@@ -277,9 +286,12 @@ export class Game {
         () => this.session.enterTitle()))
     // 도감. **보는 곳이고 고르는 곳이 아닙니다** — 다음 판의 풀은 판을 여는 자리에서
     // 고릅니다. 처음 열 때 조커 탭이 보여 주는 범위만 그 값을 따릅니다.
+    // **칸을 굽는 렌더러와 글씨의 배율을 넘깁니다.** 배율은 창의 크기를 따라 바뀌므로 값이
+    // 아니라 읽는 함수입니다.
     this.panels.collection = new CollectionPanel(data, this.session.collected,
       this.session.settings.pool,
-      () => this.panels.modals.close(this.panels.collection))
+      () => this.panels.modals.close(this.panels.collection),
+      { renderer: this.app.renderer, density: () => this.textScale })
     this.panels.optionsPanel = new OptionsPanel(data, this.session.settings,
       () => this.session.applyOptions(),
       () => this.panels.modals.close(this.panels.optionsPanel))
@@ -666,6 +678,7 @@ export class Game {
     app.canvas.addEventListener('webglcontextrestored', () => {
       forgetCardFaces()
       forgetCardBacks()
+      this.panels.collection.forgetBakes()
       if (!this.manualTick && this.session.awake) app.ticker.start()
       this.pack.repaintPack()
       this.refresh()
@@ -674,8 +687,20 @@ export class Game {
     // 그림이 새로 들어오면 다시 그립니다. 문양이 그림으로 바뀝니다.
     // **그 자리에서 다시 그리지 않고 표시만 남깁니다.** 그림 하나마다 부르므로 조커 풀을
     // 열면 40번이 오고, 그때마다 화면 전체를 다시 세우면 한 번에 40번입니다 — `tick` 이
-    // 한 프레임에 한 번으로 모아 처리합니다.
-    onArtReady(() => { this.artDirty = true })
+    // 모아서 한 번에 처리합니다.
+    //
+    // **들어온 것은 잠깐 모으고, 놓인 것은 바로 합니다.** 도감을 한 줄 굴리면 그림 열 장이
+    // 몇 프레임에 걸쳐 하나씩 들어오고, 프레임마다 판 전체를 다시 세우면 굴리는 동안
+    // `refresh` 가 줄마다 열 번입니다 — 들어온 것은 조용해진 뒤 한 번으로 모읍니다. 놓인
+    // 것은 두 틱 뒤에 버려지므로 기다릴 수 없습니다.
+    onArtReady((_key, gone) => {
+      if (gone) {
+        this.artDirty = true
+        return
+      }
+      this.artQuietAt = this.clock + ART_QUIET
+      this.artDueAt = Math.min(this.artDueAt, this.clock + ART_WAIT)
+    })
 
     // **도구가 읽을 때만 셉니다.** 매 프레임 40개 키를 만들어 두던 것을, 읽는 쪽이 그 순간에
     // 만드는 것으로 바꿨습니다 — 값은 같고, 아무도 읽지 않는 프레임에는 아무 일도 없습니다.
@@ -1029,8 +1054,10 @@ export class Game {
     artTick()
     this.session.flushRun()
 
-    if (this.artDirty) {
+    if (this.artDirty || this.clock >= this.artQuietAt || this.clock >= this.artDueAt) {
       this.artDirty = false
+      this.artQuietAt = Infinity
+      this.artDueAt = Infinity
       this.pack.repaintPack()
       this.session.repaintGameOver()
       this.refresh()

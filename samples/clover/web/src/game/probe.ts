@@ -32,7 +32,10 @@ export class ProbePart {
     const walk = (node: Container): void => {
       if (node instanceof Sprite) {
         all++
-        if (node.texture.source.destroyed) dead++
+        // **버려진 텍스처는 바탕이 `null` 입니다.** `destroyed` 만 보면 여기서 던지고, 그
+        // 예외가 도구를 세워 정작 세려던 것을 세지 못합니다.
+        const source = (node.texture as { source?: { destroyed: boolean } | null }).source
+        if (!source || source.destroyed || node.texture.destroyed) dead++
       }
       for (const child of node.children) walk(child as Container)
     }

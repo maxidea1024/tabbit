@@ -24,8 +24,9 @@ import { roundedMask } from '../shader/mask'
 import { EditionKind } from '../generated/enums/edition-kind'
 import { artFor, type ArtKind } from './art'
 import { cardArtDir, suitInk } from './card-set'
-import { drawGlyph, glyphFor, hashOf, hsl, shade } from './glyph'
+import { shade } from './glyph'
 import { pinBox } from './pin'
+import { skeletonCard, skeletonCircle } from './skeleton'
 import { cardArtId, drawFace } from './pips'
 import { insetRadius, mix } from './skin'
 import { UI, SIZE } from './theme'
@@ -161,14 +162,10 @@ export function tagFace(tagId: string, size: number): Container {
   // 어떤 것은 네모 액자에 든 칩으로 보입니다 — 칩만 남기면 그 차이가 없어집니다.
   if (texture) return roundArt(texture, size)
 
-  // 문양 하나와 그 태그의 색. 색은 이름에서 나오므로 태그마다 다릅니다.
-  const hue = hashOf(tagId) % 360
+  // **그림이 닿기 전의 스켈레톤입니다.** 식별자에서 뽑은 색과 무늬를 세워 두었었고, 그것은
+  // 그 태그의 표시가 아닌데 표시처럼 보였습니다.
   const art = new Graphics()
-  art.circle(0, 0, size / 2).fill({ color: hsl(hue, 0.5, 0.32) })
-  art.circle(0, 0, size / 2).stroke({ color: hsl(hue, 0.6, 0.6), width: 1.5 })
-  drawGlyph(art, glyphFor(tagId), 0, 0, size * 0.3, {
-    fill: hsl(hue, 0.7, 0.78), line: hsl(hue, 0.4, 0.22), weight: 1.4,
-  })
+  skeletonCircle(art, size)
   face.addChild(art)
   return face
 }
@@ -181,7 +178,7 @@ export function tagFace(tagId: string, size: number): Container {
  * 쪽지에 두고 칸에는 이 칩 하나를 얹습니다.
  *
  * 놓는 것은 태그이거나 조커입니다. 어느 쪽인지는 식별자만으로 알 수 없으므로 그림을 둘 다
- * 찾아보고, 없으면 태그의 문양으로 떨어집니다.
+ * 찾아보고, 아직 닿지 않았으면 태그의 스켈레톤으로 떨어집니다.
  */
 export function giftChip(id: string, size: number): Container {
   const texture = artFor('tag', id) ?? artFor('joker', id)
@@ -194,32 +191,16 @@ export function giftChip(id: string, size: number): Container {
  *
  * **보스마다 다른 표시가 있어야 합니다.** 이름과 효과만 적혀 있으면 28종이 한 갈래로
  * 보이고, 어느 것이 나왔는지가 판마다 남지 않습니다 — 원작에서도 보스는 저마다 다른
- * 표시를 답니다.
- *
- * 그림이 있으면 그림, 없으면 문양입니다 — 문양은 식별자에서 나오므로 보스마다 다릅니다.
+ * 표시를 답니다. 그 표시가 `boss/<식별자>` 의 그림이고 28종에 다 있습니다.
  */
 export function bossFace(bossId: string, size: number): Container {
   const face = new Container()
   const texture = artFor('boss', bossId)
   if (texture) return roundArt(texture, size)
 
-  // 붉은 돌 하나에 새긴 표시. **색은 식별자에서 나오므로 보스마다 다릅니다.**
-  const hue = 320 + (hashOf(bossId) % 60)
+  // **그림이 닿기 전의 스켈레톤입니다.** 태그의 칩과 같은 틀입니다.
   const art = new Graphics()
-  art.circle(0, 0, size / 2).fill({ color: hsl(hue % 360, 0.42, 0.20) })
-  art.circle(0, 0, size / 2).stroke({ color: hsl(hue % 360, 0.55, 0.52), width: 2 })
-  // 테두리의 눈금. 태그의 칩과 갈리는 것이 이것입니다.
-  for (let i = 0; i < 12; i++) {
-    const angle = (i / 12) * Math.PI * 2
-    const inner = size / 2 - 4
-    const outer = size / 2 - 1
-    art.moveTo(Math.cos(angle) * inner, Math.sin(angle) * inner)
-      .lineTo(Math.cos(angle) * outer, Math.sin(angle) * outer)
-      .stroke({ color: hsl(hue % 360, 0.5, 0.62), width: 1.2, alpha: 0.8 })
-  }
-  drawGlyph(art, glyphFor(bossId), 0, 0, size * 0.28, {
-    fill: hsl(hue % 360, 0.7, 0.8), line: hsl(hue % 360, 0.4, 0.14), weight: 1.6,
-  })
+  skeletonCircle(art, size)
   face.addChild(art)
   return face
 }
@@ -259,6 +240,19 @@ export function blindFace(blind: BlindKind, size: number, bossId: string): Conta
 
   face.addChild(art)
   return face
+}
+
+/**
+ * 얼굴에 이름을 적는가.
+ *
+ * **판에서는 띠가 곧 이름입니다** — 딱지 아래에 글을 적을 자리가 없습니다. 도감의 칸은
+ * 아래에 이름을 따로 적으므로, 띠까지 세우면 같은 이름이 한 칸에 두 번 적힙니다.
+ *
+ * **이름이 곧 내용인 얼굴에는 걸리지 않습니다.** 바우처와 강화·인장·에디션의 종이는 그림이
+ * 없어 적힌 글이 그 카드의 전부이고, 그것을 접으면 빈 종이가 남습니다.
+ */
+export interface FaceCaption {
+  nameless?: boolean
 }
 
 /** `itemFace` 가 그리는 것. 상점의 딱지에서는 `ShopItem` 이 그대로 들어옵니다. */
@@ -302,7 +296,8 @@ export function faceEdition(node: Container): EditionFilter | undefined {
  * 조커와 **같은 크기, 같은 모서리, 같은 이름 띠**입니다 — 상점에 여러 갈래가 서므로
  * 모양이 어긋나면 줄이 흐트러져 보입니다.
  */
-export function itemFace(data: Data, item: ItemFace): Container {
+export function itemFace(data: Data, item: ItemFace,
+                         caption: FaceCaption = {}): Container {
   const w = SIZE.jokerWidth
   const h = SIZE.jokerHeight
   const node = new Container()
@@ -382,6 +377,12 @@ export function itemFace(data: Data, item: ItemFace): Container {
       sprite.position.set((w - sprite.width) / 2, (h - sprite.height) / 2)
       sprite.mask = cutout()
       body.addChild(sprite)
+    } else {
+      // 아직 닿지 않았습니다. **카드 틀의 스켈레톤입니다** — 판만 두면 이 칸이 빈 칸으로
+      // 읽히고, 상점에서 빈 칸은 「살 것이 없다」는 뜻입니다.
+      const bones = new Graphics()
+      skeletonCard(bones, w, h, 9)
+      body.addChild(bones)
     }
   }
 
@@ -390,6 +391,7 @@ export function itemFace(data: Data, item: ItemFace): Container {
   band.roundRect(0, h - 26, w, 26, 9).fill({ color: COLOR.band, alpha: 0.88 })
   band.rect(0, h - 26, w, 17).fill({ color: COLOR.band, alpha: 0.88 })
   band.rect(0, h - 26, w, 1.5).fill({ color: tint, alpha: 0.9 })
+  band.visible = caption.nameless !== true
   text.addChild(band)
 
   const label = new Text({
@@ -401,6 +403,7 @@ export function itemFace(data: Data, item: ItemFace): Container {
   })
   label.anchor.set(0.5, 0.5)
   label.position.set(w / 2, h - 13)
+  label.visible = caption.nameless !== true
   text.addChild(label)
 
   const frame = new Graphics()
@@ -487,7 +490,7 @@ export interface PackFaceRow {
  * 네모였습니다 — 상점 한 줄에 카드와 나란히 서는데 그 줄에서 팩만 그림이 없었습니다.
  * 그림이 아직 오지 않은 기계에서는 그 봉지를 그대로 그립니다.
  */
-export function packFace(row: PackFaceRow): Container {
+export function packFace(row: PackFaceRow, caption: FaceCaption = {}): Container {
   const w = SIZE.jokerWidth
   const h = SIZE.jokerHeight
   const ink = packInk(row.kind)
@@ -548,6 +551,9 @@ export function packFace(row: PackFaceRow): Container {
   const band = new Graphics()
   band.roundRect(0, h - 42, w, 42, 9).fill({ color: COLOR.band, alpha: 0.86 })
   band.rect(0, h - 42, w, 30).fill({ color: COLOR.band, alpha: 0.86 })
+  // **이름만 접습니다.** 띠는 「몇 장 중 몇 장」을 받치고 있어서 함께 접으면 그 글이
+  // 포장지 위에서 읽히지 않습니다.
+  label.visible = caption.nameless !== true
   bag.addChild(band, label, note)
 
   return bag

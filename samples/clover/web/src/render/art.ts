@@ -1,8 +1,12 @@
 // 그림.
 //
-// **그림은 있으면 쓰고 없으면 문양을 그립니다.** 전부를 한 번에 만들지 않으므로, 절반만
-// 있는 상태에서도 화면이 돌아야 합니다 — 있는 것은 그림이고 없는 것은 `glyph.ts` 의 문양
-// 입니다.
+// **그림은 늦게 닿습니다.** 부탁한 그 프레임에는 없고, 읽히면 `onArtReady` 로 알립니다 —
+// 그 사이에 그리는 쪽은 맨 판을 둡니다.
+//
+// **대신 세울 무늬를 두지 않습니다.** 식별자에서 뽑은 문양을 그 자리에 세웠던 적이 있고,
+// 그림 파일이 하나도 없던 동안은 그것이 맞았습니다. 지금은 갈래마다 그림이 다 있으므로
+// 그 문양이 보이는 때는 「아직 안 닿은 1초」뿐이고, 그 1초에 그 물건의 것이 아닌 무늬가
+// 서 있으면 사람은 그것을 그 물건의 그림으로 읽습니다.
 //
 // 목록(`public/art/index.json`)을 먼저 읽습니다. 목록이 없으면 그림마다 없는 파일을 찾아
 // 404를 내고, 콘솔이 그것으로 덮여 셰이더 오류를 못 보게 됩니다.
@@ -45,6 +49,21 @@ const BUDGET = 96 * 1024 * 1024
  */
 const RETIRE_TICKS = 2
 
+/**
+ * `Assets` 가 `unload` 를 끝내기까지 그 열쇠를 다시 부탁하지 않습니다.
+ *
+ * **`Assets.unload` 는 그림을 바로 버리지 않습니다.** 캐시에서는 곧 빼지만 읽기 약속은
+ * 한 번 기다린 뒤에 지우므로, 그 사이에 같은 주소를 `Assets.load` 하면 **곧 버려질 그
+ * 그림이 그대로 돌아옵니다.** 돌아온 것을 `ready` 에 넣은 뒤 버려지면 그때부터 그 열쇠의
+ * 그림은 바탕이 없는 텍스처이고, 그것을 가리킨 스프라이트 하나가 그 프레임의 그리기 전체를
+ * 예외로 끝냅니다 — 화면이 까맣게 되고 티커가 멈춘 것이 그것이었습니다. 도감을 열자마자
+ * 그랬습니다: 한 화면의 조커 60장이 상한을 넘어 열면서 놓기 시작하고, 놓은 칸이 그 자리에서
+ * 다시 부탁하기 때문입니다.
+ */
+const unloading = new Set<string>()
+/** 버리는 동안 부탁받은 열쇠. 버리기가 끝나면 새로 읽습니다. */
+const wanted = new Set<string>()
+
 interface Held {
   texture: Texture
   /** 읽어 온 자리. 놓을 때 `Assets` 에도 알려야 합니다. */
@@ -67,14 +86,14 @@ const loading = new Set<string>()
  * 그리게 합니다.
  *
  * **들어온 것과 놓은 것을 가리지 않고 알립니다.** 받는 쪽이 해야 하는 일이 둘 다 같기
- * 때문입니다 — 그 열쇠의 그림을 쓰는 자리를 다시 그리는 것입니다. 들어온 것이면 문양이
- * 그림으로 바뀌고, 놓은 것이면 그림이 문양으로 돌아가며 **버려질 그림을 가리키지 않게
+ * 때문입니다 — 그 열쇠의 그림을 쓰는 자리를 다시 그리는 것입니다. 들어온 것이면 맨 판이
+ * 그림으로 바뀌고, 놓은 것이면 그림이 맨 판으로 돌아가며 **버려질 그림을 가리키지 않게
  * 됩니다.**
  *
  * **열쇠를 보고 거르는 쪽은 놓은 것도 받아야 합니다.** 걸러 놓고 들어온 것만 처리하면,
  * 놓인 그림을 쓰던 자리가 두 틱 뒤에 버려진 그림을 가리킨 채로 남습니다.
  */
-const listeners: ((key: string) => void)[] = []
+const listeners: ((key: string, gone: boolean) => void)[] = []
 
 /** 지금 들고 있는 크기의 합. */
 let heldBytes = 0
@@ -82,8 +101,8 @@ let heldBytes = 0
 let clock = 0
 /** 지금까지 흐른 틱. `RETIRE_TICKS` 를 세는 데만 씁니다. */
 let frame = 0
-/** 놓았지만 아직 버리지 않은 것. */
-const retiring: { texture: Texture; url: string; at: number }[] = []
+/** 놓았지만 아직 버리지 않은 것. **다시 부탁받으면 여기서 되살립니다.** */
+const retiring: { key: string; texture: Texture; url: string; bytes: number; at: number }[] = []
 
 /** 목록을 읽습니다. 없으면 그림이 하나도 없는 것으로 봅니다. */
 export async function loadArtIndex(url = './art'): Promise<number> {
@@ -94,7 +113,7 @@ export async function loadArtIndex(url = './art'): Promise<number> {
     const list = (await response.json()) as string[]
     for (const entry of list) known.add(entry)
   } catch {
-    // 목록이 없는 것은 오류가 아닙니다. 문양으로 갑니다.
+    // 목록이 없는 것은 오류가 아닙니다. 맨 판으로 갑니다.
   }
   return known.size
 }
@@ -114,15 +133,23 @@ function extensionOf(kind: ArtDir): string {
   return kind === 'card' ? 'png' : 'webp'
 }
 
-export function onArtReady(listener: (key: string) => void): void {
+/**
+ * @param listener 그 열쇠의 그림이 들어왔거나(`gone` 이 거짓) 놓였습니다(참). **놓인 것을
+ *   흘려도 되는 쪽은 그 그림을 들고 있지 않은 쪽뿐입니다** — 구워서 쓰는 도감이 그렇습니다.
+ */
+export function onArtReady(listener: (key: string, gone: boolean) => void): void {
   listeners.push(listener)
+}
+
+function tell(key: string, gone: boolean): void {
+  for (const listener of listeners) listener(key, gone)
 }
 
 /**
  * 이 식별자의 그림.
  *
  * 이미 읽어 둔 것만 돌려줍니다. 아직 없으면 읽기를 시작하고 `undefined` 를 냅니다 — 부르는
- * 쪽은 그동안 문양을 그리고, 다 읽히면 `onArtReady` 로 다시 그립니다.
+ * 쪽은 그동안 맨 판을 두고, 다 읽히면 `onArtReady` 로 다시 그립니다.
  */
 export function artFor(kind: ArtDir, id: string): Texture | undefined {
   const key = `${kind}/${id}`
@@ -130,10 +157,31 @@ export function artFor(kind: ArtDir, id: string): Texture | undefined {
 
   const have = ready.get(key)
   if (have) {
-    have.used = ++clock
-    return have.texture
+    // **바탕이 없는 것은 내주지 않습니다.** 이 표에 그런 것이 남는 길은 위의 되먹임이 막았지만,
+    // 남았다면 그것을 내주는 것이 곧 까만 화면입니다 — 표에서 빼고 새로 읽습니다.
+    if (have.texture.destroyed) {
+      ready.delete(key)
+      heldBytes -= have.bytes
+    } else {
+      have.used = ++clock
+      return have.texture
+    }
+  }
+  // **놓았지만 아직 버리지 않은 것은 되살립니다.** 다시 읽으면 `Assets` 가 캐시의 그 그림을
+  // 그대로 내주고, 그 그림은 두 틱 뒤에 버려집니다.
+  const back = retiring.findIndex(one => one.key === key)
+  if (back >= 0) {
+    const [one] = retiring.splice(back, 1)
+    ready.set(key, { texture: one.texture, url: one.url, bytes: one.bytes, used: ++clock })
+    heldBytes += one.bytes
+    return one.texture
   }
   if (loading.has(key)) return undefined
+  // 버리는 중입니다. 끝나면 `artTick` 이 새로 읽습니다.
+  if (unloading.has(key)) {
+    wanted.add(key)
+    return undefined
+  }
 
   const url = `${base}/${key}.${extensionOf(kind)}`
   loading.add(key)
@@ -145,13 +193,13 @@ export function artFor(kind: ArtDir, id: string): Texture | undefined {
     // **놓은 것도 함께 알립니다.** 놓는 것과 버리는 것이 두 틱 떨어져 있는 것은 그 사이에
     // 받는 쪽이 다시 그려 그 그림을 놓으라는 뜻입니다 — 놓은 열쇠를 알리지 않으면 받는
     // 쪽은 자기가 그 그림을 쓰고 있다는 것을 알 길이 없고, 두 틱 뒤에 버려진 그림을
-    // 가리킨 채로 그립니다.
-    for (const one of [key, ...trim()]) {
-      for (const listener of listeners) listener(one)
-    }
+    // 가리킨 채로 그립니다. 들어온 것이면 맨 판이 그림으로 바뀌고, 놓은 것이면 맨 판으로
+    // 돌아갑니다.
+    tell(key, false)
+    for (const one of trim()) tell(one, true)
   }).catch(() => {
     loading.delete(key)
-    // 한 번 실패하면 다시 시도하지 않습니다. 문양으로 남습니다.
+    // 한 번 실패하면 다시 시도하지 않습니다. 맨 판으로 남습니다.
     known.delete(key)
   })
 
@@ -177,7 +225,7 @@ function trim(): string[] {
     if (heldBytes <= BUDGET) break
     ready.delete(key)
     heldBytes -= one.bytes
-    retiring.push({ texture: one.texture, url: one.url, at: frame })
+    retiring.push({ key, texture: one.texture, url: one.url, bytes: one.bytes, at: frame })
     dropped.push(key)
   }
   return dropped
@@ -194,7 +242,16 @@ export function artTick(): void {
   while (retiring.length > 0 && frame - retiring[0].at >= RETIRE_TICKS) {
     const one = retiring.shift()
     if (!one) break
-    void Assets.unload(one.url).catch(() => undefined)
+    unloading.add(one.key)
+    void Assets.unload(one.url).catch(() => undefined).finally(() => {
+      unloading.delete(one.key)
+      // 버리는 동안 부탁받은 것은 이제 새로 읽습니다. 열쇠가 `<갈래>/<식별자>` 이고 갈래에
+      // `/` 가 들 수 있으므로(카드 세트) 마지막 `/` 에서 가릅니다.
+      if (wanted.delete(one.key)) {
+        const slash = one.key.lastIndexOf('/')
+        artFor(one.key.slice(0, slash), one.key.slice(slash + 1))
+      }
+    })
   }
 }
 
@@ -208,14 +265,12 @@ export function artTick(): void {
 export function dropAllArt(): string[] {
   const dropped: string[] = []
   for (const [key, one] of ready) {
-    retiring.push({ texture: one.texture, url: one.url, at: frame })
+    retiring.push({ key, texture: one.texture, url: one.url, bytes: one.bytes, at: frame })
     dropped.push(key)
   }
   ready.clear()
   heldBytes = 0
-  for (const one of dropped) {
-    for (const listener of listeners) listener(one)
-  }
+  for (const one of dropped) tell(one, true)
   return dropped
 }
 
