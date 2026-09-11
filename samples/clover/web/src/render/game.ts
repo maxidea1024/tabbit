@@ -23,7 +23,7 @@ import { SealKind } from '../generated/enums/seal-kind'
 import { ShopItemKind } from '../generated/enums/shop-item-kind'
 import { SuitKind } from '../generated/enums/suit-kind'
 import type { Data } from '../core/data'
-import { describe, valueText } from '../core/describe'
+import { describe, rankDisplay, valueText } from '../core/describe'
 import { StakeKind } from '../generated/enums/stake-kind'
 import { insights, type Insight, type InsightLevel } from '../core/insight'
 import { snapshotHash } from '../core/hash'
@@ -51,7 +51,7 @@ import { BlindBadge, Slot } from './hud'
 import { JokerView, type JokerLook } from './joker-view'
 import {
   buildTimeline, particlesOf, readFeel, scaleOf, semitonesOf, shakeOf, TimelinePlayer,
-  type Beat, type Feel,
+  TURN_BACK_MS, TURN_STEP_MS, type Beat, type Feel,
 } from './juice'
 import { Coins } from './coins'
 import { Euphoria } from './euphoria'
@@ -109,6 +109,7 @@ import {
 } from '../ui/options'
 import { Toasts } from '../ui/toast'
 import { type TipBox, Tooltip } from '../ui/tooltip'
+import { attachTip, TipHold, TIP_GROW, TIP_RISE } from '../ui/tip'
 
 /**
  * 순위 글 안에서 숫자가 있는 자리.
@@ -578,9 +579,6 @@ const ITEM_SETTLE = 0.11
  */
 const ITEM_LINGER = 0.22
 
-const HOLD_TIP = 0.45
-/** 그 사이에 손가락이 이만큼 움직이면 누른 것이 아니라 끈 것입니다. */
-const HOLD_SLACK = 16
 const HAND_Y = 608
 /**
  * 바뀌는 카드가 나와 서는 줄.
@@ -793,8 +791,14 @@ interface TagCell {
   /** 쓴 태그인가. 발동이 끝나면 이 밝기로 돌아갑니다. */
   used: boolean
   size: number
-  /** 발동하는 동안 걸린 필터. 끝나면 뗍니다. */
-  lit?: ArriveFilter
+  /**
+   * 발동하는 동안의 흰 번쩍임. 끝나면 지웁니다.
+   *
+   * **새로 선 칩과 같은 기법입니다**(`shine`). `ArriveFilter` 는 카드 한 장의 크기에 맞춰
+   * 여백을 잡아 두어 26픽셀짜리 칩에서는 그림이 왼쪽 위로 밀리는데, 그 까닭으로 새 칩에는
+   * 걸지 않으면서 발동하는 칩에는 걸고 있었습니다.
+   */
+  lit?: Graphics
   /** 새로 들어온 칩의 흰 번쩍임. 끝나면 지웁니다. */
   shine?: Graphics
 }
@@ -1409,7 +1413,7 @@ export class Game {
    * 상점과 팩은 `uid` 가 아니라 **칸의 번호**입니다. 그 둘은 개체가 아니라 자리이고,
    * 자리는 상점이 다시 그려질 때마다 새로 만들어지므로 개체로는 가리킬 것이 없습니다.
    */
-  private held?: { kind: 'joker' | 'consumable' | 'shop' | 'pack' | 'pack_slot'; uid: number }
+  private held?: { kind: 'joker' | 'consumable' | 'shop' | 'pack' | 'pack_slot' | 'voucher'; uid: number }
   /**
    * 지금 고른 그것이 화면에서 어느 통인가. `syncHeldBar` 이 세울 때 적습니다.
    *
@@ -1464,6 +1468,13 @@ export class Game {
    * `rewind` 가 점수와 금액에 하는 일과 같습니다.
    */
   private readonly pendingCards = new Map<number, CardInstance>()
+  /**
+   * 아직 박자가 닿지 않은 조커의 이전 모습. **카드의 `pendingCards` 와 같은 몫입니다.**
+   *
+   * 조커 줄은 `refresh` 마다 상태를 그대로 그리므로, 붙들지 않으면 판이 갈리는 박자가 오기
+   * 전에 이미 새 판으로 그려져 있습니다 — 뒤집어도 앞과 뒤가 같습니다.
+   */
+  private readonly pendingJokers = new Map<number, JokerInstance>()
 
   /**
    * 판 위로 나와 바뀌는 것을 보이는 중인 카드들.
@@ -1601,6 +1612,14 @@ export class Game {
   /** 지금 그려진 상점 판의 틀. 높이가 움직이는 동안 매 프레임 다시 그립니다. */
   /** 상점 밑단의 단추 둘과 그것이 열리는 시각. */
   private shopFoot?: { reroll: Button; leave: Button; afford: boolean; readyAt: number }
+  /**
+   * 바우처 칸. **상점의 카드 칸과 같은 규칙으로 고릅니다** — 누르면 들리고, 사는 것은 그
+   * 밑에 서는 단추입니다. 한 번 누르면 곧바로 사지던 유일한 칸이었습니다.
+   */
+  private voucherTile?: {
+    tile: Container; lift: Container; price: Text; mid: number; holdY: number
+    cost: number; title: string
+  }
   /** 「받는다」 의 자리. **눌릴 수 있게 되면** `spots.take` 로 알립니다. */
   private takeSpot?: { x: number; y: number }
   private shopFrame?: {
@@ -1623,6 +1642,24 @@ export class Game {
    * 그것을 따라갑니다. 값이 다르면 나란히 선 둘이 다른 물건처럼 움직입니다.
    */
   private readonly consumableLift = new Map<number, Spring>()
+  /**
+   * 소모품 칸이 지난 자리에서 제자리로 미끄러지는 용수철. 번호로 듭니다.
+   *
+   * **칸은 다시 그릴 때마다 새로 만들어지므로 그대로 두면 순간이동합니다.** 하나가 타는 동안
+   * 남은 칸들이 그 프레임에 새 자리로 뛰어 붙었습니다 — 조커는 용수철로 미끄러지고 상점
+   * 딱지는 지난 자리에서 오는데(`shopSpotWas`) 이 줄만 그랬습니다.
+   */
+  private readonly consumableSlide = new Map<number, Spring>()
+  /**
+   * 소모품 칸이 가리켜져 커지는 용수철. 번호로 듭니다.
+   *
+   * **조커 딱지와 같은 몸짓입니다**(`TIP_GROW` · `TIP_RISE`). 나란히 놓인 두 줄에서 조커는
+   * 커서를 따라 들리고 커지는데 소모품은 쪽지만 떴습니다 — 같은 줄에 두 가지 규칙이
+   * 있었습니다.
+   */
+  private readonly consumableGrow = new Map<number, Spring>()
+  /** 지금 커서가 올라가 있는 소모품. 없으면 `undefined`. */
+  private hoveredItem?: number
   /** 지금 그려져 있는 소모품 칸들. 매 프레임 높이를 다시 얹습니다. */
   private readonly consumableTiles: {
     uid: number
@@ -2388,8 +2425,15 @@ export class Game {
      * 제 칸에 툭 나타났습니다. 오는 동안의 어긋남을 화면이 들고 있다가 매 프레임 얹습니다.
      */
     from: { x: number; y: number }
-    /** 오는 길을 얼마나 왔는가. 0 에서 1 로 갑니다. */
-    travel: number
+    /**
+     * 오는 길의 용수철. 카드의 가운데를 끌고 갑니다.
+     *
+     * **조커와 같은 용수철입니다**(`Motion.drift`). 3차 곡선으로 미끄러지게 두었을 때는
+     * 나란히 놓이는 두 줄이 다른 법으로 왔습니다 — 조커는 용수철로 닿아 한 번 튀고, 소모품은
+     * 곧게 와서 멈췄습니다. 목표는 칸이 그려질 때마다 그 칸의 가운데로 다시 잡습니다
+     * (`placeArriving`) — 칸의 자리는 든 개수로 정해지므로 날아오는 동안에도 바뀝니다.
+     */
+    motion: Motion
   }
 
   /**
@@ -2438,31 +2482,19 @@ export class Game {
    * 따로 띄우면 같은 것을 두 번 그리는 것이고, 어느 것이 어느 것인지 다시 맞춰 보게 됩니다.
    * 그동안 다른 갈래의 것은 옅어지고, 무엇을 하라는 글이 그 줄 아래에 놓입니다.
    *
-   * `from` 은 새 물건이 오는 자리입니다 — 팩에서는 그 카드이고, 상점에서는 상점이 이미
-   * 물러났으므로 글 옆에 세운 그 카드입니다. `middle` 은 그 판의 가운데이고, 치른 값이
-   * 뜨는 자리입니다 — 새 물건이 오는 그 작은 카드 위에 뜨면 판의 글에 얹힙니다.
+   * `slot` 은 상점에서 사려던 칸입니다. 상점은 그동안 그대로 떠 있고 그 딱지가 들려
+   * 있습니다 — 무엇을 위해 자리를 비우는지가 거기에 남고, 새 물건은 거기서 떠납니다.
+   * 팩에서 왔으면 없습니다. 펼친 그 카드가 그 몫입니다.
    */
   private focus?: {
     item: ShopItem
     kind: 'joker' | 'consumable'
-    card: Container
     panel: Container
-    commit: (held: number, from: { x: number; y: number },
-             middle: { x: number; y: number }) => void
+    commit: (held: number) => void
+    slot?: number
   }
   /** 자리를 비우는 화면이 든 정도. 0 에서 1 로 갑니다. */
   private focusEnter = 0
-  /**
-   * 자리를 비우는 판이 이 시각까지는 떠 있습니다.
-   *
-   * **치른 값이 그 판의 카드 위에 뜹니다.** 교체하는 동안 상점은 내려가 있고 산 것은 아직
-   * 줄에 없으므로, 화면에서 그 물건을 가리키는 것은 판 옆에 세운 카드 하나뿐입니다 —
-   * 고른 그 프레임에 판을 걷었더니 값이 아무것도 없는 자리에서 났습니다.
-   *
-   * **상점의 딱지가 그 자리에 남는 것과 같은 일이고 같은 시간입니다**(`BUY_LINGER`).
-   * 물건은 그 시각에 이 카드에서 날아가므로, 판은 물건이 떠날 때까지 남아 있습니다.
-   */
-  private focusHold = 0
   /**
    * 상점이 이 시각까지는 내려가 있습니다.
    *
@@ -2682,31 +2714,7 @@ export class Game {
    * **손가락으로 설명을 보는 길입니다.** 마우스는 올리면 뜨지만 손가락에는 「올린다」가
    * 없습니다 — 누른 자리와 시각을 적어 두고, 그 자리에서 오래 있으면 설명을 띄웁니다.
    */
-  private press?: {
-    at: number
-    x: number
-    y: number
-    show: () => void
-    /** 이미 띄웠는가. 한 번만 띄웁니다. */
-    fired: boolean
-  }
-  /**
-   * 꾸욱 눌러 설명을 띄웠는가.
-   *
-   * **그 손가락이 떼어질 때의 누름을 먹습니다.** 그러지 않으면 설명을 보려고 누른 것이
-   * 그대로 고르기·사기·쓰기가 됩니다.
-   */
-  private pressAte = false
-  /**
-   * 지금 떠 있는 쪽지가 꾸욱 눌러 띄운 것인가.
-   *
-   * **떼어도 남아 있어야 합니다.** 손가락을 떼면 Pixi 가 「벗어났다」 를 내는데, 그것으로
-   * 닫으면 누르고 있는 동안에만 보입니다 — 읽을 시간이 없습니다. 조커는 그 길을 타지 않아서
-   * 남아 있었고, 소모품과 태그와 팩은 닫혔습니다.
-   *
-   * 다음에 무엇을 누르면 지워집니다.
-   */
-  private pressShown = false
+  private readonly hold = new TipHold(event => this.world.toLocal(event.global))
   /**
    * 마지막으로 쓴 것이 손가락인가.
    *
@@ -3061,7 +3069,6 @@ export class Game {
                  x: Math.round(event.global.x), y: Math.round(event.global.y) },
       }
       this.touching = event.pointerType !== 'mouse'
-      this.pressAte = false
       // **떠 있는 쪽지가 있으면 이 누름은 그것을 닫는 누름입니다.**
       //
       // 꾸욱 눌러 세운 쪽지는 손을 떼도 남습니다(읽을 시간입니다). 그 상태에서 누른 것이
@@ -3071,9 +3078,7 @@ export class Game {
       // **마우스에는 이것이 없습니다.** 마우스의 쪽지는 커서를 따라 뜨고 벗어나면 닫히므로
       // 떠 있는 쪽지가 없고(`pressShown` 은 꾸욱 누르기만 세웁니다), 올린 채로 누르는 것이
       // 곧 고르는 것입니다.
-      if (this.pressShown) this.pressAte = true
-      this.pressShown = false
-      this.press = undefined
+      this.hold.begin()
       this.tooltip.hide()
       // **이 누름이 고른 것의 밖이었는가**를 적어 둡니다. 놓는 것은 손을 뗄 때입니다 —
       // 여기서 놓으면 화면을 다시 그리게 되고, 다시 그리는 것은 지금 눌린 딱지를 통째로
@@ -3105,17 +3110,17 @@ export class Game {
       this.pointerAt = at
       if (event.pointerType === 'mouse') this.touching = false
       this.advanceDrag()
-      this.advancePressMove()
+      this.hold.moved(this.pointerAt)
     })
     // **판 밖에서 떼어도 끝나야 합니다.** 카드 위에서만 받으면 손가락이 판 밖으로 나간
     // 채 떼었을 때 그 카드가 커서에 붙어 남습니다.
     app.stage.on('pointerup', () => {
       this.endDrag()
-      this.press = undefined
+      this.hold.cancel()
     })
     app.stage.on('pointerupoutside', () => {
       this.endDrag()
-      this.press = undefined
+      this.hold.cancel()
     })
     // **고른 것 밖을 누르면 놓습니다.** 아무것도 없는 곳뿐이 아니라 아무 곳이나입니다 —
     // 조커를 눌러 「판매」가 놓여 있는 채로 손패를 고르러 가면 그 단추가 화면에 남고, 그것이
@@ -4056,6 +4061,7 @@ export class Game {
     this.endCardShow()
     this.borrowed.clear()
     this.pendingCards.clear()
+    this.pendingJokers.clear()
     this.castSoon.clear()
     this.ruleBanner.visible = false
 
@@ -4122,7 +4128,6 @@ export class Game {
     this.packPending = false
     this.focus = undefined
     this.focusEnter = 0
-    this.focusHold = 0
     this.shopHoldUntil = 0
     this.shopStayUntil = 0
     this.sortSlide.snap(SORT_HIDE)
@@ -4150,6 +4155,7 @@ export class Game {
     this.shopRows = {}
     this.shopFrame = undefined
     this.shopFoot = undefined
+    this.voucherTile = undefined
     this.shopSlide.snap(0)
     this.shopLayer.y = 0
     delete this.spots.take
@@ -4164,6 +4170,9 @@ export class Game {
     this.leavingTiles.length = 0
     this.usedItem = undefined
     this.consumableLift.clear()
+    this.consumableSlide.clear()
+    this.consumableGrow.clear()
+    this.hoveredItem = undefined
     this.consumableTiles.length = 0
     this.burningItems.length = 0
 
@@ -4578,8 +4587,15 @@ export class Game {
     // **바뀌기 전의 카드를 붙들어 둡니다.** 상태는 이 줄 다음에 이미 바뀌어 있고, 바뀌는
     // 것을 보이는 박자는 그 뒤에 옵니다 — 붙들지 않으면 보일 것이 이미 없어진 뒤입니다.
     const wasDeck = new Map(this.state.deck.map(card => [card.uid, { ...card }]))
+    // **조커도 같습니다.** 판이 갈리는 딱지는 그 박자가 올 때까지 이전 모습으로 섭니다.
+    const wasJokers = new Map(this.state.jokers.map(one => [one.uid, { ...one }]))
+    this.pendingJokers.clear()
     const step = apply(this.data, this.state, action)
     for (const event of step.events) {
+      if (event.t === 'JokerModified') {
+        const one = wasJokers.get(event.uid)
+        if (one) this.pendingJokers.set(event.uid, one)
+      }
       // **보스가 거는 것도 카드의 모습을 바꿉니다.** 죽는 것과 엎어지는 것 둘 다 얼굴이
       // 갈리므로, 붙들지 않으면 그 순간에 이미 죽어 있고 이미 엎어져 있습니다.
       const uids = event.t === 'CardModified' || event.t === 'CardDestroyed' ? [event.uid]
@@ -4606,11 +4622,17 @@ export class Game {
     if (!leaving) this.shown.phase = this.state.phase
     // **아무도 들지 않은 소모품은 박자가 듭니다.** 조커가 만들고 태그가 주는 것이 그것이고,
     // 그동안 칸에 툭 나타났습니다 — 박자가 올 때까지 세우지 않습니다.
-    if (!this.itemFlyOwned && this.arriveHold === undefined
-        && step.events.some(event => event.t === 'ConsumableAdded')) {
+    if (this.arriveHold === undefined) {
       // **넉넉한 천장입니다.** 박자가 이것을 걷으므로 이 값에 닿는 것은 박자가 오지 않은
       // 때뿐이고, 그때는 붙든 채로 두는 것보다 그냥 세우는 것이 낫습니다.
-      this.arriveHold = { kind: 'item', until: this.clock + 4, byBeat: true }
+      // **조커도 같습니다.** 효과·태그가 준 조커는 소모품과 같은 「아무도 들지 않은 획득」인데
+      // 붙들지 않아 그 프레임에 줄 위에서 떨어졌습니다.
+      if (step.events.some(event => event.t === 'JokerAdded')) {
+        this.arriveHold = { kind: 'joker', until: this.clock + 4, byBeat: true }
+      } else if (!this.itemFlyOwned
+                 && step.events.some(event => event.t === 'ConsumableAdded')) {
+        this.arriveHold = { kind: 'item', until: this.clock + 4, byBeat: true }
+      }
     }
     this.announce(step.events)
     this.startTimeline(step.events)
@@ -4742,13 +4764,9 @@ export class Game {
           break
         }
 
-        case 'JokerDestroyed': {
-          this.toasts.push(tf('ui.toast.destroyed',
-            { name: nameOf(this.data, 'joker', event.jokerId, event.jokerId) }),
-          t('ui.note.joker_slot_free'),
-            UI.bad, 2.6)
-          break
-        }
+        // 부서진 조커는 박자가 알립니다 — 타는 그 자리에서. 토스트는 눈이 있는 판에서 먼
+        // 구석입니다.
+        case 'JokerDestroyed': break
 
         case 'CardModified': modified++; break
         case 'CardDestroyed': destroyed++; break
@@ -5049,14 +5067,18 @@ export class Game {
     this.rollRank(seconds)
 
     // **딱지가 없으면 여기서 끝입니다.**
-    if (this.shopTiles.size === 0 && this.packSlotTiles.size === 0) {
+    if (this.shopTiles.size === 0 && this.packSlotTiles.size === 0 && !this.voucherTile) {
       if (this.shopLifts.size > 0) this.shopLifts.clear()
       return
     }
 
     // 지금 올라와 있어야 하는 칸 하나. 없으면 전부 제자리로 내려옵니다.
+    // **자리를 비우는 동안은 사려던 그 딱지입니다.** 고른 것은 놓았지만 무엇을 위해 자리를
+    // 비우는지가 그 딱지에 남아야 하고, 새 물건은 거기서 떠납니다.
     const up = this.held?.kind === 'shop' ? `card:${this.held.uid}`
-      : this.held?.kind === 'pack_slot' ? `pack:${this.held.uid}` : undefined
+      : this.held?.kind === 'pack_slot' ? `pack:${this.held.uid}`
+      : this.held?.kind === 'voucher' ? 'voucher'
+      : this.focus?.slot !== undefined ? `card:${this.focus.slot}` : undefined
     const seen = new Set<string>()
     /**
      * 이 칸이 지금 얼마나 올라와 있는가. **한 프레임에 칸마다 한 번씩 돕니다.**
@@ -5099,6 +5121,11 @@ export class Game {
       const key = `pack:${slot}`
       one.lift.y = -liftOf(key)
       one.price.visible = key !== up
+    }
+    const voucher = this.voucherTile
+    if (voucher && !voucher.tile.destroyed) {
+      voucher.lift.y = -liftOf('voucher')
+      voucher.price.visible = up !== 'voucher'
     }
 
     // 이 프레임에 만지지 않은 것은 없어진 칸입니다. 그 높이는 버립니다.
@@ -5144,7 +5171,9 @@ export class Game {
     const age = this.clock - fly.at
     if (!fly.sent && age >= TAG_POP) {
       fly.sent = true
-      fly.motion.hard()
+      // **날아오는 것은 전부 같은 용수철입니다**(`Motion.drift`). 조커·소모품·덱으로 가는
+      // 카드가 그것이고, 태그만 `hard` 로 날아가 셋 중 하나가 다른 빠르기였습니다.
+      fly.motion.drift()
       fly.motion.to(fly.to.x, fly.to.y, 0)
       fly.motion.scale.target = 26 / 40
     }
@@ -5197,15 +5226,13 @@ export class Game {
         one.cell.alpha = 0.42 + wave * 0.58
         one.cell.scale.set(1 + wave * 0.3)
         if (!one.lit) {
-          one.lit = new ArriveFilter()
-          one.cell.filters = [one.lit]
+          one.lit = glare(one.size, 1)
+          one.cell.addChild(one.lit)
         }
-        one.lit.at(this.clock)
-        one.lit.flash = wave * 0.9
-        one.lit.warp = wave * 0.35
+        one.lit.alpha = wave * 0.9
       } else if (one.lit) {
+        one.lit.destroy()
         one.lit = undefined
-        one.cell.filters = []
         one.cell.alpha = one.used ? 0.42 : 1
         one.cell.scale.set(1)
       }
@@ -5390,6 +5417,9 @@ export class Game {
 
   private startTimeline(events: GameEvent[]): void {
     this.moneyFrom = undefined
+    // **발동한 자리도 박자마다 새로입니다.** 지우지 않아 앞 액션에서 발동한 조커의 자리가
+    // 남고, 태그가 만든 소모품이 그 자리에서 날아왔습니다.
+    this.actorAt = undefined
     const beats = buildTimeline(events, this.feel)
     if (beats.length === 0) {
       this.settleShown()
@@ -5661,7 +5691,11 @@ export class Game {
         }
         // **소리는 낸 쪽이 이미 냈습니다.** 조커·카드가 낸 돈은 그 이벤트가 소리를 냈고,
         // 여기서 또 내면 같은 돈에 소리가 둘입니다. 닿는 소리는 동전마다 따로 납니다.
-        if (!hosted) this.audio.play(event.delta > 0 ? 'joker_money' : 'shop_reroll')
+        // **판 것과 산 것도 낸 쪽이 냈습니다** — 단추가 `joker_sell` · `joker_buy` 를 냅니다.
+        // 리롤의 소리도 단추가 냅니다. 여기서 또 내면 한 번 누름에 소리가 둘입니다.
+        const voiced = hosted !== undefined || sold !== undefined || bought !== undefined
+          || event.reason === 'reroll'
+        if (!voiced) this.audio.play(event.delta > 0 ? 'joker_money' : 'shop_reroll')
 
         // **무엇으로 번 돈인가**를 적습니다. 합계만 굴러가면 이유를 알 수 없습니다.
         // **판 돈은 내놓은 자리에 뜹니다.** 금액 칸 옆에 뜨면 사는 것과 파는 것이 같은
@@ -5678,9 +5712,11 @@ export class Game {
           // 가려집니다 — 팩이 걷힌 뒤에 뜨고, 새 물건의 이름은 그다음입니다.
           if (sold && this.packLayer.visible) {
             const at = { x: sold.x, y: sold.y - RISER_ON_CARD }
-            this.later.push({ at: this.clock + SELL_WAIT, run: () => this.popAt(at, line, tint, 0.7) })
+            this.later.push({ at: this.clock + SELL_WAIT, run: () => this.popAt(at, line, tint, 0.5) })
           }
-          else if (sold) this.popAt({ x: sold.x, y: sold.y - RISER_ON_CARD }, line, tint, 0.7)
+          // **판 값과 산 값은 같은 세기입니다.** 바꿔 살 때 둘이 잇달아 뜨는데, 한쪽만 크면
+          // 내놓는 것이 사는 것보다 무거운 일로 읽힙니다.
+          else if (sold) this.popAt({ x: sold.x, y: sold.y - RISER_ON_CARD }, line, tint, 0.5)
           else if (bought) {
             this.popAt({ x: bought.x, y: bought.y - RISER_ON_CARD }, line, tint, 0.5)
           }
@@ -5797,7 +5833,10 @@ export class Game {
         if (this.arriveHold?.kind !== 'item' || this.arriveHold.byBeat !== true) break
         this.arriveHold = undefined
         this.itemFlying(this.actorAt ?? { x: BOARD_X, y: JOKER_Y })
-        this.audio.play('consumable_use', 4)
+        // **얻는 소리입니다.** 쓰는 소리(`consumable_use`)로 알리고 있었습니다 — 생긴 것과
+        // 쓴 것이 같은 소리면 귀로 갈리지 않습니다. 팩에서 집는 것과 같은 소리이고,
+        // 조커가 생기는 것도 같습니다.
+        this.audio.play('pack_pick')
         // **갈래를 상태에서 읽습니다.** 이름을 찾는 표가 갈래마다 다르므로, 타로로 고정하면
         // 행성과 유령의 이름이 식별자 그대로 뜹니다.
         const made = this.state.consumables.find(one => one.uid === event.uid)
@@ -5807,6 +5846,40 @@ export class Game {
           at: this.clock + LAND_AT,
           run: () => this.landed({ kind, id: event.id, cost: 0, edition: EditionKind.Base }),
         })
+        break
+      }
+
+      // 조커 하나가 생겼습니다. **소모품과 같은 길입니다** — 만든 것의 자리에서 날아와
+      // 닿고, 닿은 자리에 이름이 뜨고 칸 수가 강조됩니다. 이 이벤트를 화면이 받지 않아
+      // 효과가 준 조커만 줄 위에서 떨어지고 이름도 없었습니다.
+      case 'JokerAdded': {
+        if (this.arriveHold?.kind !== 'joker' || this.arriveHold.byBeat !== true) break
+        this.arriveHold = undefined
+        this.arriveFrom = this.actorAt ?? { x: BOARD_X, y: JOKER_Y }
+        this.refresh()
+        this.audio.play('pack_pick')
+        this.later.push({
+          at: this.clock + LAND_AT,
+          run: () => this.landed({
+            kind: ShopItemKind.Joker, id: event.jokerId, cost: 0, edition: EditionKind.Base,
+          }),
+        })
+        break
+      }
+
+      // 보스나 효과가 조커 하나를 부쉈습니다. **카드가 부서지는 것과 같은 몸짓입니다** —
+      // 타는 그 자리에서 조각이 튀고 이름이 뜨고 판이 흔들립니다. 구석의 토스트 한 줄로만
+      // 알리고 있었고, 판 것과 부서진 것이 같은 불로 타서 갈리지 않았습니다.
+      case 'JokerDestroyed': {
+        const view = this.burning.find(one => one.uid === event.uid)
+        const at = view ? { x: view.x, y: view.y } : undefined
+        if (at) this.particles.burst(at.x, at.y, 26, EMBER, 1.2, 1)
+        this.popAt(at && { x: at.x, y: at.y - RISER_ON_CARD },
+          tf('ui.toast.destroyed',
+             { name: nameOf(this.data, 'joker', event.jokerId, event.jokerId) }),
+          UI.bad, 0.5)
+        this.audio.play('card_destroy')
+        this.jolt(7, 1.6, 0.35)
         break
       }
 
@@ -5842,6 +5915,9 @@ export class Game {
         if (view) {
           view.wither()
           view.pop(1.4)
+          // 카드가 시드는 것과 같은 조각입니다(`witherOne`). 조커는 하나이므로 이름 글이
+          // 함께 뜨고, 카드는 여럿이라 조각만 튑니다.
+          this.particles.burst(view.x, view.y, 10, UI.bad, 0.7, 0.7)
         }
         this.popAt(view && { x: view.x, y: view.y - RISER_ON_CARD },
           t('ui.note.turned_off'), UI.bad, 0.5)
@@ -5870,13 +5946,33 @@ export class Game {
         break
       }
 
-      // 조커의 판이 갈렸습니다.
+      // 조커의 판이 갈렸습니다. **카드와 같은 몸짓입니다** — 뒷면을 거쳐 다른 딱지가 되어
+      // 돌아오고, 새 얼굴이 보이는 자리에 걸린 판의 이름이 뜹니다. 딱지가 한 번 튀고
+      // 「효과가 적용되었습니다」가 뜨던 동안은 무엇이 걸린 것인지가 없었습니다.
       case 'JokerModified': {
         const view = this.jokers.get(event.uid)
-        if (view) view.pop(1.2)
-        this.popAt(view && { x: view.x, y: view.y - RISER_ON_CARD },
-          t('ui.note.applied'), UI.legendary, 0.5)
+        const joker = this.state.jokers.find(one => one.uid === event.uid)
+        this.pendingJokers.delete(event.uid)
+        if (!view) break
+        // **이름은 이벤트가 들고 옵니다.** 상태에서 찾으면 같은 액션에서 부서진 딱지의
+        // 이름을 찾을 수 없습니다.
+        const name = this.editionName(event.edition as EditionKind) || t('ui.note.applied')
+        // **없어진 딱지는 뒤집지 않습니다.** 판이 걸리고 같은 액션에서 부서지는 것이 있고
+        // (`hex`), 그때 상태에는 이미 그 조커가 없습니다 — 타는 딱지를 뒤집으면 두 몸짓이
+        // 한 자리에서 겹칩니다.
+        if (!joker) {
+          this.popAt({ x: view.x, y: view.y - RISER_ON_CARD }, name, UI.legendary, 0.5)
+          this.audio.play('card_flip')
+          break
+        }
+        view.onFlipped = () => {
+          view.onFlipped = undefined
+          view.pop(1.2)
+          this.popAt({ x: view.x, y: view.y - RISER_ON_CARD }, name, UI.legendary, 0.5)
+          this.audio.play('card_flip')
+        }
         this.audio.play('card_flip')
+        view.turnOver(joker, this.jokerLookOf(joker), TURN_BACK_MS / 1000)
         break
       }
 
@@ -5887,8 +5983,10 @@ export class Game {
         const to = this.jokers.get(event.uid)
         if (from) from.pop(1.1)
         if (to) to.pop(1.3)
+        // **누구의 것을 빌렸는지가 글입니다.** 「효과가 적용되었습니다」는 어느 조커의
+        // 능력인지가 적히지 않고, 그것이 이 박자에서 유일하게 새로운 것입니다.
         this.popAt(to && { x: to.x, y: to.y - RISER_ON_CARD },
-          t('ui.note.applied'), UI.legendary, 0.5)
+          from?.look.name ?? t('ui.note.applied'), UI.legendary, 0.5)
         this.audio.play('card_flip')
         break
       }
@@ -5970,8 +6068,13 @@ export class Game {
       } else if (one.t === 'HandLevelled') {
         notes.push({
           title: this.handName(one.hand),
+          // **얼마에서 얼마로입니다.** 뒤만 적으면 몇 단 오른 것인지가 없고, 규칙이 바뀌는
+          // 줄(`RuleChanged`)과 읽는 법도 달라집니다.
           // **말이 코드에 고정되어 있었습니다.** `Lv.` 는 어느 말에서나 같지 않습니다.
-          change: tf('ui.hand.level_short', { level: one.level }),
+          change: one.before === one.level
+            ? tf('ui.hand.level_short', { level: one.level })
+            : `${tf('ui.hand.level_short', { level: one.before })}`
+              + ` → ${tf('ui.hand.level_short', { level: one.level })}`,
           good: true,
         })
       }
@@ -6068,13 +6171,19 @@ export class Game {
       view.selected = false
       view.hint = false
       view.zIndex = SHOW_Z + index
+      // **더해진 카드는 뒷면으로 나옵니다.** 뒤집혀 앞면이 되는 것이 「새로 왔다」이고,
+      // 바뀌는 카드가 뒷면을 거쳐 돌아오는 것과 같은 몸짓입니다.
+      if (one.kind === 'add') view.faceBack()
       view.slam(startX + index * spacing, SHOW_Y)
       show.cards.push({ view, uid: one.uid, kind: one.kind, borrowed: held !== undefined })
 
       // **한 장씩 차례로 바뀝니다.** 다섯 장이 한 프레임에 갈리면 한 덩어리가 바뀐 것으로
       // 보이고, 어느 장이 무엇이 되었는지가 남지 않습니다.
-      const at = this.clock + this.feel.drawLandMs / 1000
-        + index * (this.feel.playStaggerMs / 1000)
+      //
+      // **간격이 반 바퀴보다 길어야 합니다**(`TURN_STEP_MS`). 낸 카드가 올라가는 간격을
+      // 빌려 쓰던 동안은 그것이 90밀리초라 장마다 뒤집힘이 겹쳤고, 세 장부터 한 덩어리가
+      // 통째로 갈리는 것으로 보였습니다.
+      const at = this.clock + this.feel.drawLandMs / 1000 + index * (TURN_STEP_MS / 1000)
       this.later.push({ at, run: () => this.turnShownCard(one.uid, one.kind) })
     })
 
@@ -6090,11 +6199,20 @@ export class Game {
     if (!one || one.view.destroyed) return
     const view = one.view
 
+    const now = this.state.deck.find(card => card.uid === uid)
+
     if (kind === 'destroy') {
       // **탑니다.** 옅어지며 지워지는 것은 「치웠다」이지 「없앴다」가 아닙니다 — 조커가
       // 없어지는 것과 같은 몸짓이고 같은 셰이더입니다.
+      const was = this.pendingCards.get(uid) ?? now
       view.ignite()
       this.particles.burst(view.x, view.y + 30, 26, EMBER, 1.3, 1.1)
+      // **어느 장이 없어졌는지가 그 자리에 적힙니다.** 타는 것은 「없앴다」이고, 글이
+      // 「무엇을」입니다.
+      if (was) {
+        this.popAt({ x: view.x, y: view.y - RISER_ON_CARD },
+          this.cardLabel(was), UI.bad, 0.5)
+      }
       this.audio.play('card_destroy')
       this.audio.tone('pluck', -6, 0.6)
       this.jolt(7, 1.6, 0.35)
@@ -6102,26 +6220,42 @@ export class Game {
     }
 
     if (kind === 'add') {
-      // 새로 온 것. **줄기가 지나가되 갈리는 것이 아니라 새겨지는 쪽입니다** — 색이
-      // 갈래를 말합니다.
-      view.pop(1.2)
-      view.imprintNow(rgbOf(UI.good))
-      this.particles.burst(view.x, view.y, 18, UI.good, 0.95, 0.85)
-      this.audio.play('card_place')
-      this.audio.tone('chime', 5, 0.5)
+      // 새로 온 것. **뒷면으로 서 있다가 뒤집혀 앞면이 됩니다** — 무엇이 들어왔는지가
+      // 그 순간에 보입니다.
+      view.onFlipped = () => {
+        view.onFlipped = undefined
+        view.pop(1.2)
+        this.particles.burst(view.x, view.y, 18, UI.good, 0.95, 0.85)
+        if (now) {
+          this.popAt({ x: view.x, y: view.y - RISER_ON_CARD },
+            this.cardLabel(now), UI.good, 0.5)
+        }
+        this.audio.play('card_place')
+        this.audio.tone('chime', 5, 0.5)
+      }
+      this.audio.play('card_flip')
+      view.turnUp()
       return
     }
 
-    // 바뀌는 것. **뒤집혀서 다른 카드가 되어 돌아옵니다.**
-    const now = this.state.deck.find(card => card.uid === uid)
+    // 바뀌는 것. **뒷면을 거쳐 다른 카드가 되어 돌아옵니다.**
     if (!now) return
+    const was = this.pendingCards.get(uid)
+    const text = was ? this.changeText(was, now) : this.cardLabel(now)
     this.pendingCards.delete(uid)
-    // **테는 뒤집기가 스스로 답니다.** 얼굴이 갈리는 그 절반이 그 자리이고, 여기서 함께
-    // 시작하면 아직 앞면인 동안 테가 먼저 붙습니다.
-    view.turnInto(now, this.editionLook(now.edition), rgbOf(UI.legendary))
+    // **글은 새 얼굴이 보이는 그 순간입니다.** 앞서 뜨면 아직 뒷면인 카드 위에 뜨고,
+    // 늦으면 이미 다 본 카드에 뒤늦게 얹힙니다.
+    view.onFlipped = () => {
+      view.onFlipped = undefined
+      view.pop(0.8)
+      this.particles.burst(view.x, view.y, 16, UI.legendary, 0.95, 0.85)
+      this.popAt({ x: view.x, y: view.y - RISER_ON_CARD }, text, UI.legendary, 0.5)
+      this.audio.play('card_flip')
+      this.audio.tone('glass', 7, 0.55)
+    }
+    // 닫히는 소리와 열리는 소리가 둘입니다 — 반 바퀴가 둘이기 때문입니다.
     this.audio.play('card_flip')
-    this.audio.tone('glass', 7, 0.55)
-    this.particles.burst(view.x, view.y, 16, UI.legendary, 0.95, 0.85)
+    view.turnOver(now, this.editionLook(now.edition), TURN_BACK_MS / 1000)
   }
 
   /**
@@ -6218,7 +6352,7 @@ export class Game {
     this.deckBump.kick(220)
     this.audio.play(cue)
     this.particles.burst(DECK_X, DECK_Y, 16, tint, 1, 0.9)
-    this.popAt({ x: DECK_X - 36, y: DECK_Y - RISER_ON_CARD }, `${count}`, tint, 0.6)
+    this.popAt({ x: DECK_X - 36, y: DECK_Y - RISER_ON_CARD }, `${count}`, tint, 0.5)
     this.jolt(6, 1.5, 0.35)
     this.flashPanel(tint, 0.7)
   }
@@ -7005,7 +7139,7 @@ export class Game {
 
     this.advanceConsumableLift(seconds)
     this.advanceItemArrive(seconds)
-    this.advancePress()
+    this.hold.advance(seconds, () => this.audio.play('button'))
     this.advanceReveals()
     this.advancePack(seconds)
     this.advanceFocus(seconds)
@@ -7375,55 +7509,13 @@ export class Game {
    * 겹쳐 있을 때는 오른쪽 것이 위입니다. 손패를 그리는 순서가 그렇습니다.
    */
   /**
-   * 꾸욱 누르기를 시작합니다.
-   *
-   * **마우스에는 걸지 않습니다.** 마우스는 올리면 그 자리에서 뜨므로, 누르고 기다리게 하면
-   * 마우스로는 되던 것이 느려지기만 합니다.
-   */
-  private armPress(event: FederatedPointerEvent, show: () => void): void {
-    if (event.pointerType === 'mouse') return
-    const at = this.world.toLocal(event.global)
-    this.press = { at: this.clock, x: at.x, y: at.y, show, fired: false }
-  }
-
-  /**
-   * 손가락이 움직였으면 누른 것이 아닙니다.
-   *
-   * 카드를 끌어 자리를 바꾸는 것과 겹치기 때문입니다 — 끄는 중에 설명이 뜨면 끌고 있는
-   * 카드를 그 쪽지가 덮습니다.
-   */
-  private advancePressMove(): void {
-    const press = this.press
-    if (!press || press.fired) return
-    const dx = this.pointerAt.x - press.x
-    const dy = this.pointerAt.y - press.y
-    if (dx * dx + dy * dy > HOLD_SLACK * HOLD_SLACK) this.press = undefined
-  }
-
-  /** 오래 눌렀으면 띄웁니다. 한 번만입니다. */
-  private advancePress(): void {
-    const press = this.press
-    if (!press || press.fired) return
-    if (this.clock - press.at < HOLD_TIP) return
-    press.fired = true
-    // **그 손가락이 떼어질 때의 누름을 먹습니다.** 설명을 보려고 누른 것이 그대로
-    // 고르기·사기·쓰기가 되면 안 됩니다.
-    this.pressAte = true
-    this.pressShown = true
-    this.audio.play('button')
-    press.show()
-  }
-
-  /**
    * 이 누름이 설명을 띄운 것이었는가.
    *
    * **한 번만 참입니다.** 누름을 다루는 자리마다 맨 앞에서 물어봅니다 — 참이면 그 누름은
    * 설명을 본 것이므로 아무것도 하지 않습니다.
    */
   private ate(): boolean {
-    if (!this.pressAte) return false
-    this.pressAte = false
-    return true
+    return this.hold.ate()
   }
 
   /**
@@ -7445,16 +7537,7 @@ export class Game {
       if (node.alpha < 0.99) return
       show(this.tipBox(node))
     }
-    node.on('pointerover', event => {
-      if (event.pointerType !== 'mouse') return
-      spot()
-    })
-    node.on('pointerdown', event => this.armPress(event, spot))
-    // **꾸욱 눌러 띄운 것은 떼어도 닫지 않습니다.** 손가락을 떼면 「벗어났다」 가 나므로,
-    // 그것으로 닫으면 누르고 있는 동안에만 보입니다 — 읽을 시간이 없습니다.
-    node.on('pointerout', () => {
-      if (!this.pressShown) this.tooltip.hide()
-    })
+    attachTip(node, this.hold, spot, () => this.tooltip.hide())
   }
 
   /**
@@ -7719,7 +7802,7 @@ export class Game {
       // 떠오른 글이 뜬 자리들. 뒤가 새것입니다.
       pops: this.popLog.map(one =>
         [one.text, one.x, one.y, one.w, one.h] as [string, number, number, number, number]),
-      // 상점이 자리를 비켜 내려가 있어야 하는가. 팩을 뜯었거나 자리를 비우는 중입니다.
+      // 상점이 자리를 비켜 내려가 있어야 하는가. 팩을 뜯었거나 산 것이 닿는 것을 보는 중입니다.
       shopParked: this.shopParked,
       // 자리를 비우는 중인가 · 그 화면이 든 정도.
       focus: this.focus !== undefined,
@@ -7735,6 +7818,8 @@ export class Game {
       beats: this.beatLog.slice(),
       // 능력을 빌리는 줄이 그어져 있는가.
       borrowLink: this.borrowLink.visible,
+      // 지금 뒷면이 보이는 조커 딱지의 수. 판이 갈리는 것이 뒤집기로 도는지의 값입니다.
+      jokersBack: [...this.jokers.values()].filter(view => view.facingBack).length,
       // **줄에 선 것들의 겹치는 차례입니다.** 가리킨 것과 고른 것이 위로 올라오는지를
       // 도구가 이 값으로 봅니다 — 겹침은 그림으로 판정할 수 없습니다.
       // **줄에 선 차례 그대로입니다.** 표에 담긴 차례로 내면 정렬한 뒤에 배열의 자리와
@@ -7784,6 +7869,9 @@ export class Game {
         .filter(one => !one.view.destroyed)
         .map(one => ({
           uid: one.uid, kind: one.kind, borrowed: one.borrowed,
+          // 지금 뒷면인가와 얼마나 좁아져 있는가. **뒤집기는 이 둘로만 재집니다.**
+          back: one.view.facingBack,
+          squeeze: Math.round(one.view.scale.x * 100),
           x: Math.round(one.view.x), y: Math.round(one.view.y),
           // 제자리로 가는 중인지 돌아가는 중인지. **도구가 그 둘을 가릅니다.**
           to: Math.round(one.view.motion.y.target),
@@ -8338,6 +8426,52 @@ export class Game {
 
   private editionLook(edition: EditionKind): EditionLook | undefined {
     return editionLookOf(this.data, edition)
+  }
+
+  /** 조커 딱지 하나의 겉모습. 줄이 그리는 것과 뒤집어 갈아 끼우는 것이 같은 것을 씁니다. */
+  private jokerLookOf(joker: JokerInstance): JokerLook {
+    const row = this.data.tables.joker.findByJokerId(joker.jokerId)
+    return {
+      name: nameOf(this.data, 'joker', joker.jokerId, joker.jokerId),
+      rarity: row?.rarity ?? 1,
+      lines: describe(this.data, this.data.jokerEffects.get(joker.jokerId) ?? []),
+      edition: this.editionLook(joker.edition),
+    }
+  }
+
+  /**
+   * 무엇이 무엇으로 바뀌었는가. **바뀌기 전과 뒤를 견줍니다.**
+   *
+   * 코어는 어느 칸이 바뀌었는지를 이벤트에 적어 보내지만(`CardModified.what`), 견주는 쪽이
+   * 더 정확합니다 — 한 줄이 여러 칸을 함께 바꾸는 것이 있고(`CopyRight`), 같은 값으로
+   * 덮어쓴 것은 바뀐 것이 아닙니다.
+   *
+   * **둘까지 적습니다.** 셋 이상이 갈린 것은 다른 카드가 된 것이므로 그 카드를 적습니다.
+   */
+  private changeText(was: CardInstance, now: CardInstance): string {
+    const parts: string[] = []
+    if (was.suit !== now.suit) {
+      parts.push(`${SUIT_PIP[was.suit] ?? ''} → ${SUIT_PIP[now.suit] ?? ''}`)
+    }
+    if (was.rank !== now.rank) {
+      parts.push(`${rankDisplay(this.data, was.rank)} → ${rankDisplay(this.data, now.rank)}`)
+    }
+    // **이름은 지역화를 거칩니다.** 표의 `display` 는 글 표의 열쇠이고, 그대로 적으면
+    // `enhancement.steel.name` 이 카드 위에 뜹니다.
+    if (was.enhancement !== now.enhancement) parts.push(this.enhancementName(now.enhancement))
+    if (was.seal !== now.seal) parts.push(this.sealName(now.seal))
+    if (was.edition !== now.edition) parts.push(this.editionName(now.edition))
+    if (was.bonusChips !== now.bonusChips) {
+      parts.push(tf('ui.counter.chips', { n: now.bonusChips - was.bonusChips }))
+    }
+    const said = parts.filter(one => one !== '')
+    if (said.length === 0 || said.length > 2) return this.cardLabel(now)
+    return said.join('  ')
+  }
+
+  /** 카드 한 장을 짧게 적은 것 — `♥ 7`. 기호와 표의 글자이므로 말에 기대지 않습니다. */
+  private cardLabel(card: CardInstance): string {
+    return `${SUIT_PIP[card.suit] ?? ''} ${rankDisplay(this.data, card.rank)}`
   }
 
   private refresh(): void {
@@ -10164,11 +10298,9 @@ export class Game {
         const wave = Math.sin(fire * Math.PI)
         cell.alpha = 0.42 + wave * 0.58
         cell.scale.set(1 + wave * 0.3)
-        record.lit = new ArriveFilter()
-        record.lit.at(this.clock)
-        record.lit.flash = wave * 0.9
-        record.lit.warp = wave * 0.35
-        cell.filters = [record.lit]
+        record.lit = glare(size, 1)
+        record.lit.alpha = wave * 0.9
+        cell.addChild(record.lit)
       }
 
       // 새로 선 칩 하나만 한 번 하얗게 번쩍이며 나옵니다.
@@ -10486,13 +10618,10 @@ export class Game {
     this.syncBorrow(spots)
 
     this.state.jokers.forEach((joker, index) => {
-      const row = this.data.tables.joker.findByJokerId(joker.jokerId)
-      const look = {
-        name: nameOf(this.data, 'joker', joker.jokerId, joker.jokerId),
-        rarity: row?.rarity ?? 1,
-        lines: describe(this.data, this.data.jokerEffects.get(joker.jokerId) ?? []),
-        edition: this.editionLook(joker.edition),
-      }
+      // **아직 박자가 닿지 않았으면 이전 모습입니다.** 판이 갈리는 박자가 그 자리에서
+      // 뒤집어 갈아 끼웁니다 — 카드의 `pendingCards` 와 같습니다.
+      const shown = this.pendingJokers.get(joker.uid) ?? joker
+      const look = this.jokerLookOf(shown)
 
       // 산 딱지가 아직 그 자리에 있는 동안은 세우지 않습니다.
       //
@@ -10504,7 +10633,7 @@ export class Game {
 
       let view = this.jokers.get(joker.uid)
       if (!view) {
-        view = new JokerView(joker, look)
+        view = new JokerView(shown, look)
         view.eventMode = 'static'
         view.cursor = 'pointer'
         view.on('pointerdown', event =>
@@ -10523,7 +10652,7 @@ export class Game {
         // 「샀다」의 표시가 되지 못합니다.
         if (bought) view.buying()
       } else {
-        view.set(joker, look)
+        view.set(shown, look)
       }
 
       if (this.drag?.kind === 'joker' && this.drag.uid === joker.uid && this.drag.moved) return
@@ -10574,12 +10703,12 @@ export class Game {
     if (!event) return
     if (kind === 'joker') {
       const view = this.jokers.get(uid)
-      if (view) this.armPress(event, () => this.showTooltip(view))
+      if (view) this.hold.arm(event, () => this.showTooltip(view))
       return
     }
     const card = this.state.deck.find(one => one.uid === uid)
     // 손에 있는 것이므로 「덱에 남았다」가 아니라 「손에 있다」입니다.
-    if (card) this.armPress(event, () => this.showCardTip(card, false, true, view))
+    if (card) this.hold.arm(event, () => this.showCardTip(card, false, true, view))
   }
 
   /**
@@ -10689,11 +10818,15 @@ export class Game {
   }
 
   /** 조커나 소모품 하나를 고릅니다. 같은 것을 다시 누르면 놓습니다. */
-  private pick(kind: 'joker' | 'consumable' | 'shop' | 'pack' | 'pack_slot', uid: number): void {
+  private pick(kind: 'joker' | 'consumable' | 'shop' | 'pack' | 'pack_slot' | 'voucher',
+               uid: number): void {
     if (this.player.busy) return
     // **끝난 판에서는 고를 수 없습니다.** 지고 나서도 소모품의 「쓴다」 가 눌렸고, 그것을
     // 쓰면 아무 일도 남지 않습니다 — 버리는 것과 같습니다.
     if (this.state.phase === 'lost' || this.state.phase === 'won') return
+    // **고르면 쪽지는 걷힙니다.** 팩의 카드만 걷고 있어서, 상점의 칸을 고르면 쪽지가 뜬 채로
+    // 그 밑에 단추가 섰습니다 — 어디서 고르든 같습니다.
+    this.tooltip.hide()
     // **자리를 비우는 동안은 그 줄의 것만 고릅니다.** 상점과 팩의 카드는 막 뒤에 있고,
     // 줄에서도 내놓을 수 있는 것만입니다 — 다른 갈래의 것과 `Eternal` 은 소리로만 거절합니다.
     if (this.focus && (kind !== this.focus.kind || !this.focusEligible(kind, uid))) {
@@ -10791,7 +10924,7 @@ export class Game {
       buttons.push(new Button(
         // **값은 적지 않습니다.** 딱지에 이미 크게 적혀 있고, 그 바로 밑의 단추가 같은
         // 값을 한 번 더 적으면 그 둘 중 어느 것이 값인지 잠깐 헷갈립니다.
-        t('ui.button.buy'), 84, 32, 'primary', () => {
+        t('ui.button.buy'), 92, HELD_H, 'primary', () => {
           this.held = undefined
           this.buyFrom(held.uid, item)
         }))
@@ -10809,9 +10942,24 @@ export class Game {
       // 카드 딱지와 같은 규칙입니다 — 봉지 바로 밑.
       baseline = spot.holdY
       height = HELD_H
-      buttons.push(new Button(t('ui.button.buy'), 84, 32, 'primary', () => {
+      buttons.push(new Button(t('ui.button.buy'), 92, HELD_H, 'primary', () => {
         this.held = undefined
         this.openPackSlot(held.uid)
+      }))
+    } else if (held.kind === 'voucher') {
+      const one = this.voucherTile
+      if (!one || one.tile.destroyed) {
+        this.held = undefined
+        return
+      }
+      // 카드 딱지와 같은 규칙입니다 — 얼굴 바로 밑.
+      anchor = one.mid
+      this.heldNode = one.tile
+      baseline = one.holdY
+      height = HELD_H
+      buttons.push(new Button(t('ui.button.buy'), 92, HELD_H, 'primary', () => {
+        this.held = undefined
+        this.buyVoucher()
       }))
     } else if (held.kind === 'pack') {
       const open = this.state.pack
@@ -10831,7 +10979,7 @@ export class Game {
       baseline = PACK_CARDS_Y + PACK_CARD_H / 2 + 4
       height = HELD_H
       // 상점의 칸과 같은 규칙입니다 — 자리가 찼는지는 단추가 아니라 그 다음 화면이 적습니다.
-      buttons.push(new Button(t('ui.button.take'), 92, 32, 'primary', () => {
+      buttons.push(new Button(t('ui.button.take'), 92, HELD_H, 'primary', () => {
         this.held = undefined
         this.takeFromPack(held.uid)
       }))
@@ -10944,12 +11092,13 @@ export class Game {
       this.flyMissed++
       return
     }
-    // **받는 것은 카드의 가운데이고, 미끄러지는 것은 칸의 왼쪽 위입니다.** 조커 뷰와 같은
-    // 자리를 받아야 부르는 쪽이 둘을 달리 셀 필요가 없습니다.
-    this.itemArrive = {
-      uid: last.uid, warp: 1, glow: 0, filter: new ArriveFilter(),
-      from: { x: from.x - SIZE.jokerWidth / 2, y: from.y - SIZE.jokerHeight / 2 }, travel: 0,
-    }
+    // **받는 것도 끄는 것도 카드의 가운데입니다.** 조커 뷰와 같은 자리를 받아야 부르는 쪽이
+    // 둘을 달리 셀 필요가 없고, 칸의 왼쪽 위로 옮기는 것은 `placeArriving` 이 합니다.
+    const motion = new Motion()
+    motion.snap(from.x, from.y)
+    // 오는 길이 보이도록 느리게 갑니다. 조커의 `buying` 과 같은 값입니다.
+    motion.drift()
+    this.itemArrive = { uid: last.uid, warp: 1, glow: 0, filter: new ArriveFilter(), from, motion }
     // 새로 만든 칸이 첫 프레임부터 산 자리에 서는 것은 `syncConsumables` 가 합니다.
     this.syncConsumables()
   }
@@ -10963,11 +11112,13 @@ export class Game {
   private placeArriving(one: { uid: number; tile: Container; baseX: number; baseY: number }): void {
     const coming = this.itemArrive
     if (!coming || coming.uid !== one.uid) return
-    const left = 1 - coming.travel
-    // 끝에서 느려집니다. **곧게 오면 자리에 「툭」 서고, 그것이 순간이동으로 보입니다.**
-    const ease = left * left * left
-    one.tile.x = one.baseX + (coming.from.x - one.baseX) * ease
-    one.tile.y += (coming.from.y - one.baseY) * ease
+    // 목표는 이 칸의 가운데입니다. 칸의 자리가 바뀌면 용수철의 목표도 따라갑니다.
+    const toX = one.baseX + SIZE.jokerWidth / 2
+    const toY = one.baseY + SIZE.jokerHeight / 2
+    coming.motion.x.target = toX
+    coming.motion.y.target = toY
+    one.tile.x = one.baseX + (coming.motion.x.value - toX)
+    one.tile.y += coming.motion.y.value - toY
   }
 
   /** 오는 중인 소모품의 지금 자리와 어디에서 오는 중인지. 없으면 `null`. */
@@ -10978,10 +11129,16 @@ export class Game {
     if (!coming) return null
     const one = this.consumableTiles.find(tile => tile.uid === coming.uid)
     if (!one) return null
+    // 온 몫은 남은 거리로 셉니다. 용수철이라 시간으로는 알 수 없습니다.
+    const whole = Math.hypot(coming.motion.x.target - coming.from.x,
+                             coming.motion.y.target - coming.from.y)
+    const left = Math.hypot(coming.motion.x.target - coming.motion.x.value,
+                            coming.motion.y.target - coming.motion.y.value)
+    const travel = whole < 1 ? 1 : Math.max(0, Math.min(1, 1 - left / whole))
     return {
       x: Math.round(one.tile.x), y: Math.round(one.tile.y),
       fromX: Math.round(coming.from.x), fromY: Math.round(coming.from.y),
-      travel: Math.round(coming.travel * 100) / 100,
+      travel: Math.round(travel * 100) / 100,
     }
   }
 
@@ -10991,12 +11148,12 @@ export class Game {
 
     one.warp = Math.max(0, one.warp - seconds * 1.6)
     one.glow = Math.max(0, one.glow - seconds * 2.2)
-    one.travel = Math.min(1, one.travel + seconds / LAND_AT)
+    one.motion.advance(seconds)
     one.filter.at(this.clock)
     one.filter.warp = one.warp
     one.filter.flash = one.glow * one.glow
 
-    if (one.warp > 0 || one.glow > 0 || one.travel < 1) return
+    if (one.warp > 0 || one.glow > 0 || !one.motion.x.settled || !one.motion.y.settled) return
     // 다 썼으면 놓습니다. **판이 도는 내내 물결을 굽고 있을 이유가 없습니다.**
     this.itemArrive = undefined
     for (const tile of this.consumableTiles) {
@@ -11012,9 +11169,28 @@ export class Game {
         spring = new Spring()
         this.consumableLift.set(one.uid, spring)
       }
-      spring.target =
-        this.held?.kind === 'consumable' && this.held.uid === one.uid ? HELD_RISE : 0
+      // **고른 것이 먼저입니다.** 고른 칸은 이미 단추가 설 만큼 올라가 있으므로 가리키는
+      // 10픽셀을 거기에 더 얹으면 윗변이 화면 밖으로 나갑니다 — 조커 줄과 같은 규칙입니다.
+      const picked = this.held?.kind === 'consumable' && this.held.uid === one.uid
+      const over = !picked && this.hoveredItem === one.uid
+      spring.target = picked ? HELD_RISE : over ? TIP_RISE : 0
       spring.advance(seconds)
+
+      // 가리키면 커집니다. 얼굴에 얹는 것은 아래의 기울기와 한 자리입니다.
+      let grow = this.consumableGrow.get(one.uid)
+      if (!grow) {
+        grow = new Spring(1)
+        this.consumableGrow.set(one.uid, grow)
+      }
+      grow.target = over ? TIP_GROW : 1
+      grow.advance(seconds)
+      // 지난 자리에서 제자리로. 자리를 묻는 쪽(`itemSpot`)에는 제자리를 답합니다.
+      const slide = this.consumableSlide.get(one.uid)
+      if (slide) {
+        slide.target = one.baseX
+        slide.advance(seconds)
+        one.tile.x = Math.abs(slide.value - one.baseX) < 0.3 ? one.baseX : slide.value
+      }
 
       // **조커와 같이 늘 조금씩 흔들립니다.** 나란히 선 줄에서 한쪽만 멈춰 있으면 그것이
       // 그림이 아니라 화면에 붙은 딱지로 보입니다 — 값과 빠르기가 `JokerView.advance` 와
@@ -11024,7 +11200,12 @@ export class Game {
       // 무작위 값은 다시 그릴 때마다 흔들림을 처음으로 되돌립니다.
       const phase = one.uid * 1.7
       const face = one.tile.children[0]
-      if (face) face.rotation = sway(this.clock, phase, 1.1, 1.1) * (Math.PI / 180)
+      if (face) {
+        face.rotation = sway(this.clock, phase, 1.1, 1.1) * (Math.PI / 180)
+        // **얼굴만 키웁니다.** 칸의 자리는 줄 밖의 여럿이 읽으므로(`spotOf` · `itemSpot` ·
+        // 태우기) 칸을 키우면 그 값들의 뜻이 함께 바뀝니다.
+        face.scale.set(grow.value)
+      }
       one.tile.y = one.baseY - spring.value + sway(this.clock, phase * 1.3, 1.8, 0.7)
 
       // **자리를 비우는 동안.** 내놓을 수 있는 것은 조금 떠서 살짝 오르내리고, 그 갈래가
@@ -11656,6 +11837,9 @@ export class Game {
 
   private syncConsumables(): void {
     const alive = new Set(this.state.consumables.map(item => item.uid))
+    for (const uid of [...this.consumableSlide.keys()]) {
+      if (!alive.has(uid)) this.consumableSlide.delete(uid)
+    }
 
     // **없어진 것은 곧바로 지우지 않습니다.** 판 밖으로 옮겨 태우고, 다 타면 그때 지웁니다.
     for (const one of this.consumableTiles) {
@@ -11726,13 +11910,16 @@ export class Game {
       //
       // **칸은 다시 그릴 때마다 새로 만들어집니다.** 그래서 조커처럼 매 프레임 셈하지 않고
       // 그 칸이 스스로 듣습니다 — 되돌릴 값은 아래에서 적어 둡니다.
-      tile.on('pointerover', () => {
+      tile.on('pointerover', event => {
         if (tile.destroyed) return
+        // **손가락에는 「올려 둔다」가 없습니다.** 손가락으로 스친 칸이 올라간 채로 남습니다.
+        if (event.pointerType === 'mouse') this.hoveredItem = item.uid
         tile.zIndex = HOVER_Z
         this.consumableLayer.sortChildren()
       })
       tile.on('pointerout', () => {
         if (tile.destroyed) return
+        if (this.hoveredItem === item.uid) this.hoveredItem = undefined
         const one = this.consumableTiles.find(row => row.uid === item.uid)
         tile.zIndex = this.held?.kind === 'consumable' && this.held.uid === item.uid
           ? PICK_Z : one?.rowZ ?? ROW_Z
@@ -11748,6 +11935,15 @@ export class Game {
         ? PICK_Z : rowZ
       const entry = { uid: item.uid, tile, baseX: tile.x, baseY: tile.y, rowZ,
                       look: this.lookOf(face, () => this.tiltAt(anchorX)) }
+      // **지난 자리에서 미끄러져 옵니다.** 처음 선 것은 제자리입니다. 첫 프레임부터 지난
+      // 자리에 둡니다 — 다음 틱에 옮기면 새 자리에 한 프레임 보이고 나서 뛰었다 돌아옵니다.
+      let slide = this.consumableSlide.get(item.uid)
+      if (!slide) {
+        slide = new Spring(entry.baseX)
+        this.consumableSlide.set(item.uid, slide)
+      }
+      slide.target = entry.baseX
+      tile.x = slide.value
       this.consumableTiles.push(entry)
       // **오는 중인 것은 첫 프레임부터 오는 자리에 둡니다.** 칸은 다시 그릴 때마다 새로
       // 만들어지고 오는 길을 얹는 것은 다음 틱이라, 그 사이 한 프레임 동안 제 칸에 보입니다 —
@@ -11779,7 +11975,9 @@ export class Game {
 
     const arrive = new ArriveFilter()
     const dissolve = new DissolveFilter()
-    face.filters = [arrive]
+    // **번쩍임은 쓴 것에만 겁니다.** 판 것은 첫 프레임부터 왜곡도 번쩍임도 0 이라, 걸어 두면
+    // 아무 그림 없는 렌더 텍스처 하나를 타는 동안 들고 있습니다.
+    if (used) face.filters = [arrive]
     tile.filters = [dissolve]
     // **판 위의 버튼들보다 위, 떠오르는 글 아래입니다.** 판 가운데로 나오는 길에 버튼들을
     // 지나가므로 0보다 높아야 하고, 파는 값이 이 딱지 위에 얹혀야 하므로 그 글(`popAt` 의
@@ -12081,7 +12279,9 @@ export class Game {
     // 블라인드로」 가 눌리면 무엇을 팔고 있었는지 보지 못한 채 판을 떠나고, 리롤은 아직
     // 서지도 않은 것을 다시 굴립니다 — 마지막 것이 다 선 시각이 그 시각입니다.
     this.shopFoot = {
-      reroll, leave, afford: state.money >= cost,
+      // **코어와 같은 문턱입니다**(`canPay`). 빚 한도를 세지 않아, 살 수 있는데 단추가
+      // 눌리지 않는 구간이 있었습니다.
+      reroll, leave, afford: state.money - cost >= state.rules.debtLimit,
       // 리롤로 새 카드가 내려오는 동안도 잠깁니다. 다 앉기 전에 다시 굴리면 무엇이 왔는지 못 봅니다.
       readyAt: Math.max(cardsEnd,
         this.shopRevealAt + this.revealing.slot * REVEAL_STEP + REVEAL_SPAN),
@@ -12093,7 +12293,9 @@ export class Game {
   private gateShopFoot(): void {
     const foot = this.shopFoot
     if (!foot || foot.leave.destroyed) return
-    const ready = this.clock >= foot.readyAt
+    // **자리를 비우는 동안은 잠깁니다.** 상점은 그대로 떠 있고 고르는 것은 위 줄인데,
+    // 그동안 리롤이 눌리면 사려던 딱지가 없어집니다.
+    const ready = this.clock >= foot.readyAt && !this.focus
     foot.leave.enabled = ready
     foot.reroll.enabled = ready && foot.afford
   }
@@ -12130,15 +12332,21 @@ export class Game {
   }
 
   /**
-   * 상점 판이 자리를 비켜 내려가 있어야 하는가. 팩을 뜯었거나 자리를 비우는 중입니다.
+   * 상점 판이 자리를 비켜 내려가 있어야 하는가. 팩을 뜯었거나 산 것이 닿는 것을 보는
+   * 중입니다.
    *
    * **팩은 값을 치르는 것을 보고 나서입니다.** 그 전에는 뜯은 딱지 위에 값이 떠 있고
    * 동전이 나가는 중이라, 판이 그것을 들고 내려가면 얼마를 냈는지가 화면에 없습니다.
+   *
+   * **자리를 비우는 동안은 내려가지 않습니다.** 바꿔 사는 것도 사는 것이라, 값은 산 딱지
+   * 위에 뜨고 새 물건은 그 딱지에서 떠나야 합니다 — 판이 내려가 있으면 그 둘이 다 없어서,
+   * 값은 고르는 글 판의 가운데에 뜨고 물건은 그 옆에 세운 작은 카드에서 날아갔습니다.
+   * 고르는 줄은 화면 위이고 상점은 아래이므로 겹치는 것도 없습니다.
    */
   private get shopParked(): boolean {
     const packBusy = (this.state.pack !== null || this.packPending)
       && this.clock >= this.shopStayUntil
-    return packBusy || this.focus !== undefined || this.clock < this.shopHoldUntil
+    return packBusy || this.clock < this.shopHoldUntil
   }
 
   /**
@@ -12217,9 +12425,10 @@ export class Game {
   /** 상점 판이 올라오는 것과 높이가 따라가는 것을 한 단계 진행합니다. */
   private advanceShopPanel(seconds: number): void {
     if (!this.shopLayer.visible) return
-    // **산 것을 다루는 동안 상점은 자리를 비켜 줍니다.** 팩을 뜯었거나 자리를 비우는
-    // 동안은 화면 아래로 내려가 있고, 끝나면 올라온 그 길로 다시 올라옵니다 — 판이 서
-    // 있는 채로 그 위에서 고르면 두 화면이 한 자리에 겹칩니다.
+    // **팩을 다루는 동안 상점은 자리를 비켜 줍니다.** 뜯은 동안은 화면 아래로 내려가
+    // 있고, 끝나면 올라온 그 길로 다시 올라옵니다 — 판이 서 있는 채로 그 위에 카드를
+    // 펼치면 두 화면이 한 자리에 겹칩니다. 자리를 비우는 동안은 내려가지 않습니다
+    // (`shopParked`).
     this.shopSlide.target = this.shopParked ? this.shopParkY : 0
     this.shopSlide.advance(seconds)
     this.placeShopLayer()
@@ -12424,7 +12633,7 @@ export class Game {
     tile.on('pointertap', () => {
       if (this.ate()) return
       // **밝힐 금액은 지금 금액이 아니라 보이는 금액입니다.** 누를 때 다시 봅니다.
-      if (!this.canPay(item.cost)) return
+      if (this.cannotPay(item.cost)) return
       this.pick('shop', slot)
     })
     this.tipOn(tile, at => {
@@ -12522,6 +12731,19 @@ export class Game {
     return this.state.money - cost >= this.state.rules.debtLimit
   }
 
+  /**
+   * 낼 수 없으면 소리로 거절합니다.
+   *
+   * **거절에는 소리가 있습니다.** 자리가 없어 집지 못하는 것과 자리를 비우는 동안 다른 갈래를
+   * 누르는 것은 `joker_fizzle` 로 거절하는데, 돈이 모자란 것만 조용히 지나갔습니다 — 눌렀는데
+   * 아무 일이 없으면 눌린 것인지도 모릅니다.
+   */
+  private cannotPay(cost: number): boolean {
+    if (this.canPay(cost)) return false
+    this.audio.play('joker_fizzle')
+    return true
+  }
+
   private roomFor(kind: ShopItemKind): boolean {
     const state = this.state
     if (kind === ShopItemKind.Joker) return state.jokers.length < state.rules.jokerSlots
@@ -12537,50 +12759,40 @@ export class Game {
    *
    * **자리가 없으면 무엇과 바꿀지를 묻습니다.** 그냥 눌리지 않게 두면 왜 안 되는지 알 수
    * 없고, 말없이 파는 것은 되돌릴 수 없는 일을 묻지 않고 하는 것입니다.
-   */
-  /**
-   * 상점의 물건 하나를 삽니다.
+   *
+   * **바꿔 사는 것도 사는 것입니다.** 내놓을 것을 고르는 한 단계가 앞에 놓일 뿐이고, 고른
+   * 뒤는 그냥 사는 것과 같은 길입니다(`purchase`) — 상점은 그대로 떠 있고, 값은 산 딱지
+   * 위에 뜨고, 새 물건은 그 딱지에서 날아갑니다. 상점을 내려 두고 글 옆에 세운 작은
+   * 카드에서 날려 보내던 동안은 값이 뜨는 자리도 물건이 오는 길도 그냥 살 때와 달랐고,
+   * 그 길에서만 조커가 출발 자리를 받지 못해 줄 위에서 떨어졌습니다.
    *
    * **딱지를 받지 않습니다.** 받아 두면 그것을 붙든 채로 상점이 다시 그려지고, 다시
    * 그려지는 것은 딱지를 통째로 없애는 것입니다 — 자리는 부르는 그때 칸 번호로 찾습니다.
    */
   private buyFrom(slot: number, item: ShopItem): void {
-    if (!this.canPay(item.cost)) return
+    if (this.cannotPay(item.cost)) return
+    this.tooltip.hide()
     if (!this.roomFor(item.kind)) {
-      this.tooltip.hide()
-      // **상점이 물러나고 줄에서 고릅니다.** 상점은 그동안 화면 아래로 내려가 있으므로 산
-      // 딱지를 남길 것이 없고, 새 물건은 글 옆에 세운 그 카드에서 옵니다.
-      this.enterFocus(item, (held, from, middle) => {
-        this.audio.play('joker_buy')
-        this.sellFrom = item.kind === ShopItemKind.Joker
-          ? this.jokerSpot(held) : this.itemSpot(held)
-        // **치른 값은 이 판의 가운데에 뜹니다.** 사는 것은 자리가 상점의 딱지이고 파는 것은
-        // 내놓은 그 자리인데, 바꿔 사는 것에는 그 둘이 다 없습니다 — 상점은 내려가 있고
-        // 내놓은 자리는 이미 파는 값이 쓰고 있습니다. 판 옆에 세운 작은 카드 위에 띄우고
-        // 있었고, 그 카드는 새 물건이 날아가는 자리라 값이 판의 글에 얹혀 났습니다.
-        //
-        // **가운데에 뜨게 하려면 그만큼 내려 줍니다.** 값이 뜨는 자리는 넘겨받은 자리의
-        // 윗변에 걸치는 규칙(`RISER_ON_CARD`)이고, 그것은 카드에서 나오는 값의 규칙입니다 —
-        // 여기서 넘기는 것은 카드가 아니라 판이고, 판에는 가릴 무늬가 없습니다.
-        this.boughtFrom = { x: middle.x, y: middle.y + RISER_ON_CARD }
-        // **판은 물건이 떠날 때까지 남아 있습니다.** 치른 값이 그 판 위에 뜨고 물건은 판 옆의
-        // 카드에서 날아갑니다 — 고른 그 프레임에 판을 걷었더니 값이 아무것도 없는 자리에서
-        // 났습니다. 상점의 딱지가 그 자리에 남는 것과 같은 일이고 같은 시간입니다.
-        this.focusHold = this.clock + BUY_LINGER
-        this.holdArrival(item, from)
-        // 상점은 새것이 닿는 것을 보고 나서 올라옵니다.
-        this.holdShop(BUY_LINGER + LAND_AT + SHOP_RETURN_REST)
-        this.act({ t: 'swap', slot, index: held })
-        // 파는 것 · 오는 것 · 이름의 차례입니다. 바꾼 것도 무엇이 들어왔는지 적힙니다.
-        this.later.push({
-          at: this.clock + BUY_LINGER + LAND_AT, run: () => this.landed(item),
-        })
-      })
+      this.enterFocus(item, held => {
+        // 내놓는 것이 먼저이고, 그다음은 그냥 사는 것입니다.
+        this.giveUp(item, held)
+        this.purchase(slot, item, { t: 'swap', slot, index: held })
+      }, slot)
       return
     }
+    this.purchase(slot, item, { t: 'buy', slot })
+  }
+
+  /**
+   * 상점의 딱지 하나가 팔리는 것을 보입니다. 그냥 사는 것과 바꿔 사는 것이 같은 길입니다.
+   *
+   * 값이 딱지 위에 뜨고 동전이 나가는 동안(`BUY_LINGER`) 딱지가 그 자리에 남고, 그다음
+   * 물건이 딱지에서 떠나 제 줄에 닿습니다(`LAND_AT`). 조커와 소모품이 같은 시각에 같은
+   * 용수철로 옵니다 — `holdArrival` 이 그 둘을 한 길로 보냅니다.
+   */
+  private purchase(slot: number, item: ShopItem, action: Action): void {
     // **산 것이 그 자리에서 튀어 오릅니다.** 값을 치른 자리가 밝아지고, 그 자리에서
     // 조커가 날아가 줄에 꽂힙니다 — 조각 몇 개만으로는 눌린 것인지 산 것인지 모릅니다.
-    this.tooltip.hide()
     // 조커를 사는 것과 소모품을 사는 것은 소리가 갈립니다.
     this.audio.play(item.kind === ShopItemKind.Joker ? 'joker_buy' : 'shop_buy')
     // **조각을 터뜨리지 않습니다.** 조각은 산 물건 뒤에서 흩어질 뿐이라 무엇을 산 것인지가
@@ -12614,7 +12826,7 @@ export class Game {
     // 칸 위에 뜨고 그 칸 수가 강조되었습니다.
     if (item.kind === ShopItemKind.PlayingCard) {
       this.holdShop(BUY_LINGER + DECK_PEEK)
-      this.act({ t: 'buy', slot })
+      this.act(action)
       // **값을 치르고 나서 떠납니다.** 딱지가 남아 있는 동안 그 위에서 값이 뜨고 동전이
       // 나가고, 그 박자가 끝나는 프레임에 카드가 딱지에서 빠져 덱으로 갑니다.
       this.later.push({
@@ -12631,13 +12843,10 @@ export class Game {
       return
     }
 
-    this.arriveFrom = from
-
     // **액션보다 먼저입니다.** 물건은 딱지가 사라질 때 떠나고, 그때까지 제 칸에 서지
     // 않습니다 — 액션이 지나며 화면을 한 번 그리므로 그 뒤에 붙들면 늦습니다.
     this.holdArrival(item, from)
-
-    this.act({ t: 'buy', slot })
+    this.act(action)
 
     // 날아가 닿는 데까지가 한 박자입니다. 닿는 자리에서 이름과 소리가 납니다.
     this.later.push({ at: this.clock + BUY_LINGER + LAND_AT, run: () => this.landed(item) })
@@ -12700,27 +12909,42 @@ export class Game {
   }
 
   /**
-   * 산 물건이 제 자리에 나타나는 것을 딱지가 사라질 때까지 미룹니다.
+   * 산 물건이 `wait` 뒤에 `from` 에서 제 줄로 날아옵니다. 조커와 소모품이 같은 길입니다.
    *
-   * **조커 줄과 소모품 칸은 `refresh` 마다 상태를 그대로 그립니다.** 그러면 산 물건이 딱지가
-   * 아직 놓여 있는 동안 이미 줄에 놓여 있습니다 — 같은 물건이 둘입니다. 그동안은 세우지 않고,
-   * 때가 되면 산 자리에서 날아갑니다.
+   * **그동안은 줄에 세우지 않습니다.** 조커 줄과 소모품 칸은 `refresh` 마다 상태를 그대로
+   * 그리므로, 붙들지 않으면 산 물건이 딱지가 아직 놓여 있는 동안 이미 줄에 놓여 있습니다 —
+   * 같은 물건이 둘입니다. 상점에서는 딱지가 남는 동안(`BUY_LINGER`)이고, 팩에서는 집은
+   * 그 프레임입니다.
+   *
+   * **출발 자리는 여기서 넘깁니다.** 조커는 뷰가 만들어질 때 `arriveFrom` 을 받아
+   * 용수철로 오고, 소모품은 칸이 다시 그릴 때마다 새로 만들어지므로 화면이 그 용수철을
+   * 들고 있습니다(`itemFlying`) — 둘이 같은 강성(`Motion.drift`)이고 같은 시각(`LAND_AT`)에
+   * 닿습니다. 부르는 쪽이 갈래마다 달리 적던 동안 한 길에서 조커의 출발 자리가 빠져, 산
+   * 조커가 줄 위에서 떨어졌습니다.
    */
-  private holdArrival(item: ShopItem, from: { x: number; y: number }): void {
+  private holdArrival(item: ShopItem, from: { x: number; y: number },
+                      wait = BUY_LINGER): void {
     // **줄에 놓이지 않는 것은 붙들지 않습니다.** 상점의 플레잉 카드는 덱으로 들어가므로 조커
     // 줄에도 소모품 칸에도 자리가 없고, 그것을 소모품으로 세면 엉뚱한 한 칸이 비어 있습니다.
     const kind = item.kind === ShopItemKind.Joker ? 'joker' as const
       : isConsumable(item.kind) ? 'item' as const : undefined
     if (!kind) return
-    // **상점이 이 몫을 듭니다.** 박자가 겹쳐 들면 같은 물건이 두 번 날아옵니다.
+    // **부르는 쪽이 이 몫을 듭니다.** 박자가 겹쳐 들면 같은 물건이 두 번 날아옵니다.
     if (kind === 'item') this.itemFlyOwned = true
-    this.arriveHold = { kind, until: this.clock + BUY_LINGER }
+    // **천장은 닿는 시각입니다.** 아래의 예약이 그 전에 놓습니다 — `wait` 가 0 이어도 액션이
+    // 지나며 한 번 그리는 그 프레임은 붙들려 있어야 하고, 예약은 다음 틱에 돕니다.
+    this.arriveHold = { kind, until: this.clock + wait + LAND_AT }
     this.later.push({
-      at: this.clock + BUY_LINGER,
+      at: this.clock + wait,
       run: () => {
         this.arriveHold = undefined
-        if (isConsumable(item.kind)) this.itemFlying(from)
-        else this.refresh()
+        if (kind === 'item') {
+          this.itemFlying(from)
+          return
+        }
+        // 뷰가 만들어지는 그 `refresh` 가 이 자리를 받습니다.
+        this.arriveFrom = from
+        this.refresh()
       },
     })
   }
@@ -12734,7 +12958,7 @@ export class Game {
   private landed(item: ShopItem): void {
     const joker = item.kind === ShopItemKind.Joker
     // **줄에도 칸에도 놓이지 않는 것은 여기로 오지 않습니다.** 플레잉 카드는 덱으로
-    // 들어가고 덱이 제 이름을 띄웁니다 — 아래는 「조커가 아니면 소모품」으로 세므로, 그대로
+    // 들어가고 덱이 받았다는 글을 띄웁니다 — 아래는 「조커가 아니면 소모품」으로 세므로, 그대로
     // 두면 방금 산 카드의 이름이 아무 상관 없는 소모품 칸 위에 뜹니다.
     if (!joker && !isConsumable(item.kind)) return
     let spot: { x: number; y: number } | undefined
@@ -12762,6 +12986,11 @@ export class Game {
       if (this.itemArrive) {
         this.itemArrive.glow = 1
         this.itemArrive.warp = 0
+        // **조커와 같이 한 번 튑니다**(`JokerView.bounce`). 원래 용수철로 돌아가므로 그 튐이
+        // 지나쳤다 돌아옵니다. 기울기와 크기는 얹지 않습니다 — 칸의 축이 왼쪽 위라 그 둘은
+        // 카드를 옆으로 밀어 냅니다.
+        this.itemArrive.motion.soft()
+        this.itemArrive.motion.y.kick(-300 * 1.2)
       }
     }
     if (!spot) return
@@ -13005,19 +13234,29 @@ export class Game {
   }
 
   /**
+   * 자리를 비우며 하나를 내놓습니다.
+   *
+   * **파는 것과 같은 소리이고 같은 자리입니다.** 단추로 팔 때는 `joker_sell` 이 나는데 내놓을
+   * 때는 고르기 소리 뒤에 타는 소리만 났습니다 — 판 값은 내놓은 그 자리에서 나옵니다.
+   */
+  private giveUp(item: ShopItem, held: number): void {
+    this.audio.play('joker_sell')
+    this.sellFrom = item.kind === ShopItemKind.Joker ? this.jokerSpot(held) : this.itemSpot(held)
+  }
+
+  /**
    * 자리를 비우는 화면으로 들어갑니다.
    *
    * **묻는 판이 아니라 줄 자체가 고르는 자리입니다.** 조커와 소모품은 이미 위 줄에 서
    * 있으므로, 이름을 적은 목록을 따로 띄우면 같은 것을 두 번 그리는 것이고 어느 것이 어느
    * 것인지 다시 맞춰 보게 됩니다 — 내놓을 수 있는 것은 살짝 떠 있고 다른 것은 옅어지며,
-   * 무엇을 하라는 글이 그 줄 바로 아래에 놓입니다. 상점은 그동안 화면 아래로 내려가 있습니다.
+   * 무엇을 하라는 글이 그 줄 바로 아래에 놓입니다. 상점은 그대로 떠 있고, 사려던 딱지가
+   * 들려 있습니다 — 새 물건은 거기서 떠납니다.
    *
    * 고르는 것은 줄의 그 물건을 누르는 것이고, 내놓는 것은 그 밑에 서는 단추입니다 —
    * 되돌릴 수 없는 일이 손이 미끄러진 한 번으로 일어나지 않습니다.
    */
-  private enterFocus(item: ShopItem,
-                     commit: (held: number, from: { x: number; y: number },
-                              middle: { x: number; y: number }) => void): void {
+  private enterFocus(item: ShopItem, commit: (held: number) => void, slot?: number): void {
     const kind = item.kind === ShopItemKind.Joker ? 'joker' as const : 'consumable' as const
     this.held = undefined
     this.tooltip.hide()
@@ -13032,15 +13271,10 @@ export class Game {
     const panel = new Panel(width, height)
     panel.position.set(x, y)
 
-    // **얻을 것을 옆에 세웁니다.** 상점에서 왔으면 상점이 이미 내려가 있어 그 물건이 화면에
-    // 없고, 이름만으로는 무엇을 위해 자리를 비우는지가 흐립니다. 새 물건은 여기서 날아갑니다.
-    const card = this.itemCard(item)
-    const fit = (height - 16) / SIZE.jokerHeight
-    card.scale.set(fit)
-    card.position.set(14, 8)
-    panel.addChild(card)
-
-    const left = 14 + SIZE.jokerWidth * fit + 16
+    // **얻을 것을 옆에 세우지 않습니다.** 그 물건은 화면에 있습니다 — 상점의 딱지는 들려
+    // 있고 팩의 카드는 펼쳐진 채이고, 새 물건은 거기서 날아갑니다. 여기 한 장 더 세우면
+    // 같은 물건이 둘이고, 어느 쪽에서 오는지가 갈립니다.
+    const left = 24
     const lead = richLine(
       tf('ui.swap.lead', { name: shopLabel(item.kind, item.id, this.data) }),
       richStyle('title', { fontWeight: WEIGHT.bold }), width - left - 140)
@@ -13072,7 +13306,7 @@ export class Game {
     this.focusLayer.addChild(panel)
     this.focusLayer.alpha = 0
 
-    this.focus = { item, kind, card, panel, commit }
+    this.focus = { item, kind, panel, commit, slot }
     this.audio.play('card_select')
     this.refresh()
   }
@@ -13089,28 +13323,21 @@ export class Game {
   /**
    * 줄의 하나를 내놓고 그 자리에 새것을 받습니다.
    *
-   * **오는 자리는 글 옆의 그 카드입니다.** 화면을 걷기 전에 세어 둡니다 — 걷은 뒤에는 그
-   * 카드가 없습니다. 팩에서 왔으면 부르는 쪽이 이 자리를 쓰지 않고 펼친 그 카드를 씁니다.
+   * **판은 고른 그 프레임에 걷힙니다.** 값이 뜨고 물건이 떠나는 자리는 상점의 딱지나 팩의
+   * 카드이고 이 판에는 없으므로, 판이 더 남아 있을 까닭이 없습니다.
    */
   private commitFocus(index: number): void {
     const focus = this.focus
     if (!focus) return
-    const from = this.spotOf(focus.card, SIZE.jokerWidth / 2, SIZE.jokerHeight / 2)
-    // **판의 가운데도 함께 셉니다.** 판은 이 뒤로 잠깐 더 떠 있다가(`focusHold`) 걷히므로
-    // 치른 값이 그 위에 뜰 수 있고, 걷은 뒤에는 이 자리를 다시 셀 수 없습니다.
-    const middle = this.spotOf(focus.panel, FOCUS_W / 2, FOCUS_H / 2)
     this.leaveFocus()
-    focus.commit(index, from, middle)
+    focus.commit(index)
   }
 
   /** 자리를 비우는 화면이 드는 것과 걷히는 것. 글이 아래에서 조금 올라오며 짙어집니다. */
   private advanceFocus(seconds: number): void {
-    // **고른 뒤에도 잠깐 떠 있습니다.** 값을 읽을 시간이고, 물건이 이 판에서 떠나는
-    // 시간입니다 — 그만두어 걷는 것은 붙듦이 없으므로 그 자리에서 내려갑니다.
-    const held = this.clock < this.focusHold
-    const on = this.focus || held ? 1 : 0
+    const on = this.focus ? 1 : 0
     this.focusEnter += (on - this.focusEnter) * fraction(seconds, 12)
-    if (!this.focus && !held && this.focusEnter < 0.03) {
+    if (!this.focus && this.focusEnter < 0.03) {
       this.focusEnter = 0
       if (this.focusLayer.children.length > 0) {
         this.focusLayer.removeChildren().forEach(child => child.destroy())
@@ -13226,19 +13453,47 @@ export class Game {
                                    holdY: tile.y + (8 + SIZE.jokerHeight - SHOP_LIFT + 4) * fit })
     tile.on('pointertap', () => {
       if (this.ate()) return
-      if (!this.canPay(row.cost)) return
+      if (this.cannotPay(row.cost)) return
       this.pick('pack_slot', slot)
     })
     this.tipOn(tile, at => {
       this.tooltip.show(packName(row.kind, row.size), t('ui.kind.pack'), 0,
         [packBlurb(row.kind), tf('ui.pack.spread', { cards: row.cards, picks: row.picks })],
-        at, SIZE)
+        at, SIZE, row.cost)
     })
     this.reveal(tile)
     return () => {
       this.revealStock(lift, -STOCK_DROP, bag)
       this.revealInto(tile, 0, 0, price)
     }
+  }
+
+  /**
+   * 바우처를 삽니다.
+   *
+   * **바우처는 들어갈 칸이 없습니다.** 규칙으로 들어가므로, 산 자리에서 이름이 뜨는 것이
+   * 그것을 얻었다는 유일한 표시입니다.
+   *
+   * **소리와 판 번쩍임은 규칙 판이 냅니다.** 바뀐 규칙이 판으로 뜰 때(`showRuleChange`)
+   * `voucher_buy` 와 번쩍임과 「적용 중」의 밝아짐이 나므로, 여기서도 내면 한 번 누름에 같은
+   * 소리와 번쩍임이 둘입니다. 조각은 없습니다 — 사는 것은 조각을 터뜨리지 않습니다
+   * (`purchase`).
+   */
+  private buyVoucher(): void {
+    const one = this.voucherTile
+    if (!one || one.tile.destroyed || !this.canPay(one.cost)) return
+    this.tooltip.hide()
+    // **값이 뜨는 자리는 카드의 가운데입니다.** 상점 카드와 같습니다 — 칸의 가운데는 그보다
+    // 13픽셀 아래입니다.
+    const at = this.fromShop({
+      x: one.mid, y: one.tile.y + (8 + SIZE.jokerHeight / 2) * one.tile.scale.x,
+    })
+    this.popAt(at, one.title, UI.money, 0.5)
+    this.boughtFrom = at
+    // 딱지가 남아 값과 이름이 그 위에 뜹니다. 다 보고 난 뒤에 빈 칸이 됩니다.
+    this.voucherTile = undefined
+    this.lingerNode(one.tile, PAY_BEAT)
+    this.act({ t: 'buy_voucher' })
   }
 
   /**
@@ -13252,14 +13507,17 @@ export class Game {
 
     this.tooltip.hide()
     this.audio.play('pack_open')
-    // **조각과 값이 이 딱지에서 납니다.** 어느 것을 뜯었는지가 거기에 남습니다. 딱지가
-    // 이미 지워졌으면 상점 한가운데입니다.
+    // **값이 이 딱지에서 납니다.** 어느 것을 뜯었는지가 거기에 남습니다. 딱지가 이미
+    // 지워졌으면 상점 한가운데입니다. **봉지의 가운데입니다** — 상점 카드의 값이 카드의
+    // 가운데에서 뜨는 것과 같은 자리이고, 칸의 가운데는 그보다 13픽셀 아래입니다.
     const from = spot
-      ? this.fromShop({ x: spot.mid, y: spot.baseY + spot.height / 2 })
+      ? this.fromShop({
+        x: spot.mid, y: spot.baseY + (8 + SIZE.jokerHeight / 2) * spot.tile.scale.x,
+      })
       : this.shopMiddle()
-    const row = this.data.tables.boosterPack.findByPackId(this.state.shop.packs[slot])
-    this.particles.burst(from.x, from.y, 20, row ? packInk(row.kind) : UI.ink, 1.2)
-    this.jolt(5, 3)
+    // **값을 치른 자리가 밝아집니다. 조각과 흔들림은 없습니다** — 사는 것과 같은 규칙입니다
+    // (`purchase`). 팩만 조각을 내고 판은 밝히지 않아, 같은 「값을 치렀다」가 둘이었습니다.
+    this.flashPanel(UI.money, 0.35)
     this.boughtFrom = from
     // **값을 치르는 것이 먼저입니다.** 뜯은 딱지가 그 자리에 남아 값이 그 위에 뜨고 동전이
     // 나가는 것을 보고 난 뒤에, 딱지가 사라지고 상점이 내려가고 카드가 깔립니다.
@@ -13306,6 +13564,10 @@ export class Game {
     const title = nameOf(this.data, 'voucher', id, row?.name ?? '')
     const w = SIZE.jokerWidth
     tile.addChild(cellPlate(CELL_W, CELL_H, UI.hairline))
+    // **올라가는 것만 담습니다.** 카드 칸·팩 칸과 같습니다 — 테두리는 이 통 밖에 있으므로
+    // 제자리에 남습니다. 딱지 통째로 올리던 동안은 진열될 때 테두리까지 함께 움직였습니다.
+    const lift = new Container()
+    tile.addChild(lift)
 
     // **얼굴은 도감과 같은 것입니다.** 값과 누름만 여기서 얹습니다.
     const face = voucherFace(this.data, id, lines[0] ?? t('ui.note.rest_of_run'))
@@ -13321,31 +13583,23 @@ export class Game {
     // **자리는 화면이 알립니다.** 바우처는 규칙으로 들어가는 유일한 물건이므로, 규칙이
     // 바뀌는 것을 재는 도구가 눌러야 하는 자리입니다 — 카드 칸만 알리고 있었습니다.
     this.spotNodes.set('voucher', { node: tile, cx: CELL_W * fit / 2, cy: CELL_H * fit / 2 })
-    const middle = (): { x: number; y: number } =>
-      this.fromShop({ x: tile.x + CELL_W * fit / 2, y: tile.y + CELL_H * fit / 2 })
+    this.voucherTile = { tile, lift, price, cost, title,
+                         mid: tile.x + CELL_W * fit / 2,
+                         holdY: tile.y + (8 + SIZE.jokerHeight - SHOP_LIFT + 4) * fit }
+    // **누르면 고르기만 합니다.** 사는 것은 그 밑에 서는 단추가 합니다 — 카드 칸·팩 칸과 같은
+    // 규칙이고, 바우처만 한 번에 사지던 것을 걷었습니다.
     tile.on('pointertap', () => {
       if (this.ate()) return
-      if (!this.canPay(cost)) return
-      // **바우처는 들어갈 칸이 없습니다.** 규칙으로 들어가므로, 산 자리에서 이름이 뜨는
-      // 것이 그것을 얻었다는 유일한 표시입니다.
-      this.audio.play('voucher_buy')
-      const at = middle()
-      this.particles.burst(at.x, at.y, 26, UI.money, 1.3, 1.2)
-      this.flashPanel(UI.money, 0.35)
-      this.popAt(at, title, UI.money, 0.5)
-      this.boughtFrom = at
-      // 왼쪽 판의 「적용 중」에 이 줄이 밝게 뜹니다. 그것이 규칙으로 들어갔다는 표시입니다.
-      this.activeGlow = { label: title, until: this.clock + ACTIVE_GLOW }
-      // 딱지가 남아 값과 이름이 그 위에 뜹니다. 다 보고 난 뒤에 빈 칸이 됩니다.
-      this.lingerNode(tile, PAY_BEAT)
-      this.act({ t: 'buy_voucher' })
+      if (this.cannotPay(cost)) return
+      this.pick('voucher', 0)
     })
+    // 값 칩도 카드 칸과 같이 붙습니다.
     this.tipOn(tile, at => {
-      this.tooltip.show(title, t('ui.kind.voucher'), 0, lines, at, SIZE)
+      this.tooltip.show(title, t('ui.kind.voucher'), 0, lines, at, SIZE, cost)
     })
     this.reveal(tile)
     return () => {
-      this.revealStock(tile, -STOCK_DROP, face)
+      this.revealStock(lift, -STOCK_DROP, face)
       this.revealInto(tile, 0, 0, price)
     }
   }
@@ -13430,8 +13684,11 @@ export class Game {
 
     // **판 아래 단추 줄입니다.** 라운드에서 낸다·취소·버린다가 놓이는 그 줄이고, 그 크기입니다 —
     // 팩에서 고르는 것은 손패를 한 번 더 치는 것이므로 단추도 그 자리에 놓입니다.
-    const skip = new Button(t('ui.button.skip'), PLAY_W, PLAY_H, 'neutral',
-      () => this.act({ t: 'skip_pack' }))
+    // 블라인드를 건너뛰는 것과 같은 소리입니다. 소리 없이 판이 걷히던 유일한 자리였습니다.
+    const skip = new Button(t('ui.button.skip'), PLAY_W, PLAY_H, 'neutral', () => {
+      this.audio.play('blind_skip')
+      this.act({ t: 'skip_pack' })
+    })
     skip.position.set(PACK_X - PLAY_W / 2, BUTTON_Y)
     this.packSkip = skip
     // 도구가 팩을 건너뛰는 자리입니다. 걷을 때 함께 지웁니다.
@@ -13593,23 +13850,18 @@ export class Game {
     // 카드가 들리는 것과 설명이 뜨는 것이 함께 있어서 `tipOn` 을 쓰지 않습니다 —
     // **손가락으로는 들리는 것만 먼저 일어나고, 설명은 꾸욱 눌러야 뜹니다.**
     const tip = (): void => {
+      // 다 서지 않은 카드는 설명을 띄우지 않습니다. `tipOn` 과 같은 문턱입니다.
+      if (node.alpha < 0.99) return
       this.tooltip.show(name, kindName(item.kind), rarity, lines, this.tipBox(node), SIZE)
     }
     // **마우스를 올리는 것은 설명까지입니다.** 올리기만 해도 카드가 들리면 상점의 칸과
     // 몸짓이 갈립니다 — 상점은 눌러서 고른 것만 들리고, 팩도 그래야 어느 것을 집으려는
     // 중인지가 한 가지로 읽힙니다.
-    node.on('pointerover', event => {
-      if (event.pointerType === 'mouse') tip()
-    })
-    node.on('pointerdown', event => this.armPress(event, tip))
-    node.on('pointerout', () => {
-      if (!this.pressShown) this.tooltip.hide()
-    })
+    attachTip(node, this.hold, tip, () => this.tooltip.hide())
     // **누르면 고르기만 합니다.** 집는 것은 그 밑에 서는 단추가 합니다 — 집는 것은
     // 되돌릴 수 없고, 팩은 열려 있는 동안 무엇을 집을지 견주어 보는 자리입니다.
     node.on('pointertap', () => {
       if (this.ate()) return
-      this.tooltip.hide()
       this.pick('pack', index)
     })
     return { node, card }
@@ -13628,10 +13880,6 @@ export class Game {
 
     const item = view.item
     const node = view.face.node
-    const ink = packInk(open.kind)
-    // 집은 카드도 산 것과 같이 제자리에서 옵니다. **카드의 가운데입니다** — 조커 뷰의
-    // 피벗이 가운데이고, 소모품 쪽은 `itemFlying` 이 제 셈으로 옮깁니다.
-    const from = { x: node.x, y: node.y }
 
     // **자리가 없으면 무엇과 바꿀지를 묻습니다.** 코어는 자리가 없으면 아무것도 하지
     // 않는데, 화면이 그것을 모른 채 소리와 조각을 내고 있었습니다.
@@ -13643,31 +13891,33 @@ export class Game {
         this.toasts.push(t('ui.swap.title'), this.fullNote(item.kind), UI.bad, 3)
         return
       }
-      // **줄에서 고릅니다.** 펼친 카드는 막 뒤로 물러나 있고, 집은 것은 그 자리에서 옵니다 —
-      // 글 옆의 카드가 아니라 펼쳐 있던 그 카드입니다.
+      // **줄에서 고릅니다.** 펼친 카드는 막 뒤로 물러나 있고, 집은 것은 그 자리에서 옵니다.
+      // 고른 뒤는 그냥 집는 것과 같은 길입니다 — 내놓는 것 하나만 앞에 놓입니다.
       this.enterFocus(item, held => {
-        const at = { x: node.x, y: node.y }
-        this.audio.play('pack_pick')
-        this.arriveFrom = at
-        this.sellFrom = item.kind === ShopItemKind.Joker
-          ? this.jokerSpot(held) : this.itemSpot(held)
-        // **파는 것이 먼저 보입니다.** 상점에서 바꿔 사는 길과 같은 붙듦입니다 — 이 길에만
-        // 없어서, 내놓은 것이 타는 것과 새것이 오는 것이 한 프레임에 겹쳤습니다.
-        // 소모품이 날아오는 것도 `holdArrival` 이 그때 시작합니다.
-        this.holdArrival(item, at)
-        this.holdShop(BUY_LINGER + LAND_AT + SHOP_RETURN_REST)
-        this.act({ t: 'swap_pack', index, held })
-        this.later.push({
-          at: this.clock + BUY_LINGER + LAND_AT, run: () => this.landed(item),
-        })
+        this.giveUp(item, held)
+        // **파는 것이 먼저 보입니다.** 새것은 `BUY_LINGER` 만큼 기다렸다 옵니다 — 붙들지
+        // 않으면 내놓은 것이 타는 것과 새것이 오는 것이 한 프레임에 겹칩니다.
+        this.pickFromPack(index, item, node, { t: 'swap_pack', index, held }, BUY_LINGER)
       })
       return
     }
+    this.pickFromPack(index, item, node, { t: 'pick_pack', index }, 0)
+  }
 
+  /**
+   * 팩에서 집은 한 장이 제 자리로 갑니다. 그냥 집는 것과 바꿔 집는 것이 같은 길입니다.
+   *
+   * **조각과 흔들림은 없습니다.** 사는 것과 같은 규칙입니다(`purchase`) — 집은 그 카드가
+   * 울렁이며 날아가 자리에서 번쩍이는 것이 「집었다」이고, 조각은 그 뒤에서 흩어질 뿐이라
+   * 무엇을 집은 것인지가 남지 않습니다. 그냥 집을 때만 조각 둘과 흔들림이 있었고 바꿔 집을
+   * 때는 없어서, 같은 일이 두 몸짓이었습니다.
+   */
+  private pickFromPack(index: number, item: ShopItem, node: Container, action: Action,
+                       wait: number): void {
+    // 집은 카드도 산 것과 같이 제자리에서 옵니다. **카드의 가운데입니다** — 조커 뷰의
+    // 피벗이 가운데이고, 소모품 쪽은 `itemFlying` 이 제 셈으로 옮깁니다.
+    const from = { x: node.x, y: node.y }
     this.audio.play('pack_pick')
-    this.particles.burst(node.x, node.y, 26, ink, 1.4, 1.2)
-    this.particles.burst(node.x, node.y, 12, PAINT.sheen, 0.8, 0.7)
-    this.jolt(4, 3)
 
     // **플레잉 카드는 덱으로 갑니다.** 줄에 꽂히는 자리가 없으므로, 펼쳐 있던 그 카드가
     // 덱까지 날아가고 덱이 나와 받습니다. 판에서 물러나는 몫은 그 비행이 대신합니다 — 지금
@@ -13677,21 +13927,17 @@ export class Game {
       this.flyToDeck(node, from)
       // 덱이 받고 물러나는 것까지 보고 나서 상점이 올라옵니다.
       this.holdShop(DECK_PEEK)
-      this.act({ t: 'pick_pack', index })
+      this.act(action)
       return
     }
 
-    this.arriveFrom = from
-    this.holdShop(LAND_AT + SHOP_RETURN_REST)
-    // **팩이 이 몫을 듭니다.** 액션보다 먼저 적어야 합니다 — 액션이 지나며 「아무도 들지
-    // 않았으면 박자가 든다」를 셈하므로, 뒤에 적으면 박자가 겹쳐 들고 그동안 소모품이
-    // 칸에 서지 못합니다.
-    if (isConsumable(item.kind)) this.itemFlyOwned = true
-    this.act({ t: 'pick_pack', index })
-    // **소모품도 집은 자리에서 옵니다.** 조커는 `arriveFrom` 을 뷰가 받아 날아오는데,
-    // 소모품은 화면이 그 몫을 들어야 합니다.
-    if (isConsumable(item.kind)) this.itemFlying(from)
-    this.later.push({ at: this.clock + LAND_AT, run: () => this.landed(item) })
+    // 상점은 새것이 닿는 것을 보고 나서 올라옵니다.
+    this.holdShop(wait + LAND_AT + SHOP_RETURN_REST)
+    // **액션보다 먼저입니다.** 액션이 지나며 「아무도 들지 않았으면 박자가 든다」를 셈하므로,
+    // 뒤에 적으면 박자가 겹쳐 들고 그동안 소모품이 칸에 서지 못합니다.
+    this.holdArrival(item, from, wait)
+    this.act(action)
+    this.later.push({ at: this.clock + wait + LAND_AT, run: () => this.landed(item) })
   }
 
   /**
@@ -13979,6 +14225,10 @@ function moneyReason(reason: string): string {
     case 'sell': return t('ui.money.sell')
     case 'shop': return t('ui.money.spent')
     case 'rental': return t('ui.money.rental')
+    // **갈 곳 없는 지출도 적습니다.** 리롤과 버리기 비용은 이유가 없어 금액만 조용히
+    // 줄었습니다 — 단추의 말이 곧 그 이유이므로 그 말을 그대로 씁니다.
+    case 'reroll': return t('ui.button.reroll')
+    case 'discard': return t('ui.button.discard')
     default: return ''
   }
 }

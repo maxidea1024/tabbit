@@ -13,8 +13,14 @@ import { insetRadius } from '../render/skin'
 import { RADIUS, SPACE, STROKE, TEXT, UI, WEIGHT, rarityColor } from '../render/theme'
 import { richLeading, richStyle, richBlock, type RichStyle } from './rich'
 
-/** 이 쪽지의 글에 붙는 강조. */
-const rich = (): RichStyle => richStyle('body')
+/**
+ * 이 쪽지의 글에 붙는 강조.
+ *
+ * **본문보다 한 단 작습니다.** 쪽지는 읽으려고 연 판이 아니라 가리킨 김에 읽는 글이고,
+ * 판 위에 뜨는 것이므로 그만큼 자리를 덜 차지해야 합니다 — 본문 크기로 두었더니 조커 한
+ * 장의 설명이 판의 3분의 1을 덮었습니다.
+ */
+const rich = (): RichStyle => richStyle('body', { fontSize: TEXT.mini })
 
 /** 가장 좁을 때의 너비. 이름과 칩이 길면 여기서 자랍니다. */
 /**
@@ -70,7 +76,7 @@ function chip(label: string, color: number): Container {
   const node = new Container()
   const text = new Text({
     text: label,
-    style: { fontSize: TEXT.mini, fill: color, fontWeight: WEIGHT.bold },
+    style: { fontSize: TEXT.micro, fill: color, fontWeight: WEIGHT.bold },
   })
   const width = Math.ceil(text.width) + 16
   const plate = new Graphics()
@@ -85,7 +91,7 @@ function chip(label: string, color: number): Container {
 export class Tooltip extends Container {
   private readonly plate = new Graphics()
   private readonly title = new Text({
-    text: '', style: { fontSize: TEXT.copy, fill: UI.ink, fontWeight: WEIGHT.bold },
+    text: '', style: { fontSize: TEXT.body, fill: UI.ink, fontWeight: WEIGHT.bold },
   })
   /** 종류와 가격의 칩. 뜰 때마다 다시 만듭니다. */
   private readonly chips = new Container()
@@ -165,7 +171,7 @@ export class Tooltip extends Container {
 
     this.body.removeChildren().forEach(child => child.destroy())
     const shown = lines.length > 0 ? lines.map(line => `· ${line}`) : ['—']
-    this.body.addChild(richBlock(shown, rich(), richLeading('body'), width - PAD * 2))
+    this.body.addChild(richBlock(shown, rich(), richLeading('note'), width - PAD * 2))
 
     const headTop = 11
     const headHeight = Math.max(this.title.height, made.length > 0 ? CHIP_H : 0)

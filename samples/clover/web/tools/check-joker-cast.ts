@@ -62,15 +62,37 @@ async function main(): Promise<number> {
   await grantJoker(page, 'spinner')
   await pass(page, 400)
 
-  // 1. 판이 갈립니다. `hex` 는 조커 하나에 `Polychrome` 을 붙이는 유령 카드입니다.
-  await grantConsumableId(page, 'hex')
+  // 1. 판이 갈립니다. `ectoplasm` 은 조커 하나에 `Negative` 를 붙이는 유령 카드입니다.
+  //
+  // **`hex` 로 재지 않습니다.** 그것은 판을 걸고 같은 액션에서 나머지 조커를 부수는데, 지금
+  // 데이터에서는 host 가 조커가 아니라 「나머지」가 전부여서 방금 판이 걸린 딱지까지 탑니다 —
+  // 뒤집을 딱지가 그 프레임에 이미 없습니다.
+  await grantConsumableId(page, 'ectoplasm')
   await pass(page, 400)
   await useFirstItem(page)
-  for (let i = 0; i < 90; i++) {
-    if (await drew(page, 'JokerModified')) break
-    await pass(page, 40)
+  // **뒷면을 거칩니다.** 카드와 같은 몸짓입니다 — 판이 갈리는 것이 다음 그리기에 슬쩍
+  // 달라져 있던 동안은 무엇이 걸린 것인지 화면에 남지 않았습니다. 뒷면이 보이는 그 프레임을
+  // 한 장 굽습니다 — **조커의 뒷면은 눈으로만 판정됩니다.**
+  let backs = 0
+  let shot = false
+  for (let i = 0; i < 120; i++) {
+    const now = await peek(page)
+    if ((now.jokersBack ?? 0) > 0) {
+      backs++
+      // **다 벌어진 프레임입니다.** 뒤집기의 한가운데는 딱지가 선 하나로 좁아져 있어,
+      // 거기서 구우면 뒷면이 그려졌는지 보이지 않습니다.
+      if (!shot && backs >= 5) {
+        shot = true
+        await page.screenshot({
+          path: path.resolve(HERE, '../../design-data/out/check/joker-back.png'),
+        })
+      }
+    }
+    if (await drew(page, 'JokerModified') && shot) break
+    await pass(page, 20)
   }
   check(await drew(page, 'JokerModified'), '조커의 판이 갈리는 것이 그려집니다')
+  check(backs > 0, `뒷면을 거쳐 뒤집힙니다 (뒷면이 보인 표본 ${backs})`)
   await settle(page)
 
   // 2. **계속 빌리고 있는 것은 박자가 아닙니다.**

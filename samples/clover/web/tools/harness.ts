@@ -76,7 +76,13 @@ export interface Peek {
   cardShows?: number
   /** 판 위로 나와 바뀌는 중인 카드들. */
   changeCards?: { uid: number; kind: string; x: number; y: number
-                  to?: number; borrowed?: boolean }[]
+                  to?: number; borrowed?: boolean
+                  /** 지금 뒷면인가. 뒤집기가 뒷면을 거치는지를 이 값으로 봅니다. */
+                  back?: boolean
+                  /** 얼마나 좁아져 있는가. 100 이 제 너비입니다. */
+                  squeeze?: number }[]
+  /** 지금 뒷면이 보이는 조커 딱지의 수. */
+  jokersBack?: number
   /** 연출의 시계. 초입니다. */
   clock: number
   phase: string

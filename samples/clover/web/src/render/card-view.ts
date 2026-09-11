@@ -16,7 +16,6 @@ import { EDITION_SHADER, EditionFilter, type EditionLook } from '../shader/editi
 import { roundedMask } from '../shader/mask'
 import { PickFilter } from '../shader/pick'
 import { DissolveFilter } from '../shader/dissolve'
-import { ImprintFilter } from '../shader/imprint'
 import { BlightFilter } from '../shader/blight'
 import {
   cardFaceTexture, clearCardFace, drawCardFaceVector, faceInk,
@@ -160,8 +159,23 @@ export class CardView extends Container {
    * 것이고, 뽑는다는 것은 무엇이 올지 모르는 채로 기다리는 일입니다.
    */
   private showBack = false
-  /** 뒤집는 중. 1 에서 0 으로 갑니다. 절반에서 앞뒤가 바뀝니다. */
+  /** 뒤집는 중. 1 에서 0 으로 갑니다. 절반에서 보이는 면이 갈립니다. */
   private flip = 0
+  /**
+   * 이번 반 바퀴에서 이미 갈아 끼웠는가.
+   *
+   * **반 바퀴에 한 번입니다.** 절반을 지났는지로만 보면 그 뒤의 프레임마다 다시 갈리고,
+   * 뒷면으로 간 그 다음 프레임에 곧바로 앞면으로 돌아옵니다 — 뒷면이 한 프레임도 보이지
+   * 않습니다.
+   */
+  private swapped = true
+  /**
+   * 뒷면을 거쳐 갈아 끼울 카드.
+   *
+   * **얼굴은 뒷면 뒤에서 갈립니다.** 앞면인 채로 반 바퀴만 돌면 좁아졌다 벌어지는 그 한
+   * 순간에 갈리는데, 그것은 눈이 「뒤집혔다」로 읽기 전입니다.
+   */
+  private turnBack?: { card: CardInstance; look?: EditionLook; hold: number }
   /**
    * 뒤집는 시각. 화면의 시계입니다.
    *
@@ -245,10 +259,39 @@ export class CardView extends Container {
    * **뽑을 때의 뒤집기와 같은 몸짓입니다.** 좁아졌다가 벌어지는 그 절반에서 얼굴이
    * 갈립니다 — 다른 것은 시작이 뒷면이 아니라 앞면이라는 것뿐입니다.
    */
-  turnInto(card: CardInstance, look?: EditionLook,
-           tint?: [number, number, number]): void {
+  turnInto(card: CardInstance, look?: EditionLook): void {
     this.flip = 1
-    this.turning = { card, look, tint }
+    this.swapped = false
+    this.turning = { card, look }
+  }
+
+  /**
+   * 뒷면을 거쳐 다른 카드가 되어 돌아옵니다.
+   *
+   * **앞면 → 뒷면 → 앞면입니다.** 반 바퀴 하나로 앞면에서 앞면으로 갈던 동안은 좁아졌다
+   * 벌어지는 62밀리초 안에 얼굴이 갈렸고, 눈이 그것을 「뒤집혔다」로 읽기 전에 이미 새
+   * 얼굴이었습니다 — 갈린 것이 아니라 잠깐 찌그러진 것으로 보였습니다.
+   *
+   * 뒷면으로 `hold` 만큼 멈춰 있는 동안 얼굴을 갈아 끼우고, 앞면으로 돌아올 때
+   * `onFlipped` 이 불립니다 — 새 얼굴이 보이는 그 순간이고, 글과 소리가 거기서 납니다.
+   */
+  turnOver(card: CardInstance, look: EditionLook | undefined, hold: number): void {
+    this.flip = 1
+    this.swapped = false
+    this.turnBack = { card, look, hold }
+  }
+
+  /** 뒷면으로 세웁니다. 뒤집어 앞면으로 오는 것은 `turnUp` 입니다. */
+  faceBack(): void {
+    this.showBack = true
+    this.render()
+  }
+
+  /** 뒷면에서 앞면으로 뒤집힙니다. 벌어지는 자리에서 `onFlipped` 이 불립니다. */
+  turnUp(): void {
+    if (!this.showBack) return
+    this.flip = 1
+    this.swapped = false
   }
 
   /**
@@ -260,20 +303,13 @@ export class CardView extends Container {
    */
   rowZ = 0
 
-  /** 뒤집는 절반에서 갈아 끼울 카드. 그 자리에서 테가 함께 답니다. */
-  private turning?: {
-    card: CardInstance; look?: EditionLook; tint?: [number, number, number]
-  }
+  /** 뒤집는 절반에서 갈아 끼울 카드. 앞면에서 앞면입니다. */
+  private turning?: { card: CardInstance; look?: EditionLook }
 
   /** 타서 사라지는 중인가. */
   private dissolve?: DissolveFilter
   private burn = 0
   private burning = false
-
-  /** 갈리는 줄기. 지나가는 동안만 걸립니다. */
-  private imprint?: ImprintFilter
-  /** 줄기가 어디까지 갔는가. `undefined` 면 지나가는 중이 아닙니다. */
-  private imprinting?: number
 
   /** 시드는 금. 번지는 동안만 걸립니다. */
   private blight?: BlightFilter
@@ -418,8 +454,6 @@ export class CardView extends Container {
     const stack: Filter[] = []
     if (this.edition) stack.push(this.edition)
     if (lit) stack.push(this.picker())
-    // **갈리는 줄기는 맨 위입니다.** 무늬 위를 지나가야 그 카드에서 일어난 일로 보입니다.
-    if (this.imprint) stack.push(this.imprint)
     // 시드는 것도 맨 위입니다. 둘이 함께 걸릴 일은 없습니다 — 갈리는 것과 죽는 것입니다.
     if (this.blight) stack.push(this.blight)
     this.body.filters = stack
@@ -456,10 +490,19 @@ export class CardView extends Container {
     this.burning = true
     this.burn = 0
     this.eventMode = 'none'
-    this.imprint = undefined
     this.blight = undefined
     this.blighting = undefined
     this.restack()
+  }
+
+  /**
+   * 지금 뒷면이 보이는가. **검증 도구가 묻는 값입니다.**
+   *
+   * 뒤집히는 것은 125밀리초씩 두 번이라 눈으로는 「뭔가 돌았다」까지만 보이고, 뒷면을 실제로
+   * 거쳤는지는 프레임을 읽어야 갈립니다.
+   */
+  get facingBack(): boolean {
+    return this.showBack
   }
 
   /** 지금 시드는 중인가. **검증 도구가 묻는 값입니다.** */
@@ -470,20 +513,6 @@ export class CardView extends Container {
   /** 다 탔는가. 그때 지웁니다. */
   get burnt(): boolean {
     return this.burning && this.burn >= 1
-  }
-
-  /**
-   * 테가 한 번 답니다.
-   *
-   * **뒤집기와 함께 쓰는 것은 `turnInto` 가 스스로 부릅니다** — 얼굴이 갈리는 그 절반이
-   * 그 자리입니다. 이 함수를 직접 부르는 것은 뒤집지 않는 것, 곧 새로 더해진 카드입니다.
-   */
-  imprintNow(tint: [number, number, number] = [1.0, 0.82, 0.42]): void {
-    this.imprint ??= new ImprintFilter()
-    this.imprint.setTint(tint[0], tint[1], tint[2])
-    this.imprint.amount = 1
-    this.imprinting = 0
-    this.restack()
   }
 
   /**
@@ -568,6 +597,10 @@ export class CardView extends Container {
     this.motion.to(x, y, 0)
     this.motion.scale.snap(1.16)
     this.motion.scale.target = 1
+    // **떠나는 순간에 기울어집니다.** 곧게 미끄러져 곧게 멈추던 동안은 카드가 옮겨 놓인
+    // 것이지 던져진 것이 아니었습니다 — 기울기는 자리와 같은 용수철이라 날아가는 동안
+    // 0 으로 돌아옵니다.
+    this.motion.rotation.snap((Math.random() - 0.5) * 16)
     this.slamming = true
   }
 
@@ -623,11 +656,18 @@ export class CardView extends Container {
     return this.retiring && this.motion.x.value > SIZE.width + 40
   }
 
-  /** 득점할 때 한 번 튀어오릅니다. */
+  /**
+   * 득점할 때 한 번 튀어오릅니다.
+   *
+   * **위로만 뛰지 않습니다.** 세로로만 움직이면 다섯 장이 한 줄로 오르내려 한 덩어리가
+   * 출렁이는 것으로 보입니다 — 장마다 기울기와 크기가 함께 튀어야 그 한 장에서 일어난
+   * 일로 읽힙니다.
+   */
   pop(strength = 1): void {
     this.motion.y.kick(-260 * strength)
-    this.motion.scale.target = 1 + 0.12 * strength
-    this.motion.rotation.kick((Math.random() - 0.5) * 6)
+    this.motion.scale.target = 1
+    this.motion.scale.kick(2.2 * strength)
+    this.motion.rotation.kick((Math.random() - 0.5) * 18 * strength)
   }
 
   advance(seconds: number, time: number): void {
@@ -636,10 +676,12 @@ export class CardView extends Container {
 
     if (this.burning) {
       // **아래에서 위로, 그리고 조금 떠오릅니다.** 종이가 타면 가벼워집니다.
-      this.burn = Math.min(1, this.burn + seconds * 1.7)
+      // **조커와 같은 값입니다**(`JokerView.advance`). 「같은 몸짓」이라 적어 두고 셋이 다
+      // 달랐습니다 — 1.7 · 22 · 0.1.
+      this.burn = Math.min(1, this.burn + seconds * 1.6)
       if (this.dissolve) this.dissolve.burn = this.burn
-      this.y -= seconds * 22
-      this.rotation += seconds * 0.1
+      this.y -= seconds * 26
+      this.rotation += seconds * 0.12
       return
     }
 
@@ -663,51 +705,55 @@ export class CardView extends Container {
       }
     }
 
-    // 갈리는 줄기가 지나갑니다. 다 지나가면 필터를 뗍니다 — 필터 하나가 곧 렌더 텍스처
-    // 하나이고, 손패의 여덟 장이 그것을 내내 들고 있을 이유가 없습니다.
-    // 테가 잦아듭니다. **뒤집기(8분의 1초)보다 조금 길고, 그 뒤로 끌지 않습니다** — 다
-    // 뒤집힌 카드 위에 빛이 남아 있으면 그것은 갈린 표시가 아니라 얼룩입니다.
-    if (this.imprinting !== undefined) {
-      this.imprinting += seconds / 0.2
-      if (this.imprinting >= 1) {
-        this.imprinting = undefined
-        this.imprint = undefined
-        this.restack()
-      } else if (this.imprint) {
-        const left = 1 - this.imprinting
-        this.imprint.amount = left * left
-      }
-    }
-
     if (this.slamming && this.motion.x.settled && this.motion.y.settled) {
       this.slamming = false
       this.motion.soft()
+      // **닿는 순간에 한 번 눌립니다.** 자리에 「짝」 붙는 것은 멈추는 것만으로는 남지
+      // 않습니다 — 종이 한 장이 판에 닿아 튀는 그 한 번이 「놓았다」와 「던졌다」를 가릅니다.
+      this.motion.y.kick(-120)
+      this.motion.rotation.kick((Math.random() - 0.5) * 10)
+      this.motion.scale.target = 1
+      this.motion.scale.kick(1.4)
     }
 
     if (this.flipAt !== undefined && time >= this.flipAt) {
       this.flipAt = undefined
-      if (this.showBack) this.flip = 1
+      // 뒷면으로 멈춰 있던 것이 돌아옵니다.
+      if (this.showBack) {
+        this.flip = 1
+        this.swapped = false
+      }
     }
 
     // 8분의 1초입니다. 파도로 뒤집히므로 한 장이 길면 앞 장과 겹쳐 한 덩어리로 보입니다.
     if (this.flip > 0) {
       this.flip = Math.max(0, this.flip - seconds * 8)
-      // 절반을 지나면 앞면으로 바뀝니다 — 좁아졌다가 벌어지는 그 순간입니다.
-      if (this.showBack && this.flip <= 0.5) {
-        this.showBack = false
-        this.render()
-        // **뒤집히는 그 순간에 소리가 나야 합니다.** 뽑는 것은 무엇이 올지 모르는 채로
-        // 기다리는 일이고, 그 기다림이 끝나는 자리가 여기입니다.
-        this.onFlipped?.()
-      } else if (this.turning !== undefined && this.flip <= 0.5) {
-        // 앞면에서 앞면으로. **갈리는 자리도 같은 절반입니다.**
-        const one = this.turning
-        this.turning = undefined
-        this.set(one.card, one.look)
-        // **테는 얼굴이 갈리는 그 순간에 답니다.** 부르는 자리에서 함께 시작하면 아직
-        // 앞면인 동안 테가 먼저 붙고, 그것은 갈린 표시로 읽히지 않습니다.
-        if (one.tint) this.imprintNow(one.tint)
-        this.onFlipped?.()
+      // 절반을 지나면 보이는 면이 갈립니다 — 좁아졌다가 벌어지는 그 순간입니다.
+      if (this.flip <= 0.5 && !this.swapped) {
+        this.swapped = true
+        if (this.showBack) {
+          this.showBack = false
+          this.render()
+          // **뒤집히는 그 순간에 소리가 나야 합니다.** 뽑는 것은 무엇이 올지 모르는 채로
+          // 기다리는 일이고, 그 기다림이 끝나는 자리가 여기입니다. 갈린 카드도 같습니다 —
+          // 새 얼굴이 보이는 그 순간이 무엇이 되었는지를 아는 자리입니다.
+          this.onFlipped?.()
+        } else if (this.turnBack !== undefined) {
+          // 앞면에서 뒷면으로. **얼굴은 뒷면 뒤에서 갈아 끼웁니다** — 그동안 보이는 것은
+          // 뒷면이므로 갈리는 것이 화면에 남지 않습니다.
+          const one = this.turnBack
+          this.turnBack = undefined
+          this.showBack = true
+          this.set(one.card, one.look)
+          // 뒷면으로 멈춰 있다가 돌아옵니다.
+          this.flipAt = time + one.hold
+        } else if (this.turning !== undefined) {
+          // 앞면에서 앞면으로. 엎어지는 것이 이 길입니다 — 그 카드가 뒷면이 됩니다.
+          const one = this.turning
+          this.turning = undefined
+          this.set(one.card, one.look)
+          this.onFlipped?.()
+        }
       }
     }
     // 들린 만큼 종이만 올라갑니다. 그림자는 자리에 남습니다.

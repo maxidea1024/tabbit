@@ -482,12 +482,14 @@ function levelHand(vm: Vm, pick: HandPick, levels: number): void {
   }
 
   for (const name of names) {
-    const next = Math.max(1, (vm.state.handLevels[name] ?? 1) + levels)
+    const before = vm.state.handLevels[name] ?? 1
+    const next = Math.max(1, before + levels)
     vm.state.handLevels[name] = next
     vm.events.push({
       t: 'HandLevelled',
       hand: PokerHandKind[name as keyof typeof PokerHandKind],
       level: next,
+      before,
     })
   }
 }

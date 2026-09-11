@@ -829,8 +829,13 @@ export function apply(data: Data, state: RunState, action: Action): Step {
         const planet = data.tables.planet.findByPlanetId(item.id)
         if (planet) {
           const name = PokerHandKind[planet.hand]
-          state.handLevels[name] = (state.handLevels[name] ?? 1) + 1
-          vm.events.push({ t: 'HandLevelled', hand: planet.hand, level: state.handLevels[name] })
+          // **앞 값도 들고 갑니다.** 알림 판은 「얼마에서 얼마로」이고, 뒤만 있으면 그것이
+          // 오른 것인지 내린 것인지 · 몇 단 오른 것인지가 없습니다.
+          const before = state.handLevels[name] ?? 1
+          state.handLevels[name] = before + 1
+          vm.events.push({
+            t: 'HandLevelled', hand: planet.hand, level: state.handLevels[name], before,
+          })
           if (!state.planetsUsed.includes(item.id)) state.planetsUsed.push(item.id)
         }
       }
@@ -983,6 +988,9 @@ export function apply(data: Data, state: RunState, action: Action): Step {
       const cost = rerollCost(data, state, state.shop)
       if (state.money - cost < state.rules.debtLimit) break
       state.money -= cost
+      // **리롤도 돈이 나가는 사건입니다.** 이벤트가 없어 화면에서 동전도 이유도 없이 금액만
+      // 줄었습니다 — 임대료와 같은 갈 곳 없는 지출이고 같은 이벤트입니다.
+      if (cost > 0) vm.events.push({ t: 'MoneyChanged', delta: -cost, reason: 'reroll' })
       state.shop.rerollsUsed++
       runTrigger(vm, Trigger.OnReroll)
       stock(vm, state.shop)

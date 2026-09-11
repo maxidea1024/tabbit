@@ -155,6 +155,8 @@ function holdOf(event: GameEvent, feel: Feel): number {
     // 않는 것은 이것들이 조커 딱지 하나에서 일어나는 일이기 때문입니다.
     // 생긴 소모품이 만든 자리에서 날아오는 데까지.
     case 'ConsumableAdded':
+    case 'JokerAdded':
+    case 'JokerDestroyed':
     case 'JokerDisabled':
     case 'JokersShuffled':
     case 'JokerModified':
@@ -253,15 +255,42 @@ export function buildTimeline(events: readonly GameEvent[], feel: Feel): Beat[] 
 }
 
 /**
+ * 반 바퀴 하나. 카드가 좁아졌다가 벌어지는 데까지입니다.
+ *
+ * **`CardView` 의 잦아드는 빠르기가 정합니다** — `flip` 이 1 에서 0 으로 초당 8씩 줄고,
+ * 보이는 면은 그 절반에서 갈립니다. 한쪽만 고치면 여기서 세는 시각과 실제로 뒤집히는
+ * 시각이 어긋납니다.
+ */
+export const TURN_HALF_MS = 125
+/**
+ * 뒷면으로 멈춰 있는 시간. **그 뒤에서 얼굴이 갈립니다.**
+ *
+ * 앞면에서 앞면으로 반 바퀴만 돌던 동안은 좁아졌다 벌어지는 그 한 순간에 얼굴이 갈렸고,
+ * 눈이 「뒤집혔다」로 읽기 전에 이미 새 얼굴이었습니다 — 갈린 것이 아니라 잠깐 찌그러진
+ * 것으로 보였습니다. 뒷면이 온전히 보이는 동안이 있어야 그 앞과 뒤가 다른 카드가 됩니다.
+ */
+export const TURN_BACK_MS = 155
+/** 한 장이 뒷면을 거쳐 다 뒤집히는 데. 반 바퀴 둘과 그 사이의 멈춤입니다. */
+export const TURN_FULL_MS = TURN_HALF_MS * 2 + TURN_BACK_MS
+/**
+ * 여러 장이 바뀔 때 장마다의 간격.
+ *
+ * **앞 장이 벌어지기 시작할 때 다음 장이 닫힙니다.** 낸 카드가 판으로 올라가는 간격
+ * (`playStaggerMs`, 90밀리초)을 빌려 쓰던 동안은 그것이 반 바퀴(125밀리초)보다 짧아 장마다
+ * 뒤집힘이 겹쳤고, 세 장부터 한 덩어리가 통째로 갈리는 것으로 보였습니다.
+ */
+export const TURN_STEP_MS = 220
+
+/**
  * 카드가 판 위로 나와 바뀌고 돌아가는 데 걸리는 시간.
  *
- * **나오는 데 · 한 장씩 뒤집히는 데 · 보고 나서 돌아가는 데** 셋입니다. 새 상수를 두지
- * 않는 것은 셋 다 이미 카드가 쓰는 시간이기 때문입니다 — 나오고 돌아가는 것은 뽑는 것과
- * 같고, 장마다의 간격은 내는 것과 같습니다.
+ * **나오는 데 · 한 장씩 뒤집히는 데 · 보고 나서 돌아가는 데** 셋입니다. 나오고 돌아가는
+ * 것은 뽑는 것과 같은 시간이고, 가운데만 뒤집기의 시간입니다 — 마지막 장이 다 뒤집히는
+ * 시각이 그 끝입니다.
  */
 export function cardChangeHold(count: number, feel: Feel): number {
   if (count === 0) return 0
-  return feel.drawLandMs + count * feel.playStaggerMs + feel.handLabelMs
+  return feel.drawLandMs + (count - 1) * TURN_STEP_MS + TURN_FULL_MS + feel.handLabelMs
 }
 
 /** 타임라인 전체의 길이. */

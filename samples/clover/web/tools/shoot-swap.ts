@@ -1,5 +1,6 @@
-// 자리가 없을 때 줄에서 내놓을 것을 고르는 화면. 상점이 내려가고 · 줄이 밝게 남고 · 글이 서고 ·
-// 내놓은 뒤 새 조커가 오는 것까지 넉 장입니다.
+// 자리가 없을 때 줄에서 내놓을 것을 고르는 화면. 상점은 그대로 떠 있고 사려던 딱지가 들리고 ·
+// 줄이 밝게 남고 · 글이 서고 · 내놓은 뒤 값이 딱지 위에 뜨고 새 조커가 거기서 오는 것까지 넉
+// 장입니다.
 import * as path from 'path'
 import { fileURLToPath } from 'url'
 import { chromium, type Page } from 'playwright'
@@ -46,20 +47,17 @@ async function main(): Promise<number> {
   // **딱지를 누르는 것은 고르는 것까지입니다.** 바꿔 집는 것은 그 밑의 단추입니다.
   const swap = await heldButton(page)
   await page.mouse.click(swap.x, swap.y)
-  // 상점이 내려가고 줄에서 고르는 화면이 듭니다.
+  // 상점은 그대로 떠 있고 줄에서 고르는 화면이 듭니다.
   await page.waitForTimeout(900)
   await shot(page, 'swap-1')
 
-  // 줄의 첫 조커를 고릅니다. 그 밑에 내놓는 단추가 놓입니다.
+  // **줄의 첫 조커를 누르는 것이 곧 내놓는 것입니다.** 값이 딱지 위에 뜨는 동안 한 장,
+  // 새 조커가 딱지에서 떠나는 동안 한 장, 닿은 뒤 한 장입니다.
   const first = await spot(page, 'joker:0')
   await page.mouse.click(first.x, first.y)
-  await page.waitForTimeout(400)
+  await page.waitForTimeout(300)
   await shot(page, 'swap-2')
-
-  // 내놓습니다. 새 조커가 글 옆의 카드에서 날아오고 상점이 돌아옵니다.
-  const give = await heldButton(page)
-  await page.mouse.click(give.x, give.y)
-  await page.waitForTimeout(350)
+  await page.waitForTimeout(400)
   await shot(page, 'swap-3')
   await page.waitForTimeout(1200)
   await shot(page, 'swap-4')

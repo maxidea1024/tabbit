@@ -76,7 +76,12 @@ async function main(): Promise<number> {
   await grantMoney(page, 30)
   await settle(page)
   await pass(page, 400)
+  // **누르는 것은 고르는 것까지입니다.** 카드 칸과 같은 규칙이 되어, 사는 것은 그 밑에 서는
+  // 단추입니다.
   await clickSpot(page, 'voucher')
+  await pass(page, 300)
+  const buy = await heldButton(page)
+  await page.mouse.click(buy.x, buy.y)
 
   let box: { x: number; y: number; width: number; height: number } | undefined
   let head: string | undefined

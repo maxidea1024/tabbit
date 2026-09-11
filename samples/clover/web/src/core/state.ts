@@ -352,7 +352,7 @@ export type GameEvent =
   | { t: 'CardsHidden'; uids: number[] }
   | { t: 'ConsumableAdded'; uid: number; id: string }
   | { t: 'ConsumableUsed'; id: string }
-  | { t: 'HandLevelled'; hand: PokerHandKind; level: number }
+  | { t: 'HandLevelled'; hand: PokerHandKind; level: number; before: number }
   | {
     t: 'RuleChanged'
     /** 어느 규칙인가. `RuleKind` 의 이름입니다. */

@@ -3,8 +3,9 @@
 // 셋을 확인합니다.
 // 1. 팩을 뜯으면 **상점이 내려간 뒤에** 카드가 펼쳐지는가 · 닫히면 상점이 다시 올라오는가.
 // 2. 팩에서 플레잉 카드를 집으면 덱이 나와 받는가(그 팩에 플레잉 카드가 있을 때만).
-// 3. 자리가 없는 조커를 사면 묻는 판 대신 **위 줄에서 고르는 화면**이 들고, 상점이 내려가
-//    있으며, 줄의 조커를 눌러 내놓으면 화면이 걷히고 상점이 돌아오는가.
+// 3. 자리가 없는 조커를 사면 묻는 판 대신 **위 줄에서 고르는 화면**이 들고, 상점은 그대로
+//    떠 있으며, 줄의 조커를 눌러 내놓으면 화면이 걷히고 · 치른 값이 상점의 딱지 위에 뜨고 ·
+//    상점은 내려가지 않는가. **바꿔 사는 것도 사는 것이라 그냥 사는 것과 같은 길입니다.**
 //
 // **한 프레임씩 돕니다.** 상점이 내려가는 것과 카드가 나오는 것의 차례는 수십 밀리초의
 // 일이라, 실제 시계로 기다리면 재려던 그 프레임이 사이로 지나갑니다.
@@ -215,24 +216,32 @@ async function main(): Promise<number> {
     await page.mouse.click(swap.x, swap.y)
     const entering = await track(page, 30)
     check(entering.some(one => one.focus), '줄에서 고르는 화면이 들었습니다')
-    check(entering.some(one => one.focus && one.shopY > 300), '그동안 상점이 내려가 있습니다')
+    // **상점은 그대로 떠 있습니다.** 값이 뜨고 새것이 떠나는 자리가 그 딱지입니다.
+    check(entering.every(one => one.shopY < 1), '그동안 상점은 그대로 떠 있습니다')
     check(!(await peek(page)).modalUp, '묻는 판은 뜨지 않습니다')
 
     // **줄의 조커를 누르는 것이 곧 내놓는 것입니다.** 그 판이 이미 「내놓을 것을
     // 고르십시오」이므로, 그 위에서 하나를 누르는 것은 묻고 있는 것에 대한 답입니다 —
     // 그 밑에 단추를 한 번 더 세우고 그것을 누르게 하던 것을 걷었습니다.
     const moneyBefore = (await peek(page)).money
+    // 이 뒤에 뜨는 글만 봅니다. 앞의 팩과 리롤이 띄운 것이 같은 목록에 남아 있습니다.
+    const popsBefore = new Set(((await peek(page)).pops ?? []).map(one => one.join('|')))
     const first = await spot(page, 'joker:0')
     await page.mouse.click(first.x, first.y)
     {
       check((await peek(page)).spots?.held === undefined,
         '누른 것 밑에 단추가 서지 않습니다')
-      // 타고(0.42) · 닿고(0.52) · 보고(0.8) · 상점이 올라와 서는 것까지입니다.
-      const leaving = await track(page, 90)
+      // 타고(0.42) · 딱지가 남고(0.58) · 닿는(0.26) 것을 보는 데까지입니다.
+      const leaving = await track(page, 60)
       check(leaving.some(one => !one.focus), '내놓으면 화면이 걷힙니다')
-      // 내놓은 것이 타고 새것이 닿는 데 0.42 + 0.52초입니다.
-      check(leaving.slice(0, 20).every(one => one.shopY > 300), '새것이 닿기 전에는 상점이 올라오지 않습니다')
-      check(leaving.some(one => !one.focus && one.shopY < 1), '상점이 다시 올라옵니다')
+      // **상점은 내려가지 않습니다.** 그냥 사는 것과 같은 길입니다.
+      check(leaving.every(one => one.shopY < 1), '상점은 내려가지 않습니다')
+      // **치른 값은 상점의 딱지 위에 뜹니다.** 줄은 화면 위(y 100)이고 고르는 글 판은 그
+      // 아래(y 300 까지)이고 상점은 y 420 아래이므로, 뜬 자리의 높이로 갈립니다.
+      const paid = ((await peek(page)).pops ?? [])
+        .filter(one => !popsBefore.has(one.join('|')) && one[0].includes('-$'))
+      check(paid.length > 0 && paid.every(one => one[2] > 350),
+        `치른 값이 상점의 딱지 위에 뜹니다 (${paid.map(one => `${one[0]} @ ${one[1]},${one[2]}`).join(' · ') || '뜬 값 없음'})`)
       const now = await peek(page)
       check(now.jokers === jokersBefore, `조커 수가 그대로입니다 (${jokersBefore} → ${now.jokers})`)
       check(leaving.some(one => one.pulse), '닿은 자리에서 칸 수가 강조됩니다')

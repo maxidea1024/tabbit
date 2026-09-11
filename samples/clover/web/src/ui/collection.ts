@@ -36,6 +36,8 @@ import {
 } from '../render/faces'
 import { JokerView } from '../render/joker-view'
 import { UI, SIZE, TEXT, WEIGHT } from '../render/theme'
+import { Spring } from '../render/motion'
+import { attachTip, TipHold, TIP_GROW } from './tip'
 import type { ToolSpot } from './layout'
 import { panelFrame, type ModalPanel } from './modal'
 import { ScrollView } from './scroll'
@@ -180,6 +182,21 @@ export class CollectionPanel implements ModalPanel {
   /** 굴릴 수 있는 길이를 재게 하는 자리표. **칸은 보이는 만큼만 짓습니다.** */
   private readonly spacer = new Graphics()
   private readonly tooltip = new Tooltip()
+  /**
+   * 꾸욱 누르기. **판 위와 같은 것입니다**(`ui/tip.ts`).
+   *
+   * 누르면 곧바로 뜨게 해 두었더니 손가락으로는 한 번 스치기만 해도 떴고, 굴리려고 짚은
+   * 손가락에도 떴습니다 — 같은 게임 안에서 쪽지가 두 가지로 돌았습니다.
+   */
+  private readonly hold = new TipHold()
+  /**
+   * 지금 커서가 올라가 있는 칸과 그 크기.
+   *
+   * **조커 딱지와 같은 몸짓입니다.** 도감은 그 딱지들을 늘어놓은 자리인데 가리켜도 아무
+   * 일이 없어서, 무엇을 가리키고 있는지가 쪽지의 자리로만 읽혔습니다.
+   */
+  private hoverCell?: Container
+  private readonly hoverGrow = new Spring(1, 320, 26)
 
   private readonly foundLabel = new Text({
     text: '', style: { fontSize: TEXT.base, fill: UI.ink, fontWeight: WEIGHT.bold },
@@ -847,20 +864,24 @@ export class CollectionPanel implements ModalPanel {
     label.position.set(CELL_X / 2, SIZE.jokerHeight + 4)
     node.addChild(label)
 
-    node.position.set(x, y)
+    // **가운데를 축으로 둡니다.** 왼쪽 위를 축으로 두면 가리켜 커지는 칸이 오른쪽 아래로
+    // 밀려나면서 커집니다. 그리는 자리는 그대로입니다.
+    node.pivot.set(CELL_X / 2, SIZE.jokerHeight / 2)
+    node.position.set(x + CELL_X / 2, y + SIZE.jokerHeight / 2)
     node.eventMode = 'static'
     node.cursor = 'pointer'
-    // 손가락에는 마우스 오버가 없으므로 누르는 것도 같은 일을 합니다. **굴린 것은 누른
-    // 것이 아닙니다** — 격자가 판을 가득 채우므로, 보지 않으면 굴릴 때마다 쪽지가 뜹니다.
-    node.on('pointerover', () => {
-      if (this.scroll.holding) return
-      this.hover(cell, met, x, y)
-    })
-    node.on('pointertap', () => {
-      if (this.scroll.dragged) return
-      this.hover(cell, met, x, y)
-    })
-    node.on('pointerout', () => this.tooltip.hide())
+    // **판 위와 같은 체계입니다**(`attachTip`). 마우스는 올리면 뜨고, 손가락은 꾸욱 눌러야
+    // 뜹니다 — 굴리려고 짚은 손가락에는 뜨지 않습니다.
+    attachTip(node, this.hold,
+      () => {
+        if (this.scroll.holding) return
+        this.hover(cell, met, x, y)
+        this.raise(node)
+      },
+      () => {
+        this.tooltip.hide()
+        this.lower(node)
+      })
     return node
   }
 
@@ -891,6 +912,23 @@ export class CollectionPanel implements ModalPanel {
                       { width: WIDTH, height: HEIGHT }, cell.cost)
   }
 
+  /** 가리킨 칸이 커집니다. 조커 딱지와 같은 배율입니다. */
+  private raise(node: Container): void {
+    if (this.hoverCell === node) return
+    this.lower(this.hoverCell)
+    this.hoverCell = node
+    // **맨 위로 옵니다.** 커지면 옆 칸과 겹치는데, 격자에 놓인 차례대로면 오른쪽 칸이 위에
+    // 놓여 커진 칸의 오른쪽이 잘려 보입니다.
+    node.parent?.setChildIndex(node, node.parent.children.length - 1)
+  }
+
+  private lower(node?: Container): void {
+    if (!node || this.hoverCell !== node) return
+    this.hoverCell = undefined
+    if (!node.destroyed) node.scale.set(1)
+    this.hoverGrow.snap(1)
+  }
+
   relabel(): void {
     // 이름 정렬과 칸의 글이 말을 따르므로 세워 둔 것을 버립니다.
     this.cellsCache = undefined
@@ -900,6 +938,8 @@ export class CollectionPanel implements ModalPanel {
 
   onClosed(): void {
     this.tooltip.hide()
+    this.hold.reset()
+    this.lower(this.hoverCell)
   }
 
   advance(seconds: number): void {
@@ -907,6 +947,17 @@ export class CollectionPanel implements ModalPanel {
     // 프레임 돌면 한 번 열어 본 뒤로 세션 끝까지 그 값을 냅니다.
     if (!this.view.parent) return
     this.tooltip.advance(seconds)
+    this.hold.advance(seconds)
+    // 가리킨 칸이 커지는 것. **격자를 다시 지으면 그 칸이 없어지므로 함께 놓습니다.**
+    const over = this.hoverCell
+    if (over && !over.destroyed && over.parent) {
+      this.hoverGrow.target = TIP_GROW
+      this.hoverGrow.advance(seconds)
+      over.scale.set(this.hoverGrow.value)
+    } else if (over) {
+      this.hoverCell = undefined
+      this.hoverGrow.snap(1)
+    }
     // **굴림통은 자기 시계를 갖지 않습니다.** 판이 프레임을 넘겨줍니다 — 자기 틱커를 걸면
     // 손 시계로 세운 도구에서 화면이 멈춰 있는데도 격자만 미끄러집니다.
     this.scroll.tick(seconds)

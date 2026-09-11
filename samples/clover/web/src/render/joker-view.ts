@@ -77,6 +77,46 @@ function drawCardFrame(g: Graphics, w: number, h: number, edge: number): void {
 const FRAME_INK = 0x0a0d14
 
 /**
+ * 뒷면의 바탕과 테.
+ *
+ * **희귀도를 드러내지 않습니다.** 앞면의 테는 희귀도의 색인데, 뒤집힌 딱지가 그것을 그대로
+ * 두면 뒤집은 까닭이 남지 않습니다 — 뒷면은 어느 조커이든 한 장입니다. 놋빛 하나이고, 판 밖의
+ * 금속 테와 같은 계열입니다.
+ */
+const BACK_GROUND = 0x232c3d
+const BACK_EDGE = 0xc9a25e
+
+/**
+ * 조커의 뒷면 한 장.
+ *
+ * **카드의 뒷면과 같은 문법입니다** — 안쪽 판 하나와 그 안의 무늬 하나, 그리고 앞면과 같은
+ * 테입니다(`drawCardFrame`). 조커 줄과 손패가 한 판 위에 놓이므로 뒤집힌 모습도 한 벌로
+ * 읽혀야 하고, 무늬만 조커의 것입니다.
+ *
+ * **판보다 밝습니다.** 판과 같은 어둡기로 두었더니 뒤집힌 딱지가 빈 칸으로 읽혔습니다 —
+ * 뒷면도 카드이므로 판 위에 놓인 물건으로 보여야 합니다.
+ *
+ * **테는 다른 통에 그립니다.** `drawCardFrame` 이 맨 앞에서 통을 비우므로, 같은 통에 이어
+ * 그리면 바탕과 무늬가 그 자리에서 지워집니다.
+ */
+function drawJokerBack(ground: Graphics, frame: Graphics, w: number, h: number): void {
+  ground.clear()
+  ground.roundRect(0, 0, w, h, RADIUS).fill(BACK_GROUND)
+
+  // 안쪽 판. 무늬는 이 안에서만 그려집니다.
+  const pad = 8
+  ground.roundRect(pad, pad, w - pad * 2, h - pad * 2, insetRadius(RADIUS, pad))
+    .fill(tintUp(BACK_GROUND, 0.16))
+    .stroke({ color: BACK_EDGE, width: 1, alpha: 0.55 })
+
+  drawGlyph(ground, 'sigil', w / 2, h / 2, 52, {
+    fill: BACK_EDGE, line: shade(BACK_EDGE, 0.55),
+  })
+
+  drawCardFrame(frame, w, h, BACK_EDGE)
+}
+
+/**
  * 테두리의 안쪽 경계.
  *
  * **이름 띠가 이 선 안에 들어와야 합니다.** 띠를 카드 폭 전체로 그리면 왼쪽과 오른쪽에서
@@ -121,6 +161,13 @@ export class JokerView extends Container {
    */
   private readonly face = new Container()
   private readonly plate = new Graphics()
+  /**
+   * 뒷면 한 장. **`sheet` 안입니다** — 타고 울렁이는 셰이더가 뒤집힌 딱지에도 걸려야 합니다.
+   *
+   * 바탕과 테가 갈려 있습니다 — `drawCardFrame` 이 그리기 전에 통을 비우기 때문입니다.
+   */
+  private readonly backPlate = new Graphics()
+  private readonly backFrame = new Graphics()
   /** 그림을 카드 모양으로 오려 내는 것. */
   private readonly clip = new Graphics()
   /** 이름이 앉는 띠. 그림 위에 얹힙니다. */
@@ -168,6 +215,25 @@ export class JokerView extends Container {
   private blight?: BlightFilter
   /** 금이 어디까지 번졌는가. */
   private blighting?: number
+  /** 꺼져 있는가. 시드는 동안은 옅어지지 않으므로 따로 듭니다. */
+  private disabled = false
+  /**
+   * 뒷면으로 보이는가.
+   *
+   * **카드와 같은 몸짓입니다**(`CardView`). 판이 갈리는 것은 있던 딱지가 다른 딱지가 되는
+   * 일이고, 그 사이에 뒷면이 보여야 앞과 뒤가 다른 것으로 읽힙니다.
+   */
+  private showBack = false
+  /** 뒤집는 중. 1 에서 0 으로 갑니다. 절반에서 보이는 면이 갈립니다. */
+  private flip = 0
+  /** 뒷면으로 멈춰 있다가 돌아오는 시각. 화면의 시계입니다. */
+  private flipAt?: number
+  /** 이번 반 바퀴에서 이미 갈아 끼웠는가. 까닭은 `CardView.swapped` 와 같습니다. */
+  private swapped = true
+  /** 뒷면을 거쳐 갈아 끼울 조커. */
+  private turnBack?: { joker: JokerInstance; look: JokerLook; hold: number }
+  /** 앞면으로 뒤집힌 순간. 글과 소리를 내는 쪽이 겁니다. */
+  onFlipped?: () => void
   private dissolve?: DissolveFilter
   private burn = 0
   private burning = false
@@ -230,7 +296,10 @@ export class JokerView extends Container {
     // 두면 구운 사진에서 이 통이 빠집니다(`pin.ts`).
     pinBox(this.body, SIZE.jokerWidth, SIZE.jokerHeight)
     pinBox(this.sheet, SIZE.jokerWidth, SIZE.jokerHeight)
-    this.sheet.addChild(this.body, this.face)
+    drawJokerBack(this.backPlate, this.backFrame, SIZE.jokerWidth, SIZE.jokerHeight)
+    this.backPlate.visible = false
+    this.backFrame.visible = false
+    this.sheet.addChild(this.body, this.face, this.backPlate, this.backFrame)
     this.addChild(this.shadow, this.sheet)
     this.pivot.set(SIZE.jokerWidth / 2, SIZE.jokerHeight / 2)
     this.set(joker, look)
@@ -345,7 +414,11 @@ export class JokerView extends Container {
     this.counter.anchor.set(0.5, 0)
     this.counter.position.set(w / 2, 7)
 
-    this.alpha = joker.disabled ? 0.35 : 1
+    // **시드는 동안은 옅어지지 않습니다.** 카드와 같습니다(`CardView` 의 0.72) — 금이 번지는
+    // 첫 프레임에 옅어지면 아직 살아 있는 자리가 꺼진 것으로 그려집니다. 다 번진 자리에서
+    // `advance` 가 옅게 합니다.
+    this.disabled = joker.disabled
+    if (this.blighting === undefined) this.alpha = joker.disabled ? 0.35 : 1
 
     const shader = EDITION_SHADER[joker.edition]
     if (shader && look.edition) {
@@ -364,6 +437,30 @@ export class JokerView extends Container {
       this.edition = undefined
       this.restack()
     }
+
+    // **다시 그려도 보이는 면은 그대로입니다.** 줄은 매 프레임 상태에 맞춰 다시 그리므로,
+    // 여기서 맞추지 않으면 뒤집혀 있던 딱지가 다음 `refresh` 에 앞면으로 돌아옵니다.
+    this.applyFace()
+  }
+
+  /** 지금 보이는 면. 뒷면이면 그림과 글을 접고 뒷면 한 장을 세웁니다. */
+  private applyFace(): void {
+    this.body.visible = !this.showBack
+    this.face.visible = !this.showBack
+    this.backPlate.visible = this.showBack
+    this.backFrame.visible = this.showBack
+  }
+
+  /**
+   * 뒷면을 거쳐 다른 딱지가 되어 돌아옵니다.
+   *
+   * **카드와 같은 몸짓이고 같은 시간입니다**(`CardView.turnOver`). 판이 갈리는 것이 다음
+   * 그리기에 슬쩍 달라져 있던 동안은 무엇이 걸린 것인지 화면에 남지 않았습니다.
+   */
+  turnOver(joker: JokerInstance, look: JokerLook, hold: number): void {
+    this.flip = 1
+    this.swapped = false
+    this.turnBack = { joker, look, hold }
   }
 
   /**
@@ -425,6 +522,11 @@ export class JokerView extends Container {
     this.blight = undefined
     this.blighting = undefined
     this.restack()
+  }
+
+  /** 지금 뒷면이 보이는가. **검증 도구가 묻는 값입니다.** 까닭은 `CardView` 와 같습니다. */
+  get facingBack(): boolean {
+    return this.showBack
   }
 
   /** 지금 시드는 중인가. **검증 도구가 묻는 값입니다.** */
@@ -528,6 +630,8 @@ export class JokerView extends Container {
 
     if (this.blighting !== undefined) {
       this.blighting += seconds / 0.52
+      // 금이 다 번진 자리에서 옅어집니다. 카드의 얼굴이 갈리는 그 자리입니다.
+      if (this.blighting >= 0.72) this.alpha = this.disabled ? 0.35 : 1
       if (this.blighting >= 1) {
         this.blighting = undefined
         this.blight = undefined
@@ -570,9 +674,39 @@ export class JokerView extends Container {
     this.rotation = (this.motion.rotation.value + wobble
       + (shake > 0 ? Math.sin(this.shiver * 1.3) * 8 * shake : 0)) * (Math.PI / 180)
 
+    // 뒷면으로 멈춰 있던 것이 돌아옵니다.
+    if (this.flipAt !== undefined && time >= this.flipAt) {
+      this.flipAt = undefined
+      if (this.showBack) {
+        this.flip = 1
+        this.swapped = false
+      }
+    }
+
+    if (this.flip > 0) {
+      this.flip = Math.max(0, this.flip - seconds * 8)
+      if (this.flip <= 0.5 && !this.swapped) {
+        this.swapped = true
+        if (this.showBack) {
+          this.showBack = false
+          this.applyFace()
+          this.onFlipped?.()
+        } else if (this.turnBack !== undefined) {
+          // 앞면에서 뒷면으로. **딱지는 뒷면 뒤에서 갈아 끼웁니다.**
+          const one = this.turnBack
+          this.turnBack = undefined
+          this.showBack = true
+          this.set(one.joker, one.look)
+          this.flipAt = time + one.hold
+        }
+      }
+    }
+
     const want = lifts ? 1.1 : 1
     if (Math.abs(this.motion.scale.target - want) > 0.001) this.motion.scale.target = want
-    this.scale.set(this.motion.scale.value)
+    // 뒤집는 동안 가로만 좁아집니다. 카드와 같습니다 — 종이 한 장이 돌아가는 모습입니다.
+    const turn = this.flip > 0 ? Math.abs(Math.cos((1 - this.flip) * Math.PI)) : 1
+    this.scale.set(this.motion.scale.value * Math.max(0.02, turn), this.motion.scale.value)
     // **겹치는 차례는 줄이 정합니다.** 까닭은 `CardView` 와 같습니다 — 여기서는 가리킨
     // 것만 올렸으므로 고른 딱지가 올라오지 않았습니다.
   }
