@@ -4,7 +4,8 @@ import { describe } from '../core/describe'
 import { nameOf } from '../core/strings'
 import { type CardInstance, type JokerInstance } from '../core/state'
 import { ArriveFilter } from '../shader/arrive'
-import { DissolveFilter } from '../shader/dissolve'
+import { ErodeFilter } from '../shader/erode'
+import type { MotesHandle } from '../render/motes-layer'
 import { CardView, type EditionLook } from '../render/card-view'
 import { type JokerLook, JokerView } from '../render/joker-view'
 import { type Beat, TURN_BACK_MS, TURN_STEP_MS } from '../render/juice'
@@ -200,22 +201,25 @@ export class CardsPart {
   readonly castSoon = new Map<number, 'wither' | 'hide'>()
 
   /**
-   * 타고 있는 소모품.
+   * 삭고 있는 소모품.
    *
-   * **쓴 것은 타서 사라집니다.** 그냥 없어지면 무엇이 없어진 것인지 · 정말 쓰인 것인지
-   * 눈이 따라가지 못합니다. 조커를 팔 때와 같은 불이고 같은 빠르기입니다.
+   * **쓴 것은 모래로 풀려 사라집니다.** 그냥 없어지면 무엇이 없어진 것인지 · 정말 쓰인
+   * 것인지 눈이 따라가지 못합니다. 조커를 팔 때와 같은 연출이고 같은 길이입니다.
    */
   burningItems: {
     tile: Container
     /** 얼굴. **그림자는 뺍니다** — 울렁임과 번쩍임이 그림자에도 걸리면 얼룩이 따로 남습니다. */
     face: Container
     arrive: ArriveFilter
-    dissolve: DissolveFilter
+    erode: ErodeFilter
+    /** 풀려 나간 알갱이. **삭기 시작하는 그 프레임에 생깁니다.** */
+    motes?: MotesHandle
     from: { x: number; y: number }
     to: { x: number; y: number }
     /** 쓰기 시작한 뒤 지난 시간. 이것 하나로 네 마디가 갈립니다. */
     life: number
-    burn: number
+    /** 삭기 시작한 뒤 지난 시간. 초입니다. */
+    age: number
     /** 번쩍임을 한 번 냈는가. 자리에 닿는 그 한 프레임입니다. */
     flashed: boolean
     /** 나오면서 커지는가. 쓴 것만 그렇습니다. */
@@ -822,7 +826,7 @@ export class CardsPart {
       // **탑니다.** 옅어지며 지워지는 것은 「치웠다」이지 「없앴다」가 아닙니다 — 조커가
       // 없어지는 것과 같은 몸짓이고 같은 셰이더입니다.
       const was = this.pendingCards.get(uid) ?? now
-      view.ignite()
+      view.crumble()
       this.game.show.particles.burst(view.x, view.y + 30, 26, EMBER, 1.3, 1.1)
       // **어느 장이 없어졌는지가 그 자리에 적힙니다.** 타는 것은 「없앴다」이고, 글이
       // 「무엇을」입니다.
@@ -1256,7 +1260,7 @@ export class CardsPart {
       if (wanted.has(uid)) continue
       // **곧바로 지우지 않습니다.** 타서 사라지는 것이 보여야 무엇이 없어진 것인지
       // 눈이 따라갑니다. 다 타면 `tick` 이 치웁니다.
-      view.ignite()
+      view.crumble()
       this.game.audio.play('joker_burn')
       this.jokers.delete(uid)
       this.burning.push(view)

@@ -28,6 +28,7 @@ export default defineConfig({
         faces: new URL('./faces.html', import.meta.url).pathname,
         artcheck: new URL('./artcheck.html', import.meta.url).pathname,
         marks: new URL('./marks.html', import.meta.url).pathname,
+        erode: new URL('./erode.html', import.meta.url).pathname,
       },
     },
   },

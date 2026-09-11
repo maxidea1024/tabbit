@@ -15,7 +15,7 @@ import type { CardInstance } from '../core/state'
 import { EDITION_SHADER, EditionFilter, type EditionLook } from '../shader/editions'
 import { roundedMask } from '../shader/mask'
 import { PickFilter } from '../shader/pick'
-import { DissolveFilter } from '../shader/dissolve'
+import { ERODE_SWEEP, ErodeFilter } from '../shader/erode'
 import { BlightFilter } from '../shader/blight'
 import {
   cardFaceTexture, clearCardFace, drawCardFaceVector, faceInk,
@@ -25,6 +25,7 @@ import { fraction, Motion, sway, Spring } from './motion'
 import { pinBox } from './pin'
 import { cardBack, clearCardBack, drawCardBack } from './card-back'
 import { UI, SIZE } from './theme'
+import { type MotesHandle, startMotes } from './motes-layer'
 
 /**
  * 강화가 카드에 다는 글의 열쇠.
@@ -306,10 +307,13 @@ export class CardView extends Container {
   /** 뒤집는 절반에서 갈아 끼울 카드. 앞면에서 앞면입니다. */
   private turning?: { card: CardInstance; look?: EditionLook }
 
-  /** 타서 사라지는 중인가. */
-  private dissolve?: DissolveFilter
-  private burn = 0
-  private burning = false
+  /** 모래로 삭아 사라지는 중인가. */
+  private erode?: ErodeFilter
+  /** 삭기 시작한 뒤 지난 시간. 초입니다. */
+  private age = 0
+  private eroding = false
+  /** 풀려 나간 알갱이. **그릴 수 없는 기계에서는 없습니다.** */
+  private motes?: MotesHandle
 
   /** 시드는 금. 번지는 동안만 걸립니다. */
   private blight?: BlightFilter
@@ -433,11 +437,15 @@ export class CardView extends Container {
    * 뿌옇게 됩니다.
    */
   private restack(): void {
-    // **타는 동안은 그것 하나입니다.** 다른 필터를 함께 걸면 재가 되어 가는 종이 위에서
-    // 무늬가 계속 흐르고, 그것은 타는 것으로 읽히지 않습니다.
-    if (this.burning) {
-      this.dissolve ??= new DissolveFilter()
-      this.body.filters = [this.dissolve]
+    // **삭는 동안은 그것 하나입니다.** 다른 필터를 함께 걸면 풀려 가는 종이 위에서 무늬가
+    // 계속 흐르고, 그것은 삭는 것으로 읽히지 않습니다.
+    if (this.eroding) {
+      if (!this.erode) {
+        this.erode = new ErodeFilter()
+        // **격자를 판의 크기로 세웁니다.** 넘기지 않으면 판 하나가 한 칸입니다.
+        this.erode.fit(SIZE.cardWidth, SIZE.cardHeight)
+      }
+      this.body.filters = [this.erode]
       this.filters = []
       return
     }
@@ -482,16 +490,18 @@ export class CardView extends Container {
    * 타서 사라집니다.
    *
    * **조커가 없어지는 것과 같은 몸짓입니다.** 카드가 부서지는 것도 없어지는 일이므로,
-   * 옅어지며 지워지면 「치웠다」이지 「없앴다」가 아닙니다 — 아래에서 불이 붙어 위로 번지고
-   * 종이가 조금 떠오릅니다.
+   * 옅어지며 지워지면 「치웠다」이지 「없앴다」가 아닙니다 — 소멸선이 위에서 아래로 훑고
+   * 지나가며 표면이 모래알로 풀리고, 풀린 것이 바람에 실려 아래로 흩어집니다.
    */
-  ignite(): void {
-    if (this.burning) return
-    this.burning = true
-    this.burn = 0
+  crumble(): void {
+    if (this.eroding) return
+    this.eroding = true
+    this.age = 0
     this.eventMode = 'none'
     this.blight = undefined
     this.blighting = undefined
+    // **거는 것보다 먼저 굽습니다.** 뒤에 구우면 이미 삭기 시작한 판이 구워집니다.
+    this.motes = startMotes(this.body, SIZE.cardWidth, SIZE.cardHeight)
     this.restack()
   }
 
@@ -510,9 +520,14 @@ export class CardView extends Container {
     return this.blighting !== undefined
   }
 
-  /** 다 탔는가. 그때 지웁니다. */
+  /**
+   * 판이 다 삭았는가. 그때 지웁니다.
+   *
+   * **알갱이를 기다리지 않습니다.** 흩어지는 것은 무대의 층에 남아 스스로 끝나므로, 판이
+   * 없어진 프레임에 이 카드를 치워도 연출이 끊기지 않습니다.
+   */
   get burnt(): boolean {
-    return this.burning && this.burn >= 1
+    return this.eroding && this.age >= ERODE_SWEEP
   }
 
   /**
@@ -674,14 +689,15 @@ export class CardView extends Container {
     this.easePointer(seconds)
     this.motion.advance(seconds)
 
-    if (this.burning) {
-      // **아래에서 위로, 그리고 조금 떠오릅니다.** 종이가 타면 가벼워집니다.
-      // **조커와 같은 값입니다**(`JokerView.advance`). 「같은 몸짓」이라 적어 두고 셋이 다
-      // 달랐습니다 — 1.7 · 22 · 0.1.
-      this.burn = Math.min(1, this.burn + seconds * 1.6)
-      if (this.dissolve) this.dissolve.burn = this.burn
-      this.y -= seconds * 26
-      this.rotation += seconds * 0.12
+    if (this.eroding) {
+      // **판은 제자리에서 조금 내려앉습니다.** 떠오르는 것은 타서 가벼워진 종이이고, 모래로
+      // 풀리는 판은 무게를 잃지 않습니다 — 기울지도 않습니다.
+      // **조커와 같은 값입니다**(`JokerView.advance`).
+      this.age += seconds
+      if (this.erode) this.erode.erode = this.age / ERODE_SWEEP
+      this.y += seconds * 7
+      // **알갱이는 이 판의 안쪽 좌표를 씁니다.** 판이 내려앉으면 알갱이도 따라갑니다.
+      this.motes?.place(this.body)
       return
     }
 

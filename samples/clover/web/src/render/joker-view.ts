@@ -12,7 +12,7 @@ import { tf } from '../core/strings'
 
 import { EditionKind } from '../generated/enums/edition-kind'
 import type { JokerInstance } from '../core/state'
-import { DissolveFilter } from '../shader/dissolve'
+import { ERODE_SWEEP, ErodeFilter } from '../shader/erode'
 import { BlightFilter } from '../shader/blight'
 import { ArriveFilter } from '../shader/arrive'
 import { EDITION_SHADER, EditionFilter, type EditionLook } from '../shader/editions'
@@ -23,6 +23,7 @@ import { drawGlyph, glyphFor, hashOf, hsl, shade, tintUp } from './glyph'
 import { fraction, Motion, sway } from './motion'
 import { pinBox } from './pin'
 import { UI, SIZE, rarityColor } from './theme'
+import { type MotesHandle, startMotes } from './motes-layer'
 
 /** 카드의 모서리와 이름 띠의 높이. */
 const RADIUS = 9
@@ -234,9 +235,12 @@ export class JokerView extends Container {
   private turnBack?: { joker: JokerInstance; look: JokerLook; hold: number }
   /** 앞면으로 뒤집힌 순간. 글과 소리를 내는 쪽이 겁니다. */
   onFlipped?: () => void
-  private dissolve?: DissolveFilter
-  private burn = 0
-  private burning = false
+  private erode?: ErodeFilter
+  /** 삭기 시작한 뒤 지난 시간. 초입니다. */
+  private age = 0
+  private eroding = false
+  /** 풀려 나간 알갱이. **그릴 수 없는 기계에서는 없습니다.** */
+  private motes?: MotesHandle
   /**
    * 사서 오는 동안 걸리는 것.
    *
@@ -474,13 +478,17 @@ export class JokerView extends Container {
    * 빛나는 얼룩 하나가 그 아래에 따로 남습니다.
    */
   private restack(): void {
-    if (this.burning) {
-      // **타기 시작할 때 만듭니다.** 딱지 하나가 살아 있는 동안 내내 들고 있을 것이
-      // 아닙니다 — 도감 한 화면이 딱지 60개이고 그 가운데 타는 것은 없습니다. 바로 위의
+    if (this.eroding) {
+      // **삭기 시작할 때 만듭니다.** 딱지 하나가 살아 있는 동안 내내 들고 있을 것이
+      // 아닙니다 — 도감 한 화면이 딱지 60개이고 그 가운데 삭는 것은 없습니다. 바로 위의
       // `arrive` 와 같은 규약입니다.
-      this.dissolve ??= new DissolveFilter()
+      if (!this.erode) {
+        this.erode = new ErodeFilter()
+        // **격자를 판의 크기로 세웁니다.** 넘기지 않으면 판 하나가 한 칸입니다.
+        this.erode.fit(SIZE.jokerWidth, SIZE.jokerHeight)
+      }
       this.body.filters = []
-      this.sheet.filters = [this.dissolve]
+      this.sheet.filters = [this.erode]
       return
     }
     const onBody: Filter[] = []
@@ -500,7 +508,7 @@ export class JokerView extends Container {
    * 그 뒤의 모습이고, 여기서 보이는 것은 그렇게 되는 순간입니다.
    */
   wither(): void {
-    if (this.burning) return
+    if (this.eroding) return
     this.blight ??= new BlightFilter()
     this.blight.amount = 1
     this.blight.spread = 0
@@ -512,15 +520,17 @@ export class JokerView extends Container {
     this.motion.to(x, y, 0)
   }
 
-  /** 태우기 시작합니다. 다 타면 `gone` 이 참이 됩니다. */
-  ignite(): void {
-    if (this.burning) return
-    this.burning = true
-    this.burn = 0
+  /** 삭기 시작합니다. 판이 다 풀리면 `gone` 이 참이 됩니다. */
+  crumble(): void {
+    if (this.eroding) return
+    this.eroding = true
+    this.age = 0
     this.eventMode = 'none'
     this.arrive = undefined
     this.blight = undefined
     this.blighting = undefined
+    // **거는 것보다 먼저 굽습니다.** 뒤에 구우면 이미 삭기 시작한 판이 구워집니다.
+    this.motes = startMotes(this.sheet, SIZE.jokerWidth, SIZE.jokerHeight)
     this.restack()
   }
 
@@ -534,9 +544,13 @@ export class JokerView extends Container {
     return this.blighting !== undefined
   }
 
-  /** 다 탔는가. 그때 지웁니다. */
+  /**
+   * 판이 다 삭았는가. 그때 지웁니다.
+   *
+   * **알갱이를 기다리지 않습니다.** 까닭은 `CardView.burnt` 와 같습니다.
+   */
   get gone(): boolean {
-    return this.burning && this.burn >= 1
+    return this.eroding && this.age >= ERODE_SWEEP
   }
 
   /**
@@ -642,12 +656,12 @@ export class JokerView extends Container {
       }
     }
 
-    if (this.burning) {
-      // **아래에서 위로, 그리고 조금 떠오릅니다.** 종이가 타면 가벼워집니다.
-      this.burn = Math.min(1, this.burn + seconds * 1.6)
-      if (this.dissolve) this.dissolve.burn = this.burn
-      this.y -= seconds * 26
-      this.rotation += seconds * 0.12
+    if (this.eroding) {
+      // **제자리에서 조금 내려앉습니다.** 까닭은 `CardView.advance` 와 같습니다.
+      this.age += seconds
+      if (this.erode) this.erode.erode = this.age / ERODE_SWEEP
+      this.y += seconds * 7
+      this.motes?.place(this.sheet)
       return
     }
 

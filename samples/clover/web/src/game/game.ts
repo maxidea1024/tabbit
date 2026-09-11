@@ -13,6 +13,7 @@ import { type Feel, readFeel, TimelinePlayer } from '../render/juice'
 import { fraction } from '../render/motion'
 import { artTick, onArtReady } from '../render/art'
 import { backLookOf, bakeCardBacks, forgetCardBacks, setCardBack } from '../render/card-back'
+import { useMotesLayer } from '../render/motes-layer'
 import { cardBackMotif, setCardSet, setLookOf } from '../render/card-set'
 import { bakeCardFaces, forgetCardFaces } from '../render/card-face'
 import { SIZE, UI } from '../render/theme'
@@ -383,7 +384,9 @@ export class Game {
     // 만들 때의 기본값으로 났습니다 — 옵션에 적힌 값과 실제로 나는 값이 달랐습니다.
     this.session.applyQuietOptions()
     // **타이틀은 판 바깥입니다.** 판과 조각들을 통째로 끄고 그 위에 홀로 뜹니다.
-    this.show.recede.addChild(this.board, this.show.particles, this.overlay,
+    // **알갱이는 조각보다 위, 떠 있는 판들보다 아래입니다.** 삭는 카드는 판 위의 일이고,
+    // 그 위에 상점이나 옵션이 떠 있으면 알갱이가 그 뒤로 가야 합니다.
+    this.show.recede.addChild(this.board, this.show.particles, this.show.motes, this.overlay,
       this.show.screenFlash, this.session.title)
     // **알림은 판 위입니다.** 흐려지는 층 안에 있어서 판이 열려 있는 동안의 알림이 그 판
     // 뒤에서 흐린 채로 떴습니다 — 순위표를 열었을 때의 「서버가 받지 않았습니다」가 정확히
@@ -746,6 +749,8 @@ export class Game {
     // 앞면과 뒷면은 글씨와 같은 배율로 굽습니다.
     bakeCardBacks(this.app.renderer, this.textScale)
     bakeCardFaces(this.app.renderer, this.textScale)
+    // 삭는 판을 굽는 것도 같은 렌더러입니다. **알갱이를 그릴 수 있는지가 여기서 갈립니다.**
+    useMotesLayer(this.show.motes, this.app.renderer, this.textScale)
   }
 
   /**
@@ -1075,6 +1080,7 @@ export class Game {
     this.show.heatShown += (this.show.heat() - this.show.heatShown) * fraction(seconds, 0.9)
     this.background.setHeat(this.show.heatShown)
     this.show.particles.advance(seconds)
+    this.show.motes.advance(seconds)
 
     // **고정 단계.** 틱커가 한 프레임을 100밀리초로 자르므로 한 프레임에 많아야 6단계입니다.
     this.stepDebt += deltaMs

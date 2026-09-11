@@ -6,7 +6,8 @@ import { type Action } from '../core/run'
 import { nameOf, t, tf } from '../core/strings'
 import { sellValueOf, type ShopItem } from '../core/shop'
 import { ArriveFilter } from '../shader/arrive'
-import { DissolveFilter } from '../shader/dissolve'
+import { ERODE_SWEEP, ErodeFilter } from '../shader/erode'
+import { startMotes } from '../render/motes-layer'
 import { JokerView } from '../render/joker-view'
 import { fraction, Motion, Spring, sway } from '../render/motion'
 import { faceOf, itemFace, shopLabel } from '../render/faces'
@@ -771,7 +772,7 @@ export class TrayPart {
     })
   }
 
-  /** 한 장을 태웁니다. 자기 자리에서 그대로 타야 하므로 자리를 옮겨 담습니다. */
+  /** 한 장을 삭게 합니다. 자기 자리에서 그대로 삭아야 하므로 자리를 옮겨 담습니다. */
   private igniteItem(tile: Container, used: boolean): void {
     const spot = this.game.probe.spotOf(tile)
     tile.removeFromParent()
@@ -783,11 +784,16 @@ export class TrayPart {
     const face = first instanceof Container ? faceOf(first) : tile
 
     const arrive = new ArriveFilter()
-    const dissolve = new DissolveFilter()
+    const erode = new ErodeFilter()
+    // **격자를 판의 크기로 세웁니다.** 넘기지 않으면 판 하나가 한 칸입니다.
+    erode.fit(SIZE.jokerWidth, SIZE.jokerHeight)
+    // **얼굴 하나에 겁니다.** 그림자까지 걸면 그 아래에 얼룩 하나가 따로 남고, 이 얼굴이
+    // 판의 크기로 고정되어 있으므로 소멸선의 격자가 그 사각형과 딱 맞습니다.
+    //
     // **번쩍임은 쓴 것에만 겁니다.** 판 것은 첫 프레임부터 왜곡도 번쩍임도 0 이라, 걸어 두면
-    // 아무 그림 없는 렌더 텍스처 하나를 타는 동안 들고 있습니다.
-    if (used) face.filters = [arrive]
-    tile.filters = [dissolve]
+    // 아무 그림 없는 렌더 텍스처 하나를 삭는 동안 들고 있습니다. 삭는 것이 위입니다 —
+    // 울렁이는 판 위에서 표면이 풀려야 합니다.
+    face.filters = used ? [arrive, erode] : [erode]
     // **판 위의 버튼들보다 위, 떠오르는 글 아래입니다.** 판 가운데로 나오는 길에 버튼들을
     // 지나가므로 0보다 높아야 하고, 파는 값이 이 딱지 위에 얹혀야 하므로 그 글(`popAt` 의
     // 2)보다는 낮아야 합니다 — 남긴 딱지(`lingerNode`)와 같은 규칙이고 같은 값입니다.
@@ -797,7 +803,7 @@ export class TrayPart {
     tile.zIndex = 1
     this.game.overlay.addChild(tile)
     this.game.cards.burningItems.push({
-      tile, face, arrive, dissolve,
+      tile, face, arrive, erode,
       from: { x: spot.x, y: spot.y },
       // **판 가운데로 갑니다.** 카드가 놓이는 자리이므로, 쓴 것이 무엇에 걸리는지가 그
       // 자리에서 보입니다 — 오른쪽 칸에서 그대로 타 없어지면 화면 구석의 일이 됩니다.
@@ -807,7 +813,7 @@ export class TrayPart {
         ? { x: BOARD_X - SIZE.jokerWidth / 2, y: PLAY_Y - SIZE.jokerHeight / 2 - 24 }
         : { x: spot.x, y: spot.y },
       life: used ? 0 : ITEM_HOLD,
-      burn: 0, flashed: !used, grows: used,
+      age: 0, flashed: !used, grows: used,
     })
 
     if (used) this.game.audio.play('consumable_use')
@@ -816,7 +822,7 @@ export class TrayPart {
   /**
    * 쓴 것이 없어지는 네 마디.
    *
-   * **울렁 → 이동 → 번쩍 → 타서 사라짐**입니다. 제자리에서 그냥 타면 무엇을 쓴 것인지가
+   * **울렁 → 이동 → 번쩍 → 모래로 풀림**입니다. 제자리에서 그냥 삭으면 무엇을 쓴 것인지가
    * 오른쪽 구석의 일로 남고, 그냥 없어지면 정말 쓰인 것인지 눈이 따라가지 못합니다 —
    * 사는 것이 「울렁 · 이동 · 안착」인 것과 짝이고, 다만 마지막이 안착이 아니라 사라짐입니다.
    */
@@ -858,18 +864,24 @@ export class TrayPart {
         const left = 1 - since / ITEM_SHAKE
         const tilt = Math.sin(since * 46) * ITEM_SHAKE_TILT * left * left
         one.tile.rotation = tilt * (Math.PI / 180)
-      } else if (one.grows && one.flashed && one.burn <= 0) {
+      } else if (one.grows && one.flashed && one.age <= 0) {
         one.tile.rotation = 0
       }
 
-      // 다섯째 마디. 잠시 머물렀다가 탑니다.
+      // 다섯째 마디. 잠시 머물렀다가 모래로 풀립니다.
       if (one.life < ITEM_HOLD) continue
-      if (one.burn <= 0) this.game.audio.play('joker_burn')
-      one.burn = Math.min(1, one.burn + seconds * 1.6)
-      one.dissolve.burn = one.burn
-      one.tile.y -= seconds * 26
-      one.tile.rotation += seconds * 0.12
-      if (one.burn < 1) continue
+      if (one.age <= 0) {
+        this.game.audio.play('joker_burn')
+        // **삭기 시작하는 그 프레임에 한 번 굽습니다.** 울렁임이 끝난 그 판이 구워져야
+        // 알갱이의 색이 눈에 보이던 것과 같습니다.
+        one.motes = startMotes(one.face, SIZE.jokerWidth, SIZE.jokerHeight)
+      }
+      one.age += seconds
+      one.erode.erode = one.age / ERODE_SWEEP
+      // **제자리에서 조금 내려앉습니다.** 떠오르는 것은 타서 가벼워진 종이입니다.
+      one.tile.y += seconds * 7
+      one.motes?.place(one.face)
+      if (one.age < ERODE_SWEEP) continue
       this.game.cards.burningItems.splice(i, 1)
       one.tile.destroy({ children: true })
     }

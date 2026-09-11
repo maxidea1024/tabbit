@@ -14,6 +14,7 @@
     "check:relabel": "tsx tools/check-relabel.ts",
     "check:haptics": "tsx tools/check-haptics.ts",
     "check:tray": "tsx tools/check-tray.ts",
+    "shoot:erode": "tsx tools/shoot-erode.ts",
     "check:crop": "tsx tools/check-crop.ts",
     "check:outline": "tsx tools/check-outline.ts",
     "check:face-bake": "tsx tools/check-face-bake.ts",

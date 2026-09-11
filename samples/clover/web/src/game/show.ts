@@ -17,6 +17,7 @@ import { Euphoria } from '../render/euphoria'
 import { Haptics } from '../feedback/haptics'
 import { Motion, Spring } from '../render/motion'
 import { Particles } from '../render/particles'
+import { MotesLayer } from '../render/motes-layer'
 import { packInk, packInkLit, packName } from '../render/faces'
 import { burst, groove } from '../render/skin'
 import { SIZE, TEXT, UI, WEIGHT } from '../render/theme'
@@ -118,6 +119,14 @@ export class ShowPart {
   readonly frontSheet = new Sprite(Texture.WHITE)
 
   readonly particles = new Particles()
+
+  /**
+   * 삭아 없어지는 판에서 풀려 나간 모래알.
+   *
+   * **판보다 오래 살아야 하므로 층이 따로 있습니다.** 판이 다 삭으면 그 카드는 그 프레임에
+   * 지워지고, 알갱이는 그 뒤로 1초 남짓 더 흩어집니다.
+   */
+  readonly motes = new MotesLayer()
 
   /**
    * 진동.

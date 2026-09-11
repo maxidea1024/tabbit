@@ -43,7 +43,7 @@
 |`Graphics` — `JokerView` 의 shadow · plate · clip · band · frame · counterPlate · emblem|7|
 |`Text` — 조커 이름 · 계수기 · 칸 이름표|3|
 |`Sprite` — 아트|1|
-|`Filter` — `DissolveFilter`. **타는 연출 전용인데 생성자에서 만듭니다**|1|
+|`Filter` — `ErodeFilter`. **없어지는 연출 전용인데 생성자에서 만듭니다**|1|
 
 **60칸이면 `Graphics` 420개 · `Text` 180개 · `Filter` 60개입니다.**
 
