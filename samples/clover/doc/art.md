@@ -42,15 +42,22 @@ COLOUR: <팔레트>
 
 LIGHT: <광원>
 
-BACKGROUND - build it in THREE FLAT LAYERS, never a plain fill:
+BACKGROUND - build it in FOUR FLAT LAYERS. It is RICH and FURNISHED, never a
+plain fill and never bare:
 (1) a field of <배경색> with loose visible brush texture across the whole frame;
 (2) one large simple shape behind the subject - <배경 형태> - CLEARLY READABLE,
     distinctly lighter and shifted in hue from the field, reaching the top and
     side edges;
-(3) a few simple secondary elements painted loosely: <부차 요소>.
+(3) A SECOND LAYER OF STRUCTURE behind and beside that shape, painted in a close
+    value so it reads as depth rather than clutter: <구조층>;
+(4) several simple secondary elements painted loosely and spread across the
+    frame, not clustered at the subject: <부차 요소>.
+The background is BUSY ENOUGH TO LOOK AT but every part of it is PAINTED MORE
+LOOSELY and in a NARROWER VALUE RANGE than the subject, so the subject still
+reads first.
 Depth comes from these flat layers overlapping, NOT from a vignette and NOT from
 a spotlight. The background value STAYS EVEN FROM CORNER TO CORNER - no dark
-corners, no darkened border, no inner frame. No landscape, no fine detail.
+corners, no darkened border, no inner frame.
 
 THE ARTWORK FILLS THE ENTIRE IMAGE EDGE TO EDGE. No canvas edge, no paper sheet,
 no torn edge, no picture frame, no mount, no table, no mockup.
@@ -73,7 +80,7 @@ no signature.
 |`SURFACE`|**공통**|넓은 면 · 남은 붓질 · 굵은 하이라이트 · 아래 그림자|
 |`COLOUR`|**소재별**|4색 안팎의 팔레트|
 |`LIGHT`|**소재별**|빛이 어디서 나오는지. 초점을 만들어야 합니다|
-|`BACKGROUND`|**공통 문법 + 소재별 값 3개**|층 셋. 배경색 · 배경 형태 · 부차 요소|
+|`BACKGROUND`|**공통 문법 + 소재별 값 4개**|층 넷. 배경색 · 배경 형태 · **구조층** · 부차 요소|
 
 **`LIGHT` 가 작은 크기에서의 읽힘을 결정합니다.** 화면의 가장 밝은 한 점이 시선을
 고정하므로, 광원이 초점을 만들지 않는 그림은 88px 에서 얼룩으로 보입니다. 흐린 낮빛처럼
@@ -94,13 +101,26 @@ no signature.
 |배경 형태|아치형 돌 벽감|(갈래 공통) 넓은 궤도 띠|
 |부차 요소|뚜껑에서 던져진 빛살 · 굵은 금빛 알갱이|(갈래 공통) 굵은 별점 · 얇은 먼지 띠|
 
+### 배경의 밀도
+
+**배경에 볼 것이 있어야 합니다.** 층 셋으로 두었던 동안 배경이 색면 하나에 형태
+하나뿐이라 헐렁했습니다 — 원인은 금지 목록에 있던 `No landscape, no fine detail`
+입니다. 풍경 삽화가 되는 것을 막으려던 것인데 밀도까지 함께 막혔습니다.
+
+**세부를 없애는 대신 대비를 낮춥니다.** 배경을 주제보다 느슨하게 칠하고 명도 폭을
+좁히면, 배경이 풍부해도 주제가 먼저 읽힙니다. 2026-09-11에 층 넷으로 16장을 뽑아
+확인하였습니다 — 배경 편차는 그대로인데 볼 것이 늘었습니다.
+
+**둘째 구조층은 소재의 세계에서 고릅니다.** 돈놀이꾼 뒤의 장부 선반, 동전 압착기 뒤의
+공구 벽감과 작업대, 링의 투사 뒤의 관중 실루엣입니다.
+
 ### 배경 형태의 어법
 
 **소재의 세계에서 고릅니다.** 문지기 뒤에는 무쇠 문, 두 가면 뒤에는 무대 아치,
 이빨 덫 뒤에는 판자벽입니다. 형태가 소재를 설명하면 배경이 장식에 그치지 않습니다.
 
-**장소를 그리지 않습니다.** 형태 하나이고 세부가 없습니다. 판석과 담을 그리게 하면
-카드가 아니라 풍경 삽화로 읽힙니다.
+**장소를 그리지 않습니다.** 배경이 주제를 둘러싼 세계의 한 조각이지 무대가 아닙니다 —
+들판과 하늘을 그리게 하면 카드가 아니라 풍경 삽화로 읽힙니다.
 
 돌려 쓰는 형태는 아치 · 원반 · 창 · 벽감 · 문 · 판자벽입니다.
 
@@ -131,7 +151,7 @@ no signature.
 |`no canvas edge, no paper sheet, no torn edge, no picture frame, no mount, no table, no mockup`|액자에 든 그림을 책상에서 찍은 사진|
 |`no glowing particles, no nebula, no lens flare`|AI 기본 화풍의 신호|
 |`NO TEXT WHATSOEVER`|그림 안의 글자. 이름과 수치는 화면이 적습니다|
-|`no landscape, no fine detail`|배경이 풍경 삽화가 되는 것|
+|배경의 세부를 금지하지 않습니다|`no landscape, no fine detail` 을 두었더니 밀도까지 막혔습니다. 대신 **주제보다 느슨하게 칠하고 명도 폭을 좁게** 요구합니다 — 「배경의 밀도」 절|
 
 **갈래별 예외를 둡니다.** 행성에서는 `no starfield` 를 `no dense starfield` 로 바꾸고
 별을 부차 요소에 이름 붙여 넣었습니다 — 금지하면서 그리라고 적으면 모순입니다.
@@ -159,6 +179,8 @@ no signature.
 
 - **비네트** — 모서리 4곳의 평균 명도를 전체 평균으로 나눕니다. `0.95 ~ 1.15` 가 정상이고,
   `0.8` 미만이면 모서리가 죽은 것입니다.
+  **다만 광원이 주제 안에 있으면 예외입니다** — 모닥불(0.65)과 별 대장간(0.56)처럼 주제가
+  빛을 내는 그림은 모서리가 어두운 것이 물리적으로 맞습니다.
 - **명도 대비** — 명도 표준편차가 `35` 미만이면 88px 에서 형태가 약합니다.
 
 ### 소모품을 화면에 세우는 방법
@@ -182,9 +204,10 @@ localStorage.setItem('clover.collection', JSON.stringify({ planet: [...ids] }))
 |--|--|--|
 |액자 · 캔버스 실물을 그립니다|매체를 실물 재료로 지정|`THE ARTWORK FILLS THE ENTIRE IMAGE EDGE TO EDGE` + 실물 금지 목록|
 |모서리가 검게 죽습니다|`vignette` · `dark corners`|`VALUE STAYS EVEN FROM CORNER TO CORNER`|
-|배경이 단색 칠이 됩니다|`only a little lighter than the field`|층 셋으로 명시하고 `never a plain fill` 을 부기|
+|배경이 단색 칠이 됩니다|`only a little lighter than the field`|층 넷으로 명시하고 `never a plain fill` 을 부기|
+|배경이 헐렁합니다|`No landscape, no fine detail` 이 밀도까지 막음|**구조층을 더하고** 금지를 「주제보다 느슨하게, 명도 폭을 좁게」로 바꿉니다|
 |생물이 귀여워집니다|`머리를 크게` · `cartoon proportions`|`eyes SMALL and NARROW` · `NOT cute, no big round eyes`|
-|풍경 삽화로 읽힙니다|배경에 장소를 그리게 함|형태 하나 + 세부 금지|
+|풍경 삽화로 읽힙니다|배경에 장소를 그리게 함|형태 하나 + **구조층은 주제의 세계 안에서**|
 |빛이 주제 뒤로 갑니다|`LIGHT` 를 적지 않음|광원을 명시하고 `Nothing glows behind <주제>` 를 부기|
 |사물이 떠 있습니다|바닥을 적지 않음|`It SITS ON THE GROUND` + 바닥띠를 부차 요소에|
 |주제가 배경에 잠깁니다|주제와 배경의 명도가 근접|팔레트에서 명도를 벌리고 `LIGHT` 로 초점을 만듭니다|
