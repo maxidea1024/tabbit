@@ -244,6 +244,10 @@ samples/clover/design-data/out/sound-packs/
 # 받아 온 배경음 원곡. 같은 이유입니다 — `music.py --fetch` 가 다시 받고, 거기서 떼어 낸
 # 한 바퀴만 `web/public/music/` 에 담습니다. 셋이 24MB 라 담을 것도 아닙니다.
 samples/clover/design-data/out/music-source/
+# 구워 낸 그림의 원본. 1696x2528 이고 조커 150장만 325MB 라 담지 않습니다 — 담는 것은
+# 640x960 으로 줄인 `web/public/art/` 쪽입니다. 다시 구우면 장당 $0.134 이므로 지우지
+# 않고 여기 둡니다.
+samples/clover/design-data/out/art-src/
 
 # 환희의 순간에 도는 영상. **확인용이고 배포에 쓰지 않습니다** — 없으면 셰이더가 그 자리를
 # 맡으므로 담지 않습니다. 어느 문턱에 무엇이 도는지는 그 폴더의 readme 에 있습니다.

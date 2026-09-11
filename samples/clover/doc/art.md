@@ -30,8 +30,18 @@
 ```
 Hand-painted stylized fantasy game illustration of <소재>.
 
-FORM: exaggerated chunky shapes with a bold readable silhouette, thick rounded
-masses, <과장할 곳>
+FORM - THE PROPORTIONS ARE DELIBERATELY WRONG: exaggerated chunky shapes with a
+bold readable silhouette, thick rounded masses, small details thrown away into
+the big shapes, <과장할 곳>. It must NOT be anatomically, botanically or
+mechanically accurate.
+OVER-BUILD IT, like a hand-carved painted wooden toy. IF THE SUBJECT IS
+MAN-MADE: fat chamfered edges and thick bevels everywhere, oversized rivets,
+bolts, straps, bands, studs and metal trim, a heavy solid base it sits on.
+IF THE SUBJECT IS A PLANT, AN ANIMAL OR A PERSON: add NO hardware, NO rivets,
+NO bolts, NO metal fittings at all - instead exaggerate its own natural masses,
+fat rounded petals, thick stems, big simple leaves, heavy stubby limbs,
+oversized head and hands. Either way nothing is thin, delicate or fiddly, and
+the silhouette reads as one solid heavy thing at thumbnail size.
 
 SURFACE: simplified into a few broad planes with confident economical brush
 strokes left visible, crisp hard specular highlights, clean deliberate edges,
@@ -114,6 +124,24 @@ no signature.
 **둘째 구조층은 소재의 세계에서 고릅니다.** 돈놀이꾼 뒤의 장부 선반, 동전 압착기 뒤의
 공구 벽감과 작업대, 링의 투사 뒤의 관중 실루엣입니다.
 
+### 과하게 짓기
+
+**이 항목 하나가 화풍의 절반입니다.** `FORM` 에 「두껍고 뭉툭하게」만 적으면 모델이
+형태를 거의 바꾸지 않습니다 — 2026-09-11에 양귀비를 뽑았더니 식물학적으로 정확한
+그림이 나왔고, 「비율이 일부러 틀려야 한다」와 「깎아 만든 나무 장난감처럼 과하게
+짓는다」를 넣은 뒤에 바뀌었습니다.
+
+**어휘를 소재의 종류로 나눕니다.** 나누지 않고 「과장된 리벳과 띠」를 공통으로 적었더니
+양귀비 꽃술에 볼트를 박았습니다.
+
+|소재|과하게 짓는 법|
+|--|--|
+|사람이 만든 것|굵은 모따기와 두꺼운 턱, 과장된 리벳 · 볼트 · 띠 · 쇠장식, 두꺼운 받침|
+|식물 · 동물 · 사람|쇠장식을 붙이지 않습니다. 제 덩어리를 과장합니다 — 두꺼운 꽃잎, 굵은 줄기, 큰 잎, 뭉툭한 팔다리, 큰 머리와 손|
+
+어느 쪽이든 얇거나 섬세하거나 자잘한 것이 없어야 하고, 실루엣이 작은 크기에서 무거운
+덩어리 하나로 읽혀야 합니다.
+
 ### 배경 형태의 어법
 
 **소재의 세계에서 고릅니다.** 문지기 뒤에는 무쇠 문, 두 가면 뒤에는 무대 아치,
@@ -167,9 +195,19 @@ no signature.
 |1|2K 원본을 640×960 으로 축소하고 `q88` webp 로 변환합니다|
 |2|**640 판정** — 팔레트가 갈리는지, 배경에 내용이 있는지|
 |3|**176×248 판정** — 실제 표시 크기(88×124 에 DPR 2)로 축소해 형태가 읽히는지|
-|4|그림을 `web/public/art/<갈래>/` 에 넣습니다. **원본을 먼저 백업합니다**|
+|4|그림을 `web/public/art/<갈래>/` 에 넣습니다. **백업하지 않습니다** — 아래 참조|
 |5|**판 스크린샷** — 조커는 판에, 소모품은 도감에 세워 찍습니다|
 |6|확인이 끝나면 원본으로 복구하고 임시 도구를 삭제합니다|
+
+**원본을 폴더로 복사하지 않습니다.** git 이 이미 갖고 있습니다 — 그림은 추적되는
+파일이므로 커밋 전이면 `HEAD` 가 원본이고, 커밋한 뒤에는 그 커밋의 앞이 원본입니다.
+폴더로 한 벌 더 두고 그것을 커밋하면 같은 그림이 저장소에 두 벌 들어가고, 지워도
+히스토리에서는 없어지지 않습니다.
+
+```
+git checkout HEAD -- samples/clover/web/public/art/joker/      # 커밋 전
+git checkout <그 커밋>^ -- samples/clover/web/public/art/joker/  # 커밋한 뒤
+```
 
 **5번을 건너뛰면 판정이 성립하지 않습니다.** 카드 틀 · 희귀도 테두리 · 이름판과 함께
 보아야 실제 조건입니다. 그리고 그림을 교체한 뒤 다시 찍지 않으면 스크린샷이 이전
@@ -211,6 +249,19 @@ localStorage.setItem('clover.collection', JSON.stringify({ planet: [...ids] }))
 |빛이 주제 뒤로 갑니다|`LIGHT` 를 적지 않음|광원을 명시하고 `Nothing glows behind <주제>` 를 부기|
 |사물이 떠 있습니다|바닥을 적지 않음|`It SITS ON THE GROUND` + 바닥띠를 부차 요소에|
 |주제가 배경에 잠깁니다|주제와 배경의 명도가 근접|팔레트에서 명도를 벌리고 `LIGHT` 로 초점을 만듭니다|
+|형태가 사실적입니다|`FORM` 에 「두껍게」만 적음|「비율이 일부러 틀려야 한다」와 [과하게 짓기](#과하게-짓기)|
+|꽃과 짐승에 볼트가 박힙니다|과하게 짓는 어휘를 소재 종류로 나누지 않음|사람이 만든 것에만 쇠장식, 생물은 제 덩어리를 과장|
+|같은 묶음의 소재가 한 그림이 됩니다|팔레트 · 광원 · 배경을 묶음 하나에 한 벌만 둠|**배경은 장마다 따로 적습니다.** 새 5종이 같은 파란 새가 된 것이 이것입니다|
+|소재의 고유색이 팔레트에 덮입니다|팔레트가 소재까지 지배|`The subject keeps its own natural colours - the palette governs the background and the light, never the subject`|
+|숫자가 그려져 들어갑니다|프롬프트에 「(1)(2)(3)(4)」로 층을 번호 매김|**프롬프트에 숫자를 한 글자도 쓰지 않습니다.** `NO TEXT` 를 적어도 새어 들어옵니다|
+|낱말이 다른 뜻으로 읽힙니다|뜻이 둘인 낱말을 그대로 넘김|문장으로 풀어 적습니다 — `creeper` 가 마인크래프트 괴물로, `bunting` 이 새로 나왔습니다|
+|추상어가 골렘이 됩니다|`a hunch` 처럼 그릴 것이 없는 낱말|눈에 보이는 장면으로 바꿔 적습니다|
+
+**같은 문구가 모델에 따라 반대로 작동합니다.** 「층 넷 · `RICH and FURNISHED` ·
+`BUSY ENOUGH TO LOOK AT`」은 배경을 헐렁하게 내놓던 Nano Banana Pro 를 밀어 올리려고 쓴
+말입니다. 2026-09-11에 같은 문장을 ChatGPT 에 넣었더니 배경의 장미와 잎을 주제만큼 그려
+카드가 아니라 풍경 삽화가 되었습니다. **문구는 그 모델에서 확인한 것이고, 모델을 바꾸면
+다시 확인해야 합니다.**
 
 **출력 검열은 프롬프트로 예측되지 않습니다.** 광대 소재가 여러 시도에서 모두 거부된 사례가
 있습니다. 소재의 낱말을 바꾸는 것이 유일한 대응이고, [`art.py`](../design-data/tools/art.py) 의
@@ -227,7 +278,7 @@ localStorage.setItem('clover.collection', JSON.stringify({ planet: [...ids] }))
 |인증|헤더 `x-goog-api-key`|
 |장당 단가|**$0.134**. Batch API 는 절반|
 |장당 소요|40 ~ 60초. 모델이 생각 단계를 거칩니다|
-|동시 요청|4개까지 확인|
+|동시 요청|**2개.** 4개로 124장을 돌렸더니 68장째부터 50장이 잇달아 `429 TooManyRequests` 로 거부되었습니다 — 거부된 것은 과금되지 않습니다|
 
 **형식과 크기의 제약이 셋입니다.**
 
@@ -240,6 +291,13 @@ localStorage.setItem('clover.collection', JSON.stringify({ planet: [...ids] }))
   원본을 보관하면 나중에 표시 해상도를 올릴 때 다시 굽지 않습니다.
 
 응답은 base64 이고 구조가 문서와 다를 수 있으므로 탐색해서 찾습니다.
+
+**여러 장을 이어 구울 때는 재시도를 둡니다.** 제한은 시간이 지나면 풀리므로, 실패한 것을
+20초 · 40초 · 60초 기다렸다 다시 부르면 대부분 통과합니다. **이미 있는 파일은 건너뛰게**
+두면 중간에 끊겨도 다시 돌려 이어집니다.
+
+**대시보드에서 확인합니다.** `429` 가 실패 수와 같고 `400 BadRequest` 가 0이면 프롬프트
+문제가 아니라 제한입니다.
 
 ---
 
