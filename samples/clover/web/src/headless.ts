@@ -265,13 +265,7 @@ function main(argv: string[]): number {
   const stake = arg('--stake') ?? 'White'
   const limit = Number(arg('--random') ?? 200)
 
-  // `--expansion` 없으면 기본 150종만 돕니다 — 리플레이를 굽는 것이 이 경로이므로
-  // 기본값이 바뀌면 굽힌 리플레이가 한번에 어긋납니다.
-  const pools = argv.includes('--expansion')
-    ? [JokerPool.Base, JokerPool.Greenhouse]
-    : [JokerPool.Base]
-
-  const { replay, report } = autoplay(seed, deck, stake, limit, DATA, pools)
+  const { replay, report } = autoplay(seed, deck, stake, limit, DATA)
   if (out) fs.writeFileSync(out, JSON.stringify(replay, null, 2), 'utf8')
   console.log(`${seed}  ${report.phase}  안테 ${report.ante}  액션 ${report.actions}  ${report.finalHash}`)
   return 0

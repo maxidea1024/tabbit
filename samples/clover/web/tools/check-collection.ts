@@ -100,16 +100,13 @@ async function main(): Promise<number> {
   }
   await page.screenshot({ path: path.join(OUT, 'collection-1-deck.png') })
 
-  // 확장까지 켜면 조커가 500종입니다. **옵션이 아니라 보는 범위입니다.**
   await clickSpot(page, 'collection:tab:joker')
   await pass(page, 400)
-  await clickSpot(page, 'collection:range:all')
-  await pass(page, 700)
   const all = (await peek(page)).collection
-  check('확장까지 보면 조커가 500종입니다', all?.cells === rows('Joker'),
+  check('조커 탭이 격자의 행 수와 같습니다', all?.cells === rows('Joker'),
         `${all?.cells}종`)
 
-  // 굴림. **쪽 넘김이 아니라 굴림입니다** — 500종이 한 줄로 이어져 있고, 바퀴가 없는
+  // 굴림. **쪽 넘김이 아니라 굴림입니다** — 150종이 한 줄로 이어져 있고, 바퀴가 없는
   // 기계에서는 끌어서 굴립니다.
   const where = await spot(page, 'collection:tab:joker')
   const middle = { x: where.x, y: where.y + 260 }

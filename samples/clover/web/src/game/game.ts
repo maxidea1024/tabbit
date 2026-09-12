@@ -1,6 +1,5 @@
 import { PAINT } from '../render/ink'
 import { type Application, Container, Graphics, Rectangle, Text } from 'pixi.js'
-import { JokerPool } from '../generated/enums/joker-pool'
 import { type Data } from '../core/data'
 import { type Action, apply, newRun } from '../core/run'
 import { t, tf } from '../core/strings'
@@ -11,7 +10,7 @@ import { payoutLevel } from '../shader/wave'
 import { Audio } from '../feedback/audio'
 import { type Feel, readFeel, TimelinePlayer } from '../render/juice'
 import { fraction } from '../render/motion'
-import { artTick, onArtReady } from '../render/art'
+import { artTick, onArtReady, setArtDensity } from '../render/art'
 import { backLookOf, bakeCardBacks, forgetCardBacks, setCardBack } from '../render/card-back'
 import { useMotesLayer } from '../render/motes-layer'
 import { cardBackMotif, setCardSet, setLookOf } from '../render/card-set'
@@ -46,6 +45,14 @@ import * as account from '../net/session'
 const ART_QUIET = 0.1
 /** 그림이 잇달아 들어와도 첫 도착에서 이만큼 지나면 다시 그립니다. 초입니다. */
 const ART_WAIT = 0.3
+/**
+ * 그림이 놓인 뒤 이 안에는 다시 그립니다. 초입니다.
+ *
+ * **놓인 것은 `RETIRE_TICKS` 안에 다시 그려야 합니다** — 그 뒤에 버려지므로. 30틱은 120Hz
+ * 에서 0.25초이고 이 값은 그보다 짧습니다. 그 자리에서 곧장 그리지 않는 것은, 상한에 걸려
+ * 놓는 것이 도착마다 하나씩 이어지면 도착마다 판 전체를 다시 세우게 되기 때문입니다.
+ */
+const ART_DROP_WAIT = 0.08
 
 export class Game {
 
@@ -238,7 +245,6 @@ export class Game {
   clock = 0
 
   constructor(readonly app: Application, readonly data: Data, seed: string,
-              pools: JokerPool[] = [JokerPool.Base],
               /** 시간이 `__clover.advance` 로만 흐릅니다. 검증 도구가 `?tick=manual` 로 켭니다. */
               readonly manualTick = false) {
     this.feel = readFeel(data.feel)
@@ -248,7 +254,7 @@ export class Game {
     this.session.bootSeed = seed
     this.audio = new Audio(data.tables)
     const first = this.session.setup()
-    this.state = newRun(data, seed, first.deckId, first.stake, pools).state
+    this.state = newRun(data, seed, first.deckId, first.stake).state
     this.player = new TimelinePlayer(beat => this.show.showBeat(beat))
     this.session.hub = new LeaderboardHub(data, this.panels.modals, this.input.toasts)
     this.session.netStatus = new NetStatus(this.input.toasts)
@@ -289,7 +295,6 @@ export class Game {
     // **칸을 굽는 렌더러와 글씨의 배율을 넘깁니다.** 배율은 창의 크기를 따라 바뀌므로 값이
     // 아니라 읽는 함수입니다.
     this.panels.collection = new CollectionPanel(data, this.session.collected,
-      this.session.settings.pool,
       () => this.panels.modals.close(this.panels.collection),
       { renderer: this.app.renderer, density: () => this.textScale })
     this.panels.optionsPanel = new OptionsPanel(data, this.session.settings,
@@ -305,9 +310,6 @@ export class Game {
       onPickSetup: (next: RunSetup) => {
         this.session.settings.deck = next.deckId
         this.session.settings.stake = next.stake
-        // **풀도 여기서 저장합니다.** 덱 · 스테이크와 같은 런의 설정이므로 같은 자리에
-        // 남습니다 — 도감이 처음 열릴 때 보여 주는 범위도 이 값입니다.
-        this.session.settings.pool = next.pool
         saveOptions(this.session.settings)
       },
       // **고른 것으로 곧바로 판을 엽니다.** 판을 닫고 시작을 다시 누르게 하면 무엇으로
@@ -689,13 +691,13 @@ export class Game {
     // 열면 40번이 오고, 그때마다 화면 전체를 다시 세우면 한 번에 40번입니다 — `tick` 이
     // 모아서 한 번에 처리합니다.
     //
-    // **들어온 것은 잠깐 모으고, 놓인 것은 바로 합니다.** 도감을 한 줄 굴리면 그림 열 장이
-    // 몇 프레임에 걸쳐 하나씩 들어오고, 프레임마다 판 전체를 다시 세우면 굴리는 동안
+    // **들어온 것은 잠깐 모으고, 놓인 것은 더 짧게 모읍니다.** 도감을 한 줄 굴리면 그림 열
+    // 장이 몇 프레임에 걸쳐 하나씩 들어오고, 프레임마다 판 전체를 다시 세우면 굴리는 동안
     // `refresh` 가 줄마다 열 번입니다 — 들어온 것은 조용해진 뒤 한 번으로 모읍니다. 놓인
-    // 것은 두 틱 뒤에 버려지므로 기다릴 수 없습니다.
+    // 것은 버려지기 전에 다시 그려야 하므로 그보다 짧게 모읍니다.
     onArtReady((_key, gone) => {
       if (gone) {
-        this.artDirty = true
+        this.artDueAt = Math.min(this.artDueAt, this.clock + ART_DROP_WAIT)
         return
       }
       this.artQuietAt = this.clock + ART_QUIET
@@ -771,7 +773,9 @@ export class Game {
     this.show.euphoria.layout(left, top, boxW, boxH)
     this.show.euphoria.setAspect(SIZE.width / SIZE.height)
     this.sharpen(scale)
-    // 앞면과 뒷면은 글씨와 같은 배율로 굽습니다.
+    // 앞면과 뒷면은 글씨와 같은 배율로 굽습니다. **그림도 그 배율로 풉니다** — 셋이 한
+    // 배율이어야 한 화면에서 어느 하나만 흐리거나 또렷하지 않습니다.
+    setArtDensity(this.textScale)
     bakeCardBacks(this.app.renderer, this.textScale)
     bakeCardFaces(this.app.renderer, this.textScale)
     // 삭는 판을 굽는 것도 같은 렌더러입니다. **알갱이를 그릴 수 있는지가 여기서 갈립니다.**
@@ -1034,6 +1038,8 @@ export class Game {
 
   /** 지금까지 그린 프레임 수. **검증 도구가 물러난 동안 멈추는지를 이것으로 봅니다.** */
   drawn = 0
+  /** 지금까지 `refresh()` 를 부른 수. **검증 도구가 이것으로 다시 세우는 폭풍을 봅니다.** */
+  refreshes = 0
 
   /** 적어 둘 것이 밀려 있는가. */
   saveDue = false
@@ -1385,6 +1391,7 @@ export class Game {
   }
 
   refresh(): void {
+    this.refreshes++
     const state = this.state
 
     // **세울 것 목록은 여기서 비웁니다.** 상점과 팩이 같이 쓰므로, 어느 한쪽이 비우면

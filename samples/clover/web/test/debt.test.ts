@@ -11,13 +11,14 @@ import * as path from 'path'
 import { EditionKind } from '../src/generated/enums/edition-kind'
 import { JokerPool } from '../src/generated/enums/joker-pool'
 import { ShopItemKind } from '../src/generated/enums/shop-item-kind'
-import type { Data } from '../src/core/data'
+import { Trigger } from '../src/generated/enums/trigger'
+import type { Data, EffectRow } from '../src/core/data'
 import { loadFromDisk } from '../src/core/load-node'
 import { apply, newRun } from '../src/core/run'
 import { newCounters, type GameEvent, type RunState } from '../src/core/state'
 
 const DATA = path.resolve(__dirname, '..', 'public', 'data')
-const BOTH = [JokerPool.Base, JokerPool.Greenhouse]
+const BOTH = [JokerPool.Base]
 
 let data: Data
 let uid = 90_000
@@ -100,13 +101,29 @@ describe('빚 한도', () => {
   })
 
   it('음수 OpAddMoney 는 바닥에서 멈춥니다', () => {
-    const state = fresh()
-    hold(state, 'toll_gate')
-    state.phase = 'blind-select'
-    state.money = 1
-    apply(data, state, { t: 'select_blind' })
-    expect(state.phase).toBe('round')
-    expect(state.money).toBe(0)
+    // **음수 `OpAddMoney` 를 쓰는 조커가 데이터에 없습니다.** 자작 350종의 `toll_gate`(-$2)
+    // 가 그것이었고 걷었습니다. 기본 조커 하나에 그 행을 잠깐 얹어 같은 길을 지나게 합니다 —
+    // 이 검사가 보는 것은 데이터가 아니라 `addMoney` 의 바닥입니다.
+    const effects = data.jokerEffects as Map<string, EffectRow[]>
+    const kept = effects.get('twig') ?? []
+    const [sample] = kept
+    effects.set('twig', [{
+      ...sample,
+      trigger: Trigger.OnBlindSelect,
+      condition: { kind: 'CondAlways' },
+      operation: { kind: 'OpAddMoney', money: -2, cap: 0 },
+    }])
+    try {
+      const state = fresh()
+      hold(state, 'twig')
+      state.phase = 'blind-select'
+      state.money = 1
+      apply(data, state, { t: 'select_blind' })
+      expect(state.phase).toBe('round')
+      expect(state.money).toBe(0)
+    } finally {
+      effects.set('twig', kept)
+    }
   })
 
   it('교체는 팔기 전에 셈합니다', () => {

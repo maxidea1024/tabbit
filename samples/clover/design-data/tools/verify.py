@@ -65,32 +65,23 @@ def grid_rows(grid):
 
 
 def joker_checks():
-    """조커 500종의 배분과 확장의 판정 기준. 규격은 `doc/expansion.md` 입니다."""
-    sys.path.insert(0, HERE)
-    from seedlib import expansion
-
+    """조커 150종의 배분. 원작 대조본이고 규격은 `doc/parity/jokers/` 입니다."""
     rows = grid_rows('Joker')
-    check('조커 500종', len(rows) == 500, '%d종' % len(rows))
+    check('조커 150종', len(rows) == 150, '%d종' % len(rows))
 
     pools = {}
     for row in rows:
         pools[row['pool']] = pools.get(row['pool'], 0) + 1
-    check('풀이 기본 150 · 확장 350',
-          pools.get('Base') == 150 and pools.get('Greenhouse') == 350,
-          '기본 %s · 확장 %s' % (pools.get('Base'), pools.get('Greenhouse')))
+    check('풀이 기본 150 하나', pools == {'Base': 150},
+          ' · '.join('%s %d' % kv for kv in sorted(pools.items())))
 
-    want = {'Common': 181, 'Uncommon': 214, 'Rare': 85, 'Legendary': 20}
+    want = {'Common': 61, 'Uncommon': 64, 'Rare': 20, 'Legendary': 5}
     got = {}
     for row in rows:
         got[row['rarity']] = got.get(row['rarity'], 0) + 1
-    check('희귀도가 181 · 214 · 85 · 20', got == want,
+    check('희귀도가 61 · 64 · 20 · 5', got == want,
           ' · '.join('%s %d' % (r, got.get(r, 0))
                      for r in ('Common', 'Uncommon', 'Rare', 'Legendary')))
-
-    sizes = sorted(set(len(entries) for _, entries in expansion.FAMILIES))
-    check('계열 14개가 각 25종',
-          len(expansion.FAMILIES) == 14 and sizes == [25],
-          '계열 %d개 · 종수 %s' % (len(expansion.FAMILIES), sizes))
 
     ids = [row['joker_id'] for row in rows]
     check('식별자 중복 0', len(set(ids)) == len(ids),
@@ -103,26 +94,15 @@ def joker_checks():
     for row in grid_rows('JokerEffect'):
         effects.setdefault(row['owner'], []).append(row)
 
-    # 확장 조커마다 효과가 한 행 이상. 효과 없는 조커는 상점에서 값이 없습니다.
-    orphan = [row['joker_id'] for row in rows
-              if row['pool'] == 'Greenhouse' and row['joker_id'] not in effects]
-    check('확장 조커 전부에 효과 행이 있음', not orphan,
+    # 조커마다 효과가 한 행 이상. 효과 없는 조커는 상점에서 값이 없습니다.
+    orphan = [row['joker_id'] for row in rows if row['joker_id'] not in effects]
+    check('조커 전부에 효과 행이 있음', not orphan,
           '없는 것 %d종 %s' % (len(orphan), ', '.join(orphan[:5])))
-
-    # 판정 기준 — 조건 없는 배수 가산 하나뿐인 것은 목록에 들어오지 않습니다.
-    bare = []
-    for jid in expansion.FAMILY_OF:
-        mine = effects.get(jid, [])
-        if (len(mine) == 1 and mine[0]['condition.$type'] == 'CondAlways'
-                and mine[0]['operation.$type'] == 'OpAddMult'):
-            bare.append(jid)
-    check('판정 기준에 걸리는 확장 조커 0종', not bare,
-          '%d종 %s' % (len(bare), ', '.join(bare[:5])))
 
 
 def data_checks():
     grids = [f for f in os.listdir(os.path.join(DESIGN, 'data')) if f.endswith('.tsv')]
-    check('격자 48개', len(grids) == 48, '%d개' % len(grids))
+    check('격자 49개', len(grids) == 49, '%d개' % len(grids))
 
     plan = read(os.path.join(HERE, 'workbooks.tsv')).splitlines()
     mapped = [line for line in plan if line and not line.startswith('#')]
@@ -191,7 +171,8 @@ def output_checks():
         check(name + ' 산출물', os.path.exists(os.path.join(SAMPLE, rel)), rel)
 
     tcb = [f for f in os.listdir(os.path.join(SAMPLE, 'web/public/data')) if f.endswith('.tcb')]
-    check('테이블이 전부 나왔습니다', len(tcb) >= 46, '%d개' % len(tcb))
+    # 상수셋 4개는 테이블이 아니라 `Const_*` 상수로 나오므로 격자 49개에 테이블은 45개입니다.
+    check('테이블이 전부 나왔습니다', len(tcb) >= 45, '%d개' % len(tcb))
 
 
 # ---------------------------------------------------------------------------
@@ -219,6 +200,8 @@ def workaround_checks():
     effect = read(os.path.join(DESIGN, 'schemas', 'effect.tbs'))
     check('§3 우회 — 공유하는 `n` 에 제약이 없습니다',
           'field n       int\n' in effect or 'field n int\n' in effect)
+
+    check('§8 우회 — `JokerEffect` 에 `sticker` 열이 늘 있습니다', "'sticker']" in grid)
 
 
 def doc_checks():

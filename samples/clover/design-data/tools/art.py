@@ -240,9 +240,6 @@ TAG_SUBJECT = {
 
 # 확장 350종의 구절은 파이일 하나에 따로 담았습니다 — 수가 많아 이 표에 섞으면
 # 어느 것이 원작 대조본의 것인지 보이지 않습니다.
-from art_expansion import EXPANSION  # noqa: E402
-
-OVERRIDE.update(EXPANSION)
 
 
 def phrase(identifier):

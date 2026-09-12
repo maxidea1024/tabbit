@@ -22,7 +22,6 @@ import { Container, Graphics, Text } from 'pixi.js'
 
 import type { Data } from '../core/data'
 import { describe } from '../core/describe'
-import type { PoolChoice } from '../core/pool'
 import { stakeSlug } from '../core/stake'
 import { nameOf, t, tf } from '../core/strings'
 import { StakeKind } from '../generated/enums/stake-kind'
@@ -54,27 +53,17 @@ const STAKE_HEAD_Y = GRID_Y + 3 * CELL_H + 14
 const STAKE_Y = STAKE_HEAD_Y + 24
 
 /**
- * 조커 풀 줄. 스테이크 아래에 단추 둘입니다.
+ * 단추 줄. 시작과 랭크가 나란히 놓입니다.
  *
- * **런의 설정이므로 여기입니다.** 도감 안에 하나만 놓여 있었는데, 풀은 덱 · 스테이크와 같이
- * 판을 시작할 때 정해져 세이브와 제출에 함께 적히는 값입니다 — 무엇으로 시작하는가가 한
- * 자리에 모여 있어야 챌린지 탭이 기본 150종으로 고정인 이유도 그 옆에서 읽힙니다.
+ * 스테이크 바로 아래입니다. 그 사이에 조커 풀을 고르는 단추 둘이 있었고, 풀이 하나가
+ * 되면서 걷었습니다.
  */
-const POOL_COUNT = 2
-const POOL_W = 200
-const POOL_H = 42
-const POOL_GAP = 12
-const POOL_X = Math.round((WIDTH - (POOL_COUNT * POOL_W + POOL_GAP)) / 2)
-const POOL_HEAD_Y = STAKE_Y + STAKE_H + 14
-const POOL_Y = POOL_HEAD_Y + 20
-
-/** 단추 줄. 시작과 랭크가 나란히 놓입니다. */
 const START_W = 400
 const RANKED_W = 160
 const BTN_GAP = 12
 const BTN_H = 48
 const BTN_X = Math.round((WIDTH - (START_W + BTN_GAP + RANKED_W)) / 2)
-const BTN_Y = POOL_Y + POOL_H + 18
+const BTN_Y = STAKE_Y + STAKE_H + 18
 
 const HEIGHT = BTN_Y + BTN_H
 
@@ -99,17 +88,10 @@ export interface RunSetup {
   deckId: string
   /** `StakeKind` 의 이름입니다 — 리플레이에 적히는 형태와 같습니다. */
   stake: string
-  /**
-   * 어느 조커 풀로 시작하는가.
-   *
-   * **기본이 `base` 입니다.** 켜진 채로 시작하면 원작을 기대한 사람이 모를 조커를 만나게
-   * 되고, 굽어 둔 리플레이와도 어긋납니다.
-   */
-  pool: PoolChoice
 }
 
 export function defaultSetup(): RunSetup {
-  return { deckId: 'red_deck', stake: StakeKind[StakeKind.White], pool: 'base' }
+  return { deckId: 'red_deck', stake: StakeKind[StakeKind.White] }
 }
 
 /**
@@ -124,8 +106,7 @@ export function validSetup(data: Data, setup: RunSetup): RunSetup {
     ? setup.deckId : fallback.deckId
   const stake = data.tables.stake.records.some(row => StakeKind[row.stake] === setup.stake)
     ? setup.stake : fallback.stake
-  const pool = setup.pool === 'all' ? 'all' : fallback.pool
-  return { deckId, stake, pool }
+  return { deckId, stake }
 }
 
 /** 그 덱과 스테이크의 표시 이름을 한 줄로. 시작을 묻는 판이 이것을 적습니다. */
@@ -155,9 +136,6 @@ export class SetupBody {
   private deckAt = 0
   private stakeAt = 0
   /** 지금 고른 조커 풀. */
-  private pool: PoolChoice = 'base'
-  private readonly poolButtons: { choice: PoolChoice; button: Button; key: string }[] = []
-  private poolHead?: Text
   private startButton?: Button
   private rankedButton?: Button
   /** 로그인했는가. 랭크로 시작할 수 있는지가 이것으로 갈립니다. */
@@ -210,7 +188,6 @@ export class SetupBody {
     const stake = this.stakeRows.findIndex(one => StakeKind[one.stake] === setup.stake)
     this.deckAt = deck < 0 ? 0 : deck
     this.stakeAt = stake < 0 ? 0 : stake
-    this.pool = setup.pool
   }
 
   /** 지금 고른 것. */
@@ -218,7 +195,6 @@ export class SetupBody {
     return {
       deckId: this.decks[this.deckAt]?.deckId ?? defaultSetup().deckId,
       stake: StakeKind[this.stakeRows[this.stakeAt]?.stake ?? StakeKind.White],
-      pool: this.pool,
     }
   }
 
@@ -231,30 +207,6 @@ export class SetupBody {
   private build(): void {
     this.view.addChild(this.body)
     this.body.addChild(this.grid, this.stakes)
-
-    // 조커 풀. **두 갈래이므로 목록이 아니라 단추 둘입니다.**
-    const poolHead = this.head(t('ui.pool.title'))
-    poolHead.position.set(POOL_X + 4, POOL_HEAD_Y)
-    this.body.addChild(poolHead)
-    this.poolHead = poolHead
-
-    for (const [index, choice] of (['base', 'all'] as PoolChoice[]).entries()) {
-      const key = choice === 'all' ? 'ui.pool.all' : 'ui.pool.base'
-      const button = new Button(t(key), POOL_W, POOL_H, 'neutral',
-                                () => this.pickPool(choice), 16)
-      button.position.set(POOL_X + index * (POOL_W + POOL_GAP), POOL_Y)
-      // 무엇이 늘어나는지는 도감에서 봅니다. 여기서는 무엇으로 시작할지만 정합니다.
-      button.on('pointerover', () => this.onTip?.({
-        name: t(key),
-        lines: [t(choice === 'all' ? 'ui.pool.allNote' : 'ui.pool.baseNote')],
-        x: POOL_X + index * (POOL_W + POOL_GAP) + POOL_W / 2,
-        top: POOL_Y,
-        bottom: POOL_Y + POOL_H,
-      }))
-      button.on('pointerout', () => this.onTip?.(undefined))
-      this.poolButtons.push({ choice, button, key })
-      this.body.addChild(button)
-    }
 
     this.startButton = new Button(t('ui.setup.start'), START_W, BTN_H, 'primary',
                                   () => this.onStart?.(this.picked()), 19)
@@ -298,10 +250,6 @@ export class SetupBody {
     this.stakeCells.forEach((cell, at) => {
       out.push([`stake:${at}`, { node: cell, cx: (STAKE_W - 10) / 2, cy: STAKE_H / 2 }])
     })
-    for (const one of this.poolButtons) {
-      out.push([`pool:${one.choice}`,
-                { node: one.button, cx: POOL_W / 2, cy: POOL_H / 2 }])
-    }
     if (this.startButton) {
       out.push(['startNew', { node: this.startButton, cx: START_W / 2, cy: BTN_H / 2 }])
     }
@@ -324,30 +272,6 @@ export class SetupBody {
   private rebuild(): void {
     this.drawGrid()
     this.drawStakes()
-    this.syncPool()
-  }
-
-  /**
-   * 고른 풀을 단추에 얹습니다.
-   *
-   * **눌린 채로 두고 나머지를 흐리게 합니다.** 둘 중 하나만 하면 어두운 바탕에서 어느
-   * 것이 고른 것인지가 눈에 들지 않습니다.
-   */
-  private syncPool(): void {
-    for (const one of this.poolButtons) {
-      one.button.text = t(one.key)
-      const on = one.choice === this.pool
-      one.button.highlight = on
-      one.button.alpha = on ? 1 : 0.55
-    }
-    if (this.poolHead) this.poolHead.text = t('ui.pool.title')
-  }
-
-  private pickPool(choice: PoolChoice): void {
-    if (this.pool === choice) return
-    this.pool = choice
-    this.syncPool()
-    this.onPick?.(this.picked())
   }
 
   /** 작은 제목 하나. */

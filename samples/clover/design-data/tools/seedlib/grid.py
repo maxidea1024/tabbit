@@ -80,7 +80,11 @@ OP_FIELDS = ['chips', 'mult', 'money', 'cap', 'unit', 'mode', 'value', 'base_val
              'min', 'max', 'times', 'counter', 'step', 'init', 'floor', 'reset',
              'hand_pick', 'levels', 'create', 'count', 'card_class', 'edition', 'rarity',
              'enhancement', 'seal', 'suit', 'modify', 'trait', 'debuff',
-             'pick', 'rule', 'absolute', 'duration', 'free', 'random', 'ref_id', 'handler']
+             'pick', 'rule', 'absolute', 'duration', 'free', 'random', 'ref_id', 'handler',
+             # **아무 조커도 쓰지 않는 열입니다.** `OpGrant.sticker` 는 덱과 챌린지의 효과가
+             # 쓰는데, 선언된 옵셔널 열이 시트에 없으면 tabbit 의 C# 검증 접근자가 그 열을
+             # 참조한 채로 생성되어 컴파일되지 않습니다 — `doc/tool-findings.md` §8 의 우회입니다.
+             'sticker']
 
 # 조건과 연산이 나눠 쓰는 칸. 한 행에서 둘 다 쓰는 경우가 없으므로 한 칸입니다.
 SHARED_FIELDS = ['ranks', 'suits']
@@ -109,7 +113,7 @@ ALWAYS = C('Always')
 
 
 def j(jid, ko, en, rarity, cost, effects, blueprint=True, unlock=None, pool='Base'):
-    """조커 한 종. `pool` 이 기본 대조본인지 확장인지를 가릅니다."""
+    """조커 한 종. `pool` 은 `Base` 하나입니다 — 순위표의 축이라 열을 남겨 둡니다."""
     return (jid, ko, en, rarity, cost, blueprint, unlock, effects, pool)
 
 

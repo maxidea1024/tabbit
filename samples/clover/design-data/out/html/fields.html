@@ -1094,11 +1094,10 @@ tbody [data-pick] { cursor: pointer; }
 </tbody></table>
 </div>
 <div data-enum-def="JokerPool">
-<p class="lead"><b>enum.JokerPool</b> <span class="hint">조커가 어느 풀에 드는가. **런이 시작할 때 어느 풀을 쓰는지 정하고, 정하지 않으면
-<code>Base</code> 만 씁니다** — 그래야 구워 둔 리플레이가 같은 해시를 다시 냅니다.</span></p>
+<p class="lead"><b>enum.JokerPool</b> <span class="hint">조커가 어느 풀에 드는가. <b>값이 하나입니다</b> — 자작 350종의 풀을 두었다가 걷었고, 순위표의
+보드와 저장된 판이 이 축을 쓰므로 열은 남겨 둡니다. 런은 늘 <code>Base</code> 로 시작합니다.</span></p>
 <table><tbody>
-<tr data-label="Base"><td>Base</td><td class="num">1</td><td class="hint">기본 150종. 원작 대조본입니다.</td></tr>
-<tr data-label="Greenhouse"><td>Greenhouse</td><td class="num">2</td><td class="hint">확장 350종. 자작이고 런을 시작할 때 켜집니다.</td></tr>
+<tr data-label="Base"><td>Base</td><td class="num">1</td><td class="hint">150종 전부. 원작 대조본입니다.</td></tr>
 </tbody></table>
 </div>
 <div data-enum-def="LeaderboardMetric">
@@ -1173,10 +1172,11 @@ tbody [data-pick] { cursor: pointer; }
 </tbody></table>
 </div>
 <div data-enum-def="PoolChoice">
-<p class="lead"><b>enum.PoolChoice</b> <span class="hint">런이 쓰는 조커 풀. <b>필터가 아니라 벽입니다</b> — 「전부」가 없습니다.</span></p>
+<p class="lead"><b>enum.PoolChoice</b> <span class="hint">순위표의 보드가 나뉘는 풀의 축. <b>필터가 아니라 벽입니다</b> — 「전부」가 없습니다.</span></p>
 <table><tbody>
-<tr data-label="Base"><td>Base</td><td class="num">1</td><td class="hint">기본 150종만.</td></tr>
-<tr data-label="All"><td>All</td><td class="num">2</td><td class="hint">기본과 확장 500종.</td></tr>
+<tr data-label="Base"><td>Base</td><td class="num">1</td><td class="hint">기본 150종. 지금 열리는 모든 판이 이것입니다.</td></tr>
+<tr data-label="All"><td>All</td><td class="num">2</td><td class="hint">자작 350종을 더한 풀. <b>더는 열리지 않습니다</b> — 그 조커들을 걷었습니다. 그 풀로
+적힌 보드와 제출이 서버에 남아 있어 값을 지우지 않습니다.</td></tr>
 </tbody></table>
 </div>
 <div data-enum-def="RankKind">

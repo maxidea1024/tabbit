@@ -9,15 +9,18 @@
 
 |  |수|
 |--|--|
-|찾은 것|**7**|
+|찾은 것|**8**|
 |닫힌 것|**2**|
-|우회한 것|**5**|
+|우회한 것|**6**|
 
 앞의 셋은 [데이터 저작](progress.md#p2--데이터-저작-끝)에서, 그다음 셋은
 [코어](progress.md#p3--코어-typescript-끝)에서 나왔습니다. **그 셋은 생성 코드를 실제로
 읽고 돌려 보아야 나오는 것들입니다** — 변환은 셋 다 성공으로 끝납니다.
 
 **일곱째는 격자를 더하다 나왔고 고쳤습니다.** 변환을 여러 번 돌려야 나옵니다.
+
+**여덟째는 격자를 다시 만들다 나왔고 우회했습니다.** 선언된 옵셔널 멤버를 어느 행도 쓰지
+않아야 나옵니다.
 
 ## 1. 배열인 변종 멤버에서의 C# 생성 예외
 
@@ -271,6 +274,38 @@ if (typeof shim.require === 'undefined') shim.require = createRequire(import.met
 
 **예외로 끝나는 것이 오히려 나은 쪽입니다.** 손상된 `Dictionary` 가 예외 없이 잘못된 값을
 돌려주면, 정규식 제약 하나가 조용히 건너뛰어집니다.
+
+## 8. 시트에 없는 옵셔널 변종 멤버에서의 C# 접근자 컴파일 오류
+
+**결함이고 우회했습니다.** 자작 조커 350종을 걷고 조커 격자를 다시 만들다 났습니다.
+
+```
+[F] [Tabbit] The accessor generated for validation does not compile.
+…JokerEffectTable.cs(528,46): error CS1061: 'JokerEffectRecord.OperationEntry'에는
+'Sticker'에 대한 정의가 포함되어 있지 않고 …
+[F] [Tabbit] This is a defect in tabbit, not a problem with the data or the recipe.
+```
+
+|조건|결과|
+|--|--|
+|변종(`OpGrant`)이 옵셔널 멤버(`sticker StickerKind?`)를 선언하고, **그 표의 어느 행도 그 멤버를 쓰지 않아 시트에 그 열이 없음**|**C# 접근자가 컴파일되지 않습니다**|
+|같은 변종을 쓰는 다른 표(`DeckEffect`)에는 그 열이 있음|그 표는 통과합니다|
+|열이 있고 값이 전부 비어 있음|통과합니다|
+
+**닿는 자리는 C# 생성입니다.** 변종을 풀어 주는 코드가 선언된 멤버 전부를
+`_operation.Sticker` 로 읽는데, 행의 평면 레코드(`OperationEntry`)는 시트의 열로만
+만들어지므로 그 멤버가 없습니다. 도구 자신이 「데이터가 아니라 tabbit 의 결함」이라고
+적습니다. TypeScript 타깃은 같은 자리를 지나지 않습니다 — 그쪽은 열이 없으면 기본값으로
+채웁니다.
+
+### 우회
+
+`JokerEffect` 격자가 `operation.sticker` 열을 늘 갖게 하였습니다 —
+[생성기](../design-data/tools/seedlib/grid.py)의 `OP_FIELDS` 끝에 `sticker` 가 그것이고 값은
+전부 비어 있습니다. 걷기 전의 격자에도 그 열이 있었는데 생성기에는 없었습니다 — 시트를
+손으로 고친 자리였고, 생성기를 다시 돌리자 드러났습니다.
+
+**우회가 지워지면 이 항목이 닫힙니다.**
 
 ---
 

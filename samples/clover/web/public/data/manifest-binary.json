@@ -1,7 +1,7 @@
 {
-  "LastUpdatedDate": "2026-09-10T19:26:25.3146861+09:00",
-  "MasterHash": "97829b3f55f4f048c5628ee1eabcfe73",
-  "TotalSize": 225421,
+  "LastUpdatedDate": "2026-09-12T09:32:03.7175121+09:00",
+  "MasterHash": "2c402d80590adecbf106b74950203aea",
+  "TotalSize": 176136,
   "Items": [
     {
       "Name": "Rank.tcb",
@@ -107,21 +107,21 @@
     },
     {
       "Name": "Joker.tcb",
-      "Size": 17527,
-      "Hash": "e58e66f98e2e7704ca02458283c2937d",
-      "LastUpdatedDate": "2026-09-02T14:24:18.8696765+09:00"
+      "Size": 5108,
+      "Hash": "1c0730c9e02dcf759ea033be07b6544f",
+      "LastUpdatedDate": "2026-09-12T09:32:03.5857843+09:00"
     },
     {
       "Name": "JokerRarityWeight.tcb",
-      "Size": 81,
-      "Hash": "946fb7030083813b40b2b3630a4d4afc",
-      "LastUpdatedDate": "2026-09-02T02:10:51.2803727+09:00"
+      "Size": 78,
+      "Hash": "34bcfffbb5c7bf156ea0891bdef37f40",
+      "LastUpdatedDate": "2026-09-12T09:32:03.5863977+09:00"
     },
     {
       "Name": "JokerEffect.tcb",
-      "Size": 10746,
-      "Hash": "75f9f5fdd173c41709d6e02ca403127f",
-      "LastUpdatedDate": "2026-09-02T15:13:56.1350156+09:00"
+      "Size": 4036,
+      "Hash": "20d06dea4618b25bfcd15c4cbe704185",
+      "LastUpdatedDate": "2026-09-12T09:32:03.5961308+09:00"
     },
     {
       "Name": "Ante.tcb",
@@ -209,9 +209,9 @@
     },
     {
       "Name": "StringTable.tcb",
-      "Size": 172208,
-      "Hash": "3e5b7f5624409c5b45beae5fef1299e1",
-      "LastUpdatedDate": "2026-09-10T19:26:25.3125348+09:00"
+      "Size": 142055,
+      "Hash": "1fa582d4ba15c806492aa0ffe5ddc745",
+      "LastUpdatedDate": "2026-09-12T09:32:03.7139799+09:00"
     },
     {
       "Name": "Achievement.tcb",

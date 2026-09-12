@@ -122,6 +122,7 @@
 |놓았다가 다시 부탁받은 그림을 `Assets.load` 로 다시 읽기|**`Assets` 가 곧 버려질 그 텍스처를 그대로 돌려주고, 두 틱 뒤에 버립니다** — 화면이 까매지고 티커가 멈추던 원인입니다. `retiring` 에서 되살리고, 버리는 동안은 부탁을 미룹니다|`render/art.ts` `artFor` · `artTick`|
 |그림이 한 장 들어올 때마다 판 전체 `refresh()`|0.1초 조용하면, 또는 첫 도착에서 0.3초면 한 번입니다. 놓인 것은 그 자리에서 합니다|`game/game.ts` `onArtReady`|
 |도감을 화면 세울 때 지어 타이틀에서 조커 60칸과 그림 93.8MB 를 읽기|판이 떠 있지 않으면 짓지 않고 표시만 남깁니다. 뜬 뒤 첫 `advance` 가 짓습니다. **판을 한 번도 열지 않으면 0건입니다**|`ui/collection.ts` `rebuild`|
+|그림을 파일 크기(320 × 480 · 일부 640 × 960) 그대로 GPU 에 올리기|**화면에 그려지는 크기로 풉니다.** `createImageBitmap` 의 `resizeHeight` 로 카드 높이 × 배율 × 1.25 까지만 — 그림 전부가 645MB 에서 핸드폰 80MB 남짓이 되고, 상한에 걸려 놓고 다시 푸는 일이 없어집니다. 그 되풀이가 도감을 굴릴수록 무거워지다 앱이 끝나던 원인이었습니다|`render/art.ts` `decode` · `setArtDensity`|
 |커서 깜빡임을 위해 판 전체를 매 프레임 다시 만들기|글 하나의 글자만 바꿉니다. 흔들리는 0.3초만 다시 그립니다|`ui/account.ts` `HandlePanel.advance`|
 |낱말마다 `new TextStyle` 과 누적 문자열 재측정|모습마다 `TextStyle` 하나를 `WeakMap` 에 두고, 조각의 너비를 더해 갑니다|`ui/rich.ts`|
 |휠 한 칸마다 `content.height` 로 자식 전부의 경계 세기|내용이 바뀌는 길(`refresh` · `toTop` · `reveal`)에서만 재고 굴릴 때는 그 값을 씁니다|`ui/scroll.ts` `setOffset`|
@@ -216,7 +217,7 @@
 
 |무엇|상한|어디|
 |--|--|--|
-|그림|**96MB**. 넘치면 오래 전에 부탁받은 것부터 놓고, 다시 필요하면 다시 읽습니다|`render/art.ts` `BUDGET`|
+|그림|**핸드폰 160MB · 데스크탑 512MB.** 화면에 그려지는 크기로 풀므로(`setArtDensity`) 전부 올려도 그 안입니다 — 핸드폰 배율 1.2에서 전부 80MB 남짓. 넘치면 오래 전에 부탁받은 것부터 놓고, 다시 필요하면 다시 풉니다|`render/art.ts` `BUDGET`|
 |구운 카드 앞면|48MB|`render/card-face.ts` `BUDGET`|
 |배경음|상한이 아니라 **아예 들고 있지 않습니다.** 원소로 흘려 보냅니다|`feedback/music.ts`|
 

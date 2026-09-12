@@ -1,11 +1,14 @@
-// 확장 350종.
+// 조커 150종.
 //
-// **한 종씩 실제로 돌립니다.** 헤드리스 완주는 한 런에서 조커 20종 남짓만 만나므로, 350종
-// 가운데 어느 것이 예외를 내는지는 그 방법으로 드러나지 않습니다. 여기서는 500종 전부를
-// 판에 세우고 트리거를 지나게 합니다.
+// **한 종씩 실제로 돌립니다.** 헤드리스 완주는 한 런에서 조커 20종 남짓만 만나므로, 어느
+// 것이 예외를 내는지는 그 방법으로 드러나지 않습니다. 여기서는 150종 전부를 판에 세우고
+// 트리거를 지나게 합니다.
 //
 // 값이 얼마인지는 보지 않습니다 — 그것은 `scoring.test.ts` 의 몫이고, 여기가 보는 것은
 // **선언이 런타임에서 실행되는가**입니다.
+//
+// 자작 350종을 더했을 때 그것들을 상대로 만든 게이트였고, 그 350종을 걷은 뒤에도 남겼습니다 —
+// 조커 하나를 고치거나 더할 때 이 검사가 그 한 종의 이름으로 알립니다.
 
 import { beforeAll, describe, expect, it } from 'vitest'
 import * as path from 'path'
@@ -13,7 +16,6 @@ import * as path from 'path'
 import { EditionKind } from '../src/generated/enums/edition-kind'
 import { EnhancementKind } from '../src/generated/enums/enhancement-kind'
 import { JokerPool } from '../src/generated/enums/joker-pool'
-import { ShopItemKind } from '../src/generated/enums/shop-item-kind'
 import { RankKind } from '../src/generated/enums/rank-kind'
 import { SealKind } from '../src/generated/enums/seal-kind'
 import { SuitKind } from '../src/generated/enums/suit-kind'
@@ -22,13 +24,11 @@ import type { Data } from '../src/core/data'
 import { describe as describeEffects } from '../src/core/describe'
 import { loadFromDisk } from '../src/core/load-node'
 import { newRun } from '../src/core/run'
-import { stock } from '../src/core/shop'
 import { scoreHand } from '../src/core/scoring'
 import { newCounters, type CardInstance, type RunState } from '../src/core/state'
 import { newVm, runTrigger } from '../src/core/vm'
 
 const DATA = path.resolve(__dirname, '..', 'public', 'data')
-const BOTH = [JokerPool.Base, JokerPool.Greenhouse]
 
 let data: Data
 
@@ -55,7 +55,7 @@ function card(rank: number, suit: SuitKind, enhancement = EnhancementKind.None):
 
 /** 조커 하나를 심은 상태. 덱은 그대로 두고 패만 손으로 세웁니다. */
 function withJoker(jokerId: string): RunState {
-  const state = newRun(data, 'EXP-0001', 'red_deck', 'White', BOTH).state
+  const state = newRun(data, 'JOKER-0001', 'red_deck', 'White').state
   state.jokers.push({
     uid: uid++,
     jokerId,
@@ -96,72 +96,30 @@ function exercise(jokerId: string): void {
 }
 
 describe('데이터', () => {
-  it('조커가 500종이고 풀이 150 · 350 입니다', () => {
+  it('조커가 150종이고 풀이 `Base` 하나입니다', () => {
     const rows = data.tables.joker.records
-    expect(rows.length).toBe(500)
-    expect(rows.filter(row => row.pool === JokerPool.Base).length).toBe(150)
-    expect(rows.filter(row => row.pool === JokerPool.Greenhouse).length).toBe(350)
+    expect(rows.length).toBe(150)
+    expect(rows.every(row => row.pool === JokerPool.Base)).toBe(true)
   })
 
-  it('희귀도가 181 · 214 · 85 · 20 입니다', () => {
+  // 원작의 배분 그대로입니다. `seedlib/jokers.py` 의 `seed()` 가 같은 수를 확인합니다.
+  it('희귀도가 61 · 64 · 20 · 5 입니다', () => {
     const rows = data.tables.joker.records
     const count = (rarity: number) => rows.filter(row => row.rarity === rarity).length
-    expect([count(1), count(2), count(3), count(4)]).toEqual([181, 214, 85, 20])
+    expect([count(1), count(2), count(3), count(4)]).toEqual([61, 64, 20, 5])
   })
 
-  it('확장 조커 전부에 효과 행이 있습니다', () => {
+  it('조커 전부에 효과 행이 있습니다', () => {
     const owners = new Set(data.tables.jokerEffect.records.map(row => row.owner))
     const orphan = data.tables.joker.records
-      .filter(row => row.pool === JokerPool.Greenhouse && !owners.has(row.jokerId))
+      .filter(row => !owners.has(row.jokerId))
       .map(row => row.jokerId)
     expect(orphan).toEqual([])
   })
 })
 
-/**
- * 상점의 조커 칸을 시드 여러 개로 채워 나온 식별자를 모읍니다.
- *
- * **`stock()` 을 직접 부릅니다.** 액션으로 상점까지 가려면 블라인드를 실제로 깨야 하는데,
- * 그 경로는 판의 실력에 의존하므로 시드에 따라 상점에 닿지 못합니다 — 그러면 검사가 아무것도
- * 보지 않은 채 통과합니다.
- */
-function shopJokers(pools: JokerPool[], rounds: number): string[] {
-  const out: string[] = []
-  for (let n = 1; n <= rounds; n++) {
-    const state = newRun(data, `POOL-${n}`, 'red_deck', 'White', pools).state
-    const vm = newVm(data, state)
-    for (let refill = 0; refill < 6; refill++) {
-      stock(vm, state.shop)
-      for (const item of state.shop.cards) {
-        if (item.kind === ShopItemKind.Joker) out.push(item.id)
-      }
-    }
-  }
-  return out
-}
-
-describe('풀', () => {
-  it('확장을 켜지 않으면 상점에 확장 조커가 나오지 않습니다', () => {
-    const expansion = new Set(data.tables.joker.records
-      .filter(row => row.pool === JokerPool.Greenhouse).map(row => row.jokerId))
-
-    const seen = shopJokers([JokerPool.Base], 30)
-    expect(seen.length).toBeGreaterThan(20)
-    expect(seen.filter(id => expansion.has(id))).toEqual([])
-  })
-
-  it('확장을 켜면 두 풀이 다 나옵니다', () => {
-    const expansion = new Set(data.tables.joker.records
-      .filter(row => row.pool === JokerPool.Greenhouse).map(row => row.jokerId))
-
-    const seen = shopJokers(BOTH, 30)
-    expect(seen.filter(id => expansion.has(id)).length).toBeGreaterThan(0)
-    expect(seen.filter(id => !expansion.has(id)).length).toBeGreaterThan(0)
-  })
-})
-
-describe('500종 전부가 예외 없이 돕니다', () => {
-  // 종마다 테스트 하나입니다. 하나가 터지면 어느 조커인지 이름이 그대로 보입니다.
+describe('150종 전부가 예외 없이 돕니다', () => {
+  // 종마다 테스트 하나입니다. 하나가 던지면 어느 조커인지 이름이 그대로 보입니다.
   it.each(loadIds())('%s', jokerId => {
     expect(() => exercise(jokerId)).not.toThrow()
   })
@@ -173,7 +131,7 @@ function loadIds(): string[] {
 }
 
 describe('설명문', () => {
-  it('500종 전부가 자리표 없는 설명문을 냅니다', () => {
+  it('150종 전부가 자리표 없는 설명문을 냅니다', () => {
     const broken: string[] = []
     for (const joker of data.tables.joker.records) {
       const lines = describeEffects(data, data.jokerEffects.get(joker.jokerId) ?? [])

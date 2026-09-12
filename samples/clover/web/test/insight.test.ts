@@ -29,7 +29,7 @@ import { newCounters, type CardInstance, type RunState } from '../src/core/state
 import { newVm, runRow } from '../src/core/vm'
 
 const DATA = path.resolve(__dirname, '..', 'public', 'data')
-const BOTH = [JokerPool.Base, JokerPool.Greenhouse]
+const BOTH = [JokerPool.Base]
 
 let data: Data
 let uid = 70_000

@@ -34,10 +34,9 @@
 
 셋째는 `Joker` 에 `eternal_ok` 컬럼을 더하고 **17종**에 `false` 를 적었습니다.
 **`blueprint_ok` 가 이미 같은 모양이므로 새로운 갈래가 아닙니다** — 어느 조커에 무엇이
-붙지 않는가를 표에 적는 자리입니다. 기본 150종의
-[11종](../parity/challenges.md#조커에-붙지-않는-eternal-11종)이 원작 대조이고, 확장
-350종에서 같은 성질인 6종(`crow_bait` · `hollow_seed` · `nightshade_cup` · `thorn_ring` ·
-`estate_note` · `stagehand`)을 함께 적었습니다 — **150종만 고치면 나머지가 남습니다.**
+붙지 않는가를 표에 적는 자리입니다.
+[11종](../parity/challenges.md#조커에-붙지-않는-eternal-11종)이 원작 대조입니다 — 목록은
+생성기(`seedlib/jokers.py` 의 `NO_ETERNAL`)에 있고 격자는 거기서 나옵니다.
 
 넷째는 `noodle_pot` 의 `floor` 를 `0` 에서 `10000`(×1)으로 올리고 파괴 행을
 `frost_pane` 과 같은 모양으로 더했습니다. **감소하는 `GrowSelf` 를 전수로 훑어 찾은

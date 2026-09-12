@@ -4,7 +4,7 @@ import { ShopItemKind } from '../generated/enums/shop-item-kind'
 import { snapshotHash } from '../core/hash'
 import { strokeWidthOf } from '../ui/font'
 import { newCounters } from '../core/state'
-import { artBytes, dropAllArt } from '../render/art'
+import { artBudget, artBytes, artDecodeHeight, artTallest, dropAllArt } from '../render/art'
 import { cardFaceBakes } from '../render/card-face'
 import { bannerBox } from '../ui/rule-banner'
 import { CELL_H, CONSUMABLE_TRAY, HAND_Y, JOKER_TRAY } from './metrics'
@@ -50,6 +50,11 @@ export class ProbePart {
       scene: this.game.session.scene,
       // 지금 들고 있는 그림의 크기. **상한이 실제로 도는지를 이것으로 봅니다.**
       artBytes: artBytes(),
+      // 이 기계의 상한과 푸는 세로 상한과 실제로 푼 것 가운데 가장 큰 세로. **셋을 함께 알려야**
+      // 도구가 「상한 안인가」와 「화면 크기로 풀렸는가」를 상수 없이 봅니다.
+      artBudget: artBudget(),
+      artDecodeHeight: artDecodeHeight(),
+      artTallest: artTallest(),
       // 버려진 그림을 가리키고 있는 스프라이트의 수와 전체 수. **앞엣것이 늘 0 이어야 합니다.**
       deadArt: this.deadArt(),
       // 배경음이 무엇을 어떻게 내고 있는가.
@@ -59,6 +64,8 @@ export class ProbePart {
       audio: this.game.audio.report(),
       // 지금까지 그린 프레임 수. 물러나면 더 늘지 않아야 합니다.
       drawn: this.game.drawn,
+      // 지금까지 판 전체를 다시 세운 수. 그림 한 장마다 세우고 있는지를 이것으로 봅니다.
+      refreshes: this.game.refreshes,
       // 설명 쪽지가 지금 떠 있는가. 꾸욱 누르기를 재는 도구가 씁니다.
       tip: this.game.input.tooltip.visible,
       // 지금 몇 장 골라 두었는가. 꾸욱 눌렀을 때 골라지지 않는지 확인합니다.

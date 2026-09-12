@@ -17,7 +17,6 @@ import { setCardSet, setLookOf } from '../render/card-set'
 import { groove } from '../render/skin'
 import { popupCenter, setUiTheme, SIZE, TEXT, UI, WEIGHT } from '../render/theme'
 import { Button, restyleButtons } from '../ui/widgets'
-import { choiceOf, poolsOf } from '../core/pool'
 import { type ChallengeProgress, loadProgress, saveProgress } from '../ui/challenge'
 import { type CollectionProgress, loadCollection } from '../core/collection'
 import { randomSeed, Title } from '../ui/title'
@@ -83,7 +82,7 @@ export class SessionPart {
    */
   setup(): RunSetup {
     return validSetup(this.game.data, {
-      deckId: this.settings.deck, stake: this.settings.stake, pool: this.settings.pool,
+      deckId: this.settings.deck, stake: this.settings.stake,
     })
   }
 
@@ -515,7 +514,7 @@ export class SessionPart {
     const setup = this.setup()
     this.game.input.hintCache = undefined
     this.game.state = newRun(this.game.data, seed, setup.deckId, setup.stake,
-                        poolsOf(setup.pool), this.challengeId).state
+                        undefined, this.challengeId).state
     this.actions = []
     this.metrics = newMetrics()
     this.rankLine = undefined
@@ -581,7 +580,6 @@ export class SessionPart {
       seed: this.game.state.seed,
       deckId: this.game.state.deckId,
       stake: this.game.state.stake,
-      pool: choiceOf(this.game.state.pools),
       challengeId: this.game.state.challengeId,
       actions: this.actions.slice(),
       hash: snapshotHash(this.game.state),
@@ -599,7 +597,7 @@ export class SessionPart {
   private resumeRun(saved: SavedRun): boolean {
     this.game.input.hintCache = undefined
     const start = newRun(this.game.data, saved.seed, saved.deckId, saved.stake,
-                         poolsOf(saved.pool), saved.challengeId)
+                         undefined, saved.challengeId)
     const state = start.state
     const acc = newMetrics()
     observe(acc, start.events)
@@ -645,7 +643,8 @@ export class SessionPart {
     const seed = await this.hub.requestRanked({
       deck: 'red_deck',
       stake: 'White',
-      pool: this.settings.pool,
+      // 순위표의 축입니다. 새로 여는 판은 전부 이 풀입니다 — `core/pool.ts`.
+      pool: 'base',
     })
     if (seed === undefined) return
 

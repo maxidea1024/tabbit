@@ -9,7 +9,6 @@
 아무 일이 없으므로 `False` 입니다. `doc/parity/economy-and-shop.md` 의 남은 조사에 있습니다.
 """
 
-from . import expansion
 from .grid import (AC, ALWAYS, AM, C, E, FACE, GROW, HC, MONEY, O, PER, RANKS, RULE, XM,
                    effect_grid, j, table, write)
 
@@ -278,9 +277,14 @@ UNCOMMON = [
       [E('OnReroll', ALWAYS, GROW('MultAdd', 20000), 'SelfTarget')]),
     j('spare_gloves', '여벌 장갑', 'Spare Gloves', 'Uncommon', 6,
       [E('OnScoreResolved', HC('TwoPair'), GROW('MultAdd', 20000), 'SelfTarget')]),
+    # **바닥이 ×1.0 이고 거기 닿으면 스스로 없어집니다.** 원작이 그렇습니다 — ×0 까지 내려가
+    # 득점을 0으로 만들던 것을 2026-09-05 에 격자에서 손으로 고쳤고, 생성기에는 그 고침이
+    # 없어서 다시 돌리자 되돌아갔습니다. 여기가 정본입니다.
     j('noodle_pot', '국수 냄비', 'Noodle Pot', 'Uncommon', 6,
-      [E('OnCardDiscarded', ALWAYS, GROW('MultMul', -100, init=20000, floor=0),
-         'SelfTarget')]),
+      [E('OnCardDiscarded', ALWAYS, GROW('MultMul', -100, init=20000, floor=10000),
+         'SelfTarget'),
+       E('OnCardDiscarded', C('CounterAtMost', counter='MultMul', n=10000),
+         O('DestroyJoker', pick='SelfPick'), 'SelfTarget')]),
     j('fizz_bottle', '탄산병', 'Fizz Bottle', 'Uncommon', 6,
       [E('OnCardScored', C('ChargeLeft'), O('Retrigger', times=1), 'ScoredCard'),
        E('OnScoreResolved', ALWAYS, GROW('Charge', -1, init=10, floor=0), 'SelfTarget'),
@@ -430,9 +434,22 @@ LEGENDARY = [
          'RandomConsumable')]),
 ]
 
-# 기본 150종은 원작 대조본이고 그 다음이 확장 350종입니다.
+# `Eternal` 이 붙지 않는 11종. 규격은 `doc/parity/challenges.md` 의 「조커에 붙지 않는
+# Eternal 11종」입니다 — 원작에서 스스로 없어지거나 팔려야 뜻이 있는 것들입니다.
+#
+# **격자에만 적혀 있고 생성기에 없던 열이었습니다.** 시트를 손으로 고쳐 넣은 자리였고,
+# 생성기를 다시 돌리자 열이 통째로 사라져 스키마 기준선에 걸렸습니다. 생성기가 정본이어야
+# 하므로 여기로 옮겼습니다.
+NO_ETERNAL = {
+    'windfall_pear', 'frost_pane', 'orchard_pear', 'puffball', 'ring_fighter',
+    'broad_bean', 'soda_cap', 'noodle_pot', 'fizz_bottle', 'old_bones', 'faint_outline',
+}
+
+# 150종 전부가 원작 대조본입니다. **자작 350종을 더했다가 걷었습니다** — 조커가 500종이면
+# 도감이 그림 500장을 다루어야 하고 그림 500장을 새로 그려야 합니다. 그 둘이 150종의 값을
+# 넘었습니다.
 BASE = COMMON + UNCOMMON + RARE + LEGENDARY
-JOKERS = BASE + expansion.JOKERS
+JOKERS = BASE
 
 # 희귀도의 가중치는 그대로이고 `count` 만 다시 셉니다.
 WEIGHT = [('Common', 70), ('Uncommon', 25), ('Rare', 5), ('Legendary', 0)]
@@ -448,8 +465,8 @@ def seed():
     assert len(RARE) == 20, '레어가 %d종입니다' % len(RARE)
     assert len(LEGENDARY) == 5, '전설이 %d종입니다' % len(LEGENDARY)
     assert len(BASE) == 150, '기본이 %d종입니다' % len(BASE)
-
-    expansion.check()
+    ghost = NO_ETERNAL - {e[0] for e in JOKERS}
+    assert not ghost, 'Eternal 목록에 없는 조커가 있습니다: %s' % sorted(ghost)
 
     ids = [e[0] for e in JOKERS]
     assert len(set(ids)) == len(ids), '식별자가 겹칩니다'
@@ -461,14 +478,14 @@ def seed():
         'Joker(key=joker_id)',
         '조커 한 종입니다. 효과는 `JokerEffect` 에 있고 여기에는 그 종의 성질만 있습니다.',
         ['joker_id', 'rarity', 'cost', 'name', 'art', 'blueprint_ok', 'sort_order',
-         'pool'],
+         'pool', 'eternal_ok'],
         ['string (regex="^[a-z][a-z0-9_]*$")', 'Rarity', 'int (min=1, max=10)',
          'string (text=Joker)', 'string (asset=joker)', 'bool',
-         'int (min=1, max=500)', 'JokerPool'],
+         'int (min=1, max=150)', 'JokerPool', 'bool'],
         ['식별자', '희귀도', '상점에서의 가격', '표시 이름', '그림',
          '복사 조커가 복사할 수 있는가', '수집 목록에서의 순서',
-         '어느 풀에 드는가'],
-        [[e[0], e[3], e[4], e[1], e[0], e[5], i + 1, e[8]]
+         '어느 풀에 드는가', '`Eternal` 이 붙을 수 있는가'],
+        [[e[0], e[3], e[4], e[1], e[0], e[5], i + 1, e[8], e[0] not in NO_ETERNAL]
          for i, e in enumerate(JOKERS)]))
 
     write('JokerRarityWeight', table(

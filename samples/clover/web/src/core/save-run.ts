@@ -9,7 +9,6 @@
 // 넘기므로, 저장이 손상되어도 오류가 나지 않고 다른 판이 하나 생깁니다 — 마지막 상태의
 // 해시를 함께 적어 두고 되살린 뒤에 견줍니다.
 
-import type { PoolChoice } from './pool'
 import type { Action } from './run'
 import type { RunState } from './state'
 
@@ -33,7 +32,6 @@ export interface SavedRun {
   seed: string
   deckId: string
   stake: string
-  pool: PoolChoice
   /** 챌린지 런이면 그 식별자. 없으면 빈 문자열입니다. */
   challengeId: string
   actions: Action[]
@@ -107,7 +105,6 @@ export function loadRun(): SavedRun | undefined {
       seed: found.seed,
       deckId: found.deckId,
       stake: found.stake,
-      pool: found.pool === 'all' ? 'all' : 'base',
       challengeId: typeof found.challengeId === 'string' ? found.challengeId : '',
       actions: found.actions as Action[],
       hash: found.hash,

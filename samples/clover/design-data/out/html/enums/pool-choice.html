@@ -642,7 +642,7 @@ tbody [data-pick] { cursor: pointer; }
 <main class="fill">
 <h1>PoolChoice</h1>
 <p class="lead" id="enum_PoolChoice"><svg class="i"><use href="#i-enum"></use></svg>PoolChoice &middot; 레이블 2개</p>
-<p class="comment">런이 쓰는 조커 풀. <b>필터가 아니라 벽입니다</b> — 「전부」가 없습니다.</p>
+<p class="comment">순위표의 보드가 나뉘는 풀의 축. <b>필터가 아니라 벽입니다</b> — 「전부」가 없습니다.</p>
 <p class="hint">사용하는 컬럼:
 <a href="../tables/leaderboard.html#col_Leaderboard.Pool">Leaderboard.Pool</a>
 </p>
@@ -657,14 +657,15 @@ tbody [data-pick] { cursor: pointer; }
 <td id="const_PoolChoice.Base">Base</td>
 <td class="num"><code>1</code></td>
 
-<td>기본 150종만.</td>
+<td>기본 150종. 지금 열리는 모든 판이 이것입니다.</td>
 </tr>
 <tr>
 <td class="num">2</td>
 <td id="const_PoolChoice.All">All</td>
 <td class="num"><code>2</code></td>
 
-<td>기본과 확장 500종.</td>
+<td>자작 350종을 더한 풀. <b>더는 열리지 않습니다</b> — 그 조커들을 걷었습니다. 그 풀로
+적힌 보드와 제출이 서버에 남아 있어 값을 지우지 않습니다.</td>
 </tr>
 </tbody>
 </table>

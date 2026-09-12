@@ -1,7 +1,7 @@
 // 도감을 끝까지 굴리는 동안 화면이 멀쩡한가.
 //
-// **`check-collection` 은 수를 세고, 이 도구는 굴리는 동안을 봅니다.** 조커 500종을 전부
-// 만나 본 저장으로 열어 조커 탭을 끝까지 굴리면서 셋을 확인합니다.
+// **`check-collection` 은 수를 세고, 이 도구는 굴리는 동안을 봅니다.** 조커 150종을 전부
+// 만나 본 저장으로 열어 조커 탭을 끝까지 굴리면서 확인합니다.
 //
 // |보는 것|왜|
 // |--|--|
@@ -19,7 +19,7 @@ import { fileURLToPath } from 'url'
 import { chromium } from 'playwright'
 import { createServer } from 'vite'
 
-import { clickSpot, pass, peek, pressTitle, skipLogin, spot } from './harness'
+import { pass, peek, pressTitle, skipLogin, spot } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const OUT = path.resolve(HERE, '..', '..', 'design-data', 'out', 'check')
@@ -67,11 +67,15 @@ async function main(): Promise<number> {
     console.log(`  ${ok ? '✓' : '✗'} ${name}${note ? '  —  ' + note : ''}`)
   }
 
-  // **그림 요청을 셉니다.** 판을 열기 전에 나간 것이 있으면 켤 때 격자를 지은 것입니다.
+  // **그림 요청을 셉니다.** 판을 열기 전에 나간 것이 있으면 켤 때 격자를 지은 것이고,
+  // 같은 주소가 두 번 나갔으면 상한에 걸려 놓았다가 다시 푼 것입니다.
   let beforeOpen = 0
   let panelUp = false
+  const askedUrls = new Map<string, number>()
   page.on('request', one => {
-    if (one.url().includes('/art/joker/') && !panelUp) beforeOpen++
+    if (!one.url().includes('/art/joker/')) return
+    if (!panelUp) beforeOpen++
+    askedUrls.set(one.url(), (askedUrls.get(one.url()) ?? 0) + 1)
   })
 
   await page.goto(`http://localhost:${PORT}/?seed=roll`, { waitUntil: 'domcontentloaded' })
@@ -120,11 +124,9 @@ async function main(): Promise<number> {
   check('스켈레톤에서 그림으로 겹쳐 흐릅니다', crossed > 0, `가장 많이 겹친 때 ${crossed}칸`)
   slow = false
   await pass(page, 900)
-  await clickSpot(page, 'collection:range:all')
-  await pass(page, 900)
 
   const opened = (await peek(page)).collection as Census | undefined
-  check('조커 500종이 전부 앞면입니다', opened?.cells === 500 && opened?.found === 500,
+  check('조커 150종이 전부 앞면입니다', opened?.cells === 150 && opened?.found === 150,
         `${opened?.cells}칸 · 앞면 ${opened?.found}`)
   const builtAtStart = opened?.built ?? 0
 
@@ -161,10 +163,17 @@ async function main(): Promise<number> {
   const rolled = -(end.collection?.offset ?? 0)
   const rowsCrossed = Math.floor(rolled / CELL_Y)
   const built = (end.collection?.built ?? 0) - builtAtStart
+  const reread = [...askedUrls.values()].reduce((sum, n) => sum + Math.max(0, n - 1), 0)
   console.log(`  굴린 거리 ${rolled}px · 지난 줄 ${rowsCrossed} · 지은 칸 ${built}`
-    + ` · 그림 ${((end.artBytes ?? 0) / 1024 / 1024).toFixed(1)}MB`)
+    + ` · 그림 ${((end.artBytes ?? 0) / 1024 / 1024).toFixed(1)}MB · 낱장 ${askedUrls.size}`)
 
-  check('끝까지 굴러갔습니다', rowsCrossed >= 20, `${rowsCrossed}줄`)
+  // **놓았다가 다시 푸는 것이 없어야 합니다.** 화면 크기로 풀면 그림 전부가 상한 안에 다
+  // 들어가고, 그러면 굴리는 내내 새 줄의 그림만 풀립니다 — 다시 푸는 것이 있으면 상한에
+  // 걸린 것이고, 그것이 500종이던 때 굴릴수록 무거워지다 앱이 끝나던 원인입니다.
+  check('놓았다가 다시 푼 그림이 없습니다', reread === 0, `${reread}건`)
+
+  // 150칸은 15줄이고 보이는 것이 3줄 남짓이므로 끝까지 가면 11줄을 지납니다.
+  check('끝까지 굴러갔습니다', rowsCrossed >= 10, `${rowsCrossed}줄`)
   check('버려진 그림을 가리키는 스프라이트가 없습니다', worstDead === 0,
         worstDead > 0 ? `${worstDead}개 · ${firstDeadAt}걸음에서 처음` : '')
   check('프레임이 던지지 않습니다', frameErrors.length === 0 && (end.errors?.length ?? 0) === 0,

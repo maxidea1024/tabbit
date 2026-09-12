@@ -10,7 +10,6 @@
 // 진동을 켜고 끄는 자리는 옵션이 아니라 장식입니다.
 
 import { COLOR, PAINT } from '../render/ink'
-import type { PoolChoice } from '../core/pool'
 import { Container, Graphics, Rectangle, Sprite, Text } from 'pixi.js'
 import { coarsePointer } from '../shader/device'
 
@@ -149,13 +148,6 @@ export interface Options {
    */
   cardSet: string
   /**
-   * 어느 조커 풀로 하는가.
-   *
-   * **기본이 `base` 입니다.** 켜진 채로 시작하면 원작을 기대한 사람이 모를 조커를
-   * 만나게 되고, 굽어 둔 리플레이와도 어긋납니다.
-   */
-  pool: PoolChoice
-  /**
    * 판의 겉면. `UI_THEMES` 의 이름입니다.
    *
    * **겉모습이므로 도는 판의 규칙에 닿지 않습니다.** 고른 그 자리에서 갈아입습니다.
@@ -191,7 +183,7 @@ export function defaultOptions(): Options {
     shake: true, particles: true, chromatic: true, hints: true, haptics: true,
     transition: 'auto',
     graphics: 'auto',
-    language: '', deck: 'red_deck', stake: 'White', cardSet: 'classic', pool: 'base',
+    language: '', deck: 'red_deck', stake: 'White', cardSet: 'classic',
     uiTheme: 'slate',
   }
 }
@@ -269,7 +261,6 @@ export function loadOptions(): Options {
       // 판의 값이 그러합니다.
       if (key === 'language' && value !== ''
           && !LANGUAGES.includes(value as Language)) continue
-      if (key === 'pool' && value !== 'base' && value !== 'all') continue
       // **참·거짓이던 값은 여기서 걸러집니다.** 위의 타입 검사가 참·거짓을 글과 다른
       // 것으로 보므로, 예전 판에서 저장된 값은 통째로 버려지고 `auto` 로 돌아옵니다 —
       // 그것이 이 바꿈의 되돌리기이기도 합니다.

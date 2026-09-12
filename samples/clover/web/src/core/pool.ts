@@ -1,11 +1,12 @@
 // 조커 풀.
 //
 // 조커를 뽑는 자리가 4곳입니다 — 상점의 카드 칸 · 광대 팩 · 태그가 남긴 선물 ·
-// `CreateCard`. **전부 이 함수를 지납니다.** 같은 `filter` 를 네 번 적으면 풀을 하나
-// 늘릴 때 한 곳을 빼먹고, 그러면 어떤 경로로만 확장 조커가 나옵니다.
+// `CreateCard`. **전부 이 함수를 지납니다.** 같은 `filter` 를 네 번 적으면 금지 목록을
+// 고칠 때 한 곳을 빼먹고, 그러면 어떤 경로로만 금지된 조커가 나옵니다.
 //
-// 런이 어느 풀을 쓰는지는 `RunState.pools` 에 있고 시작할 때 정해집니다. 기본값은
-// `Base` 하나이므로, **아무것도 넘기지 않으면 구워 둔 리플레이가 그대로 유효합니다.**
+// 런이 어느 풀을 쓰는지는 `RunState.pools` 에 있고 시작할 때 정해집니다. **풀은 `Base`
+// 하나입니다** — 자작 350종의 풀을 두었다가 걷었고, 순위표의 보드와 서버의 판정이 이 축을
+// 지나므로 열과 함수는 남겨 둡니다.
 
 import type { Data } from './data'
 import type { RunState } from './state'
@@ -45,25 +46,17 @@ export function jokerPool(data: Data, state: RunState, rarity?: Rarity): JokerRe
 const POOL_CACHE = new WeakMap<Data, Map<string, JokerRecord[]>>()
 
 /**
- * 사람이 고르는 것. 옵션에 이 값이 적혀 다음 판에 쓰입니다.
+ * 순위표의 보드가 나뉘는 풀의 축. **서버가 제출과 보드를 이 값으로 가릅니다.**
  *
- * **풀의 목록이 아니라 둘 중 하나입니다.** 확장만 켜고 기본을 끄는 조합은 둔
- * 이유가 없습니다 — 기본 150종이 원작 대조본이고 그것이 한 토대이기 때문입니다.
+ * 화면에서 고르는 자리는 없습니다 — 새로 열리는 판은 전부 `base` 입니다. `all` 은 자작
+ * 350종을 더한 풀이었고 그 조커들을 걷었습니다. 값이 남아 있는 것은 그 풀로 적힌 보드와
+ * 제출이 서버에 있기 때문이고, 서버의 판정이 그것을 다시 돌릴 때 이 함수를 지납니다.
  */
 export type PoolChoice = 'base' | 'all'
 
-export function poolsOf(choice: PoolChoice): JokerPool[] {
-  return choice === 'all' ? [JokerPool.Base, JokerPool.Greenhouse] : [JokerPool.Base]
-}
-
-/**
- * 이 판이 어느 갈래로 열렸는가.
- *
- * **옵션이 아니라 판을 읽습니다.** 옵션은 판이 도는 동안에도 바뀌고, 바뀐 값으로 적어 둔
- * 판은 다른 풀로 되살아납니다 — 상점에 다른 조커가 서므로 그때부터 다른 판입니다.
- */
-export function choiceOf(pools: JokerPool[]): PoolChoice {
-  return pools.includes(JokerPool.Greenhouse) ? 'all' : 'base'
+/** 그 축의 값이 가리키는 풀. **어느 값이든 `Base` 입니다** — 남은 풀이 그것 하나입니다. */
+export function poolsOf(_choice: PoolChoice): JokerPool[] {
+  return [JokerPool.Base]
 }
 
 /**

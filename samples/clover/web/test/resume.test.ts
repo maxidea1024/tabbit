@@ -14,7 +14,7 @@ import type { Data } from '../src/core/data'
 import { loadFromDisk } from '../src/core/load-node'
 import { JokerPool } from '../src/generated/enums/joker-pool'
 import { canonical, snapshotHash } from '../src/core/hash'
-import { choiceOf, poolsOf } from '../src/core/pool'
+import { poolsOf } from '../src/core/pool'
 import { apply, newRun, type Action } from '../src/core/run'
 import type { RunState } from '../src/core/state'
 
@@ -155,13 +155,14 @@ describe('조커의 자리가 점수를 바꿉니다', () => {
   })
 })
 
-describe('판의 설정은 판에서 읽습니다', () => {
-  it('풀의 갈래가 오갑니다', () => {
-    expect(choiceOf(poolsOf('base'))).toBe('base')
-    expect(choiceOf(poolsOf('all'))).toBe('all')
-    // **옵션이 아니라 판을 읽습니다.** 판이 도는 동안 옵션이 바뀌어도 저장은 그대로여야
-    // 합니다 — 다른 풀로 되살아난 판은 상점부터 다릅니다.
+describe('풀의 축', () => {
+  // **어느 값이든 `Base` 입니다.** `all` 은 자작 350종을 더한 풀이었고 그 조커들을 걷었습니다 —
+  // 값이 남은 것은 순위표의 보드와 제출이 그 축을 쓰기 때문이고, 서버의 판정이 예전 제출을
+  // 다시 돌릴 때 이 함수를 지납니다. 그때도 지금 있는 풀 하나로 돕니다.
+  it('`base` 도 `all` 도 기본 150종입니다', () => {
+    expect(poolsOf('base')).toEqual([JokerPool.Base])
+    expect(poolsOf('all')).toEqual([JokerPool.Base])
     const state = newRun(data, 'CLOVER-0001', 'red_deck', 'White', poolsOf('all'), '').state
-    expect(choiceOf(state.pools)).toBe('all')
+    expect(state.pools).toEqual([JokerPool.Base])
   })
 })

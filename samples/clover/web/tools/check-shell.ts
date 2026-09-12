@@ -18,8 +18,6 @@ import { peek, pressTitle, skipLogin } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const PORT = 5213
-/** `art.ts` 의 상한과 같은 값입니다. */
-const BUDGET = 96 * 1024 * 1024
 
 let failed = false
 
@@ -98,10 +96,23 @@ async function main(): Promise<void> {
     await page.waitForTimeout(70)
   }
   await page.waitForTimeout(1500)
-  const bytes = await page.evaluate(() =>
-    (window as { __clover?: { artBytes?: number } }).__clover?.artBytes ?? -1)
-  ok('그림이 상한 안입니다', bytes >= 0 && bytes <= BUDGET,
-     `${(bytes / 1024 / 1024).toFixed(1)}MB / ${BUDGET / 1024 / 1024}MB`)
+  // **상한은 화면이 알립니다.** 도구에 수로 적어 두면 기계마다 다른 상한을 고친 날부터
+  // 어긋납니다.
+  const art = await page.evaluate(() => {
+    const seen = (window as { __clover?: {
+      artBytes?: number; artBudget?: number; artDecodeHeight?: number; artTallest?: number
+    } }).__clover
+    return {
+      bytes: seen?.artBytes ?? -1, budget: seen?.artBudget ?? 0,
+      ceiling: seen?.artDecodeHeight ?? 0, tallest: seen?.artTallest ?? 0,
+    }
+  })
+  ok('그림이 상한 안입니다', art.bytes >= 0 && art.bytes <= art.budget,
+     `${(art.bytes / 1024 / 1024).toFixed(1)}MB / ${art.budget / 1024 / 1024}MB`)
+  // **화면 크기로 풀렸는가.** 파일은 480 이나 960 인데 GPU 에 그 크기로 올라가면 상한이
+  // 아무리 커도 조커 탭에서 넘칩니다.
+  ok('그림을 화면 크기로 풀었습니다', art.tallest > 0 && art.tallest <= art.ceiling,
+     `가장 높은 것 ${art.tallest} / 상한 ${art.ceiling}`)
 
   ok('오류가 없습니다', errors.length === 0, errors.join(' · '))
 

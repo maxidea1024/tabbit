@@ -308,7 +308,7 @@ localStorage.setItem('clover.collection', JSON.stringify({ planet: [...ids] }))
 |이 규격|**39 ~ 66KB**|
 |이전 화풍(평평한 스크린프린트)|17 ~ 28KB|
 
-**96MB 상한과는 무관합니다.** [`render/art.ts`](../web/src/render/art.ts) 의 `BUDGET` 은
+**그림 상한과는 무관합니다.** [`render/art.ts`](../web/src/render/art.ts) 의 `BUDGET` 은
 GPU 텍스처 예산이고 픽셀마다 4바이트이므로, 640×960 이면 화풍과 무관하게 2.4MB 입니다.
 늘어나는 것은 배포 용량입니다.
 

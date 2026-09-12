@@ -11,7 +11,7 @@
 |워크북|테이블|행 수 대략|
 |--|--|--|
 |`Cards.xlsx`|`Rank` · `Suit` · `BaseDeckCard` · `PokerHand` · `Enhancement` · `EnhancementEffect` · `Seal` · `SealEffect` · `Edition`|13 · 4 · 52 · 12 · 9 · 12 · 5 · 4 · 5|
-|`Jokers.xlsx`|`Joker` · `JokerRarityWeight` · `JokerEffect`|**500** · 4 · **588**|
+|`Jokers.xlsx`|`Joker` · `JokerRarityWeight` · `JokerEffect`|**150** · 4 · **178**|
 |`Consumables.xlsx`|`Tarot` · `TarotEffect` · `Planet` · `Spectral` · `SpectralEffect`|22 · 22 · 12 · 18 · 27|
 |`Progression.xlsx`|`Ante` · `Blind` · `BossBlind` · `BossEffect`|9 · 3 · 28 · 26|
 |`Shop.xlsx`|`ShopSlotWeight` · `BoosterPack` · `Voucher` · `VoucherEffect` · `RerollCost`|5 · 15 · 32 · 34 · 10|

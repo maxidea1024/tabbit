@@ -11,7 +11,6 @@
 
 import { Application, Container, Sprite, Text, Texture } from 'pixi.js'
 
-import { JokerPool } from './generated/enums/joker-pool'
 import { loadFromUrl } from './core/load'
 import { loadArtIndex, onArtReady } from './render/art'
 import { BackgroundFilter } from './shader/background'
@@ -23,11 +22,10 @@ const COLUMNS = 10
 const ROWS = 4
 const PER_PAGE = COLUMNS * ROWS
 
-/** 어느 풀의 몇 쪽째를 보는가. 주소에서 받습니다 — `?page=3&pool=greenhouse`. */
+/** 몇 쪽째를 보는가. 주소에서 받습니다 — `?page=3`. */
 function options() {
   const query = new URLSearchParams(location.search)
-  const pool = (query.get('pool') ?? 'all').toLowerCase()
-  return { page: Math.max(1, Number(query.get('page') ?? 1)), pool }
+  return { page: Math.max(1, Number(query.get('page') ?? 1)) }
 }
 
 async function main(): Promise<void> {
@@ -54,17 +52,14 @@ async function main(): Promise<void> {
   const world = new Container()
   app.stage.addChild(world)
 
-  const { page, pool } = options()
-  const all = data.tables.joker.records.filter(row =>
-    pool === 'all'
-    || (pool === 'base' && row.pool === JokerPool.Base)
-    || (pool === 'greenhouse' && row.pool === JokerPool.Greenhouse))
+  const { page } = options()
+  const all = data.tables.joker.records
   const pages = Math.max(1, Math.ceil(all.length / PER_PAGE))
   const at = Math.min(page, pages)
   const rows = all.slice((at - 1) * PER_PAGE, at * PER_PAGE)
 
   const heading = new Text({
-    text: `조커 ${all.length}종 · ${at} / ${pages} 쪽 · 풀 ${pool}`
+    text: `조커 ${all.length}종 · ${at} / ${pages} 쪽`
       + `   ·   그림이 있는 것 ${have}개`,
     style: { fontSize: 18, fill: UI.ink, fontWeight: '800' },
   })

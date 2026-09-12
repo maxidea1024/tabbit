@@ -91,19 +91,10 @@ describe('챌린지', () => {
     }
   })
 
-  // **챌린지는 조커 150종으로 돕니다.** 원작의 금지 목록이 그 150종을 상대로 쓰였으므로,
-  // 확장이 켜지면 금지가 걸린 채로 금지가 무효가 됩니다.
-  it('확장을 켜도 챌린지의 풀은 기본 150종입니다', () => {
-    const run = newRun(data, 'CLOVER-0001', 'red_deck', 'White',
-                       [JokerPool.Base, JokerPool.Greenhouse], 'evergreen')
+  // **챌린지는 `Base` 로 돕니다.** 원작의 금지 목록이 그 150종을 상대로 쓰였습니다.
+  it('챌린지의 풀은 기본 150종입니다', () => {
+    const run = newRun(data, 'CLOVER-0001', 'red_deck', 'White', undefined, 'evergreen')
     expect(run.state.pools).toEqual([JokerPool.Base])
-  })
-
-  it('챌린지가 아닌 런은 풀을 그대로 씁니다', () => {
-    const run = newRun(data, 'CLOVER-0001', 'red_deck', 'White',
-                       [JokerPool.Base, JokerPool.Greenhouse])
-    expect(run.state.pools).toEqual([JokerPool.Base, JokerPool.Greenhouse])
-    expect(run.state.challengeId).toBe('')
   })
 
   // **이것이 회귀의 판정 기준입니다.** 챌린지는 런 설정이고 해시에 들어가지 않으므로,
@@ -265,11 +256,10 @@ describe('챌린지', () => {
     })
 
     it('`Eternal` 이 붙지 않는 조커에는 `AllJokersEternal` 도 걸리지 않습니다', () => {
+      // `evergreen` 이 금지하는 11종과 같은 목록입니다 — 스스로 없어지거나 팔려야 뜻이 있는
+      // 조커들이고, 생성기의 `NO_ETERNAL` 이 그 열을 냅니다.
       const cannot = data.tables.joker.records.filter(row => !row.eternalOk)
-      expect(cannot.length).toBe(17)
-      // `evergreen` 은 그중 기본 11종을 금지하고, 확장 6종은 풀에 없으므로 만나지 않습니다.
-      const base = cannot.filter(row => row.pool === JokerPool.Base)
-      expect(base).toHaveLength(11)
+      expect(cannot).toHaveLength(11)
     })
   })
 

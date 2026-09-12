@@ -19,7 +19,6 @@ import { Container, Graphics, Rectangle, Sprite, Text, type Renderer } from 'pix
 import type { Data } from '../core/data'
 import { seen, type CollectionGroup, type CollectionProgress } from '../core/collection'
 import { describe, handDisplay } from '../core/describe'
-import { poolsOf, type PoolChoice } from '../core/pool'
 import { nameOf, t, tf } from '../core/strings'
 import { stakeSlug } from '../core/stake'
 import { newCounters, type JokerInstance } from '../core/state'
@@ -193,7 +192,7 @@ const TABS: { key: TabKey; label: string }[] = [
   { key: 'deck', label: 'ui.kind.deck' },
 ]
 
-/** 칸 하나. **얼굴은 그릴 때 만듭니다** — 500장을 미리 만들면 판을 여는 데 그만큼 걸립니다. */
+/** 칸 하나. **얼굴은 그릴 때 만듭니다** — 150장을 미리 만들면 판을 여는 데 그만큼 걸립니다. */
 interface Cell {
   group: CollectionGroup
   id: string
@@ -202,7 +201,7 @@ interface Cell {
   /**
    * 설명 줄. **읽는 순간에 만듭니다.**
    *
-   * 읽는 곳이 쪽지 하나뿐인데 미리 만들면 조커 탭 하나에 `describe()` 가 500번이고, 그
+   * 읽는 곳이 쪽지 하나뿐인데 미리 만들면 조커 탭 하나에 `describe()` 가 150번이고, 그
    * 가운데 사람이 보는 것은 가리킨 한 칸뿐입니다. `face` 와 같은 규약입니다.
    */
   lines: () => string[]
@@ -265,7 +264,6 @@ export class CollectionPanel implements ModalPanel {
   })
 
   private readonly tabButtons: { key: TabKey; button: Button; label: string }[] = []
-  private readonly rangeButtons: { choice: PoolChoice; button: Button; key: string }[] = []
   private readonly sortButtons: { key: SortKey; button: Button; label: string }[] = []
   private order?: Button
   private frame?: Container
@@ -294,8 +292,6 @@ export class CollectionPanel implements ModalPanel {
   private stale = false
   private sort: SortKey = 'order'
   private ascending = true
-  /** 조커 탭에서 무엇까지 보는가. **옵션을 바꾸지 않습니다** — 보는 범위일 뿐입니다. */
-  private range: PoolChoice
   /** 다음에 세울 때 다시 지어야 하는가. 그림이 들어오면 켜집니다. */
   /** 그림이 도착한 칸의 식별자. **한 프레임에 모아서 처리합니다.** */
   private readonly artWaiting = new Set<string>()
@@ -359,10 +355,8 @@ export class CollectionPanel implements ModalPanel {
 
   constructor(private readonly data: Data,
               private progress: CollectionProgress,
-              range: PoolChoice,
               private readonly onClose: () => void,
               private readonly oven: CellOven) {
-    this.range = range
     this.build()
     this.rebuild()
 
@@ -439,32 +433,20 @@ export class CollectionPanel implements ModalPanel {
       this.body.addChild(button)
     }
 
-    // 조커 탭의 보는 범위. **고르는 것이 아니라 보는 것입니다** — 다음 판의 풀은 판을
-    // 여는 자리에서 고릅니다.
-    const rw = 150
-    for (const [index, choice] of (['base', 'all'] as PoolChoice[]).entries()) {
-      const key = choice === 'all' ? 'ui.pool.all' : 'ui.pool.base'
-      const button = new Button(t(key), rw, HEAD_H, 'neutral',
-                                () => this.setRange(choice), 15)
-      button.position.set(GRID_X + index * (rw + 10), HEAD_Y)
-      this.rangeButtons.push({ choice, button, key })
-      this.toolNodes.set(`range:${choice}`,
-                         { node: button, cx: rw / 2, cy: HEAD_H / 2 })
-      this.body.addChild(button)
-    }
-
-    // 줄 세우기. **조커 탭에만 놓입니다** — 500종이면 눈으로 훑어서는 찾지 못합니다.
+    // 줄 세우기. **조커 탭에만 놓입니다** — 150종이면 눈으로 훑어서는 찾지 못합니다.
+    // 왼쳴에 「기본 / 확장」 단추 둘이 있었고, 자작 350종을 걷으면서 함께 걷었습니다 —
+    // 줄 세우기는 그 자리에서 왼쪽으로 옮겨 격자의 왼변에 맞춥니다.
     const sw = 70
     for (const [index, one] of SORTS.entries()) {
       const button = new Button(t(one.label), sw, HEAD_H, 'neutral',
                                 () => this.sortBy(one.key), 14)
-      button.position.set(480 + index * (sw + 6), HEAD_Y)
+      button.position.set(GRID_X + index * (sw + 6), HEAD_Y)
       this.sortButtons.push({ key: one.key, button, label: one.label })
       this.toolNodes.set(`sort:${one.key}`, { node: button, cx: sw / 2, cy: HEAD_H / 2 })
       this.body.addChild(button)
     }
     this.order = new Button('', 40, HEAD_H, 'neutral', () => this.flip(), 18)
-    this.order.position.set(790, HEAD_Y)
+    this.order.position.set(GRID_X + SORTS.length * (sw + 6), HEAD_Y)
     this.toolNodes.set('order', { node: this.order, cx: 20, cy: HEAD_H / 2 })
     this.body.addChild(this.order)
 
@@ -491,13 +473,6 @@ export class CollectionPanel implements ModalPanel {
     this.rebuild()
   }
 
-  private setRange(choice: PoolChoice): void {
-    if (this.range === choice) return
-    this.range = choice
-    this.cellsCache = undefined
-    this.rebuild()
-  }
-
   private sortBy(key: SortKey): void {
     if (this.sort === key) {
       this.flip()
@@ -520,11 +495,11 @@ export class CollectionPanel implements ModalPanel {
   /**
    * 지금 탭의 칸들.
    *
-   * **세워 둔 것을 다시 씁니다.** 쪽을 넘길 때마다 500행을 거르고 정렬하면, 이름 정렬은
+   * **세워 둔 것을 다시 씁니다.** 쪽을 넘길 때마다 150행을 정렬하면, 이름 정렬은
    * 비교마다 글 표를 읽습니다.
    */
   private cells(): Cell[] {
-    const key = `${this.tab}|${this.range}|${this.sort}|${this.ascending}`
+    const key = `${this.tab}|${this.sort}|${this.ascending}`
     if (this.cellsCache?.key === key) return this.cellsCache.cells
     const cells = this.buildCells()
     this.cellsCache = { key, cells }
@@ -546,11 +521,10 @@ export class CollectionPanel implements ModalPanel {
   }
 
   private jokerCells(): Cell[] {
-    const pools = poolsOf(this.range)
-    const rows = this.data.tables.joker.records.filter(row => pools.includes(row.pool))
+    const rows = this.data.tables.joker.records
 
-    // **이름을 한 번만 뽑습니다.** 비교 안에서 부르면 500행 정렬에 비교가 4,500번이고
-    // 이름 조회가 그 두 배입니다 — 뽑아 두면 500번입니다. 아래의 칸도 이 이름을 씁니다.
+    // **이름을 한 번만 뽑습니다.** 비교 안에서 부르면 150행 정렬에 비교가 1,000번 남짓이고
+    // 이름 조회가 그 두 배입니다 — 뽑아 두면 150번입니다. 아래의 칸도 이 이름을 씁니다.
     const sorted = rows.map(row => ({
       row, name: nameOf(this.data, 'joker', row.jokerId, row.name),
     }))
@@ -889,13 +863,6 @@ export class CollectionPanel implements ModalPanel {
     // 조커 탭에만 서는 것들. **다른 탭에서는 자리째 비웁니다** — 눌리지 않는 단추가 서
     // 있으면 그 탭에서 무엇을 할 수 있는지가 흐려집니다.
     const jokers = this.tab === 'joker'
-    for (const one of this.rangeButtons) {
-      one.button.text = t(one.key)
-      one.button.visible = jokers
-      const on = one.choice === this.range
-      one.button.highlight = on
-      one.button.alpha = on ? 1 : 0.55
-    }
     for (const one of this.sortButtons) {
       one.button.text = t(one.label)
       one.button.visible = jokers
@@ -933,8 +900,8 @@ export class CollectionPanel implements ModalPanel {
   /**
    * 지금 보이는 줄을 짓습니다.
    *
-   * **보이는 만큼만 짓습니다.** 확장까지 켠 조커 탭이 500칸이고, 그것을 한꺼번에 지으면
-   * 탭을 누른 그 프레임에 카드 500장을 만들게 됩니다 — 화면에 서는 것은 30장 남짓입니다.
+   * **보이는 만큼만 짓습니다.** 조커 탭이 150칸이고, 그것을 한꺼번에 지으면 탭을 누른 그
+   * 프레임에 카드 150장을 만들게 됩니다 — 화면에 서는 것은 30장 남짓입니다.
    *
    * **바뀐 줄만 짓습니다.** 범위가 한 줄 내려가면 위의 한 줄을 치우고 아래의 한 줄을
    * 짓습니다 — 사이의 넉 줄은 그대로입니다.

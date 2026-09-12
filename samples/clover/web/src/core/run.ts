@@ -162,8 +162,8 @@ export function tagFor(state: RunState, blind: BlindKind): string | undefined {
 export function newRun(data: Data, seed: string, deckId: string, stake: string,
                        pools: JokerPool[] = [JokerPool.Base],
                        challengeId = ''): Step {
-  // **챌린지는 조커 150종으로 돕니다.** 원작의 금지 목록이 그 150종을 상대로 쓰였으므로,
-  // 확장 350종이 켜지면 금지가 걸린 채로 금지의 뜻이 없어집니다.
+  // **챌린지는 `Base` 로 돕니다.** 원작의 금지 목록이 그 150종을 상대로 쓰였습니다 — 지금은
+  // 풀이 그것 하나라 같은 값이지만, 다른 풀이 다시 생기는 날에도 챌린지는 여기서 고정입니다.
   if (challengeId !== '') pools = [JokerPool.Base]
 
   const rng: Record<string, Pcg32> = {}

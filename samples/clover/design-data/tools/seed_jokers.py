@@ -17,7 +17,7 @@
 |`JokerEffect`|같음|
 |`StringTable`|**통째로 쓰지 않습니다.** `joker.*.name` 행만 갈아 끼우고 나머지 행과 컬럼은 그대로 둡니다|
 
-`StringTable` 의 언어는 `ko` 와 `en` 만 채웁니다. 나머지는 비웁니다 — 검증이 요구하는 것이
+새 조커의 언어는 `ko` 와 `en` 만 채웁니다. 나머지는 비웁니다 — 검증이 요구하는 것이
 그 둘이고, **번역되지 않은 것은 번역되지 않은 것으로 남아야** 나중에 무엇을 채워야 하는지
 알 수 있습니다.
 """
@@ -34,7 +34,6 @@ if hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 
 from seedlib import jokers  # noqa: E402
-from seedlib.exp_names import NAMES  # noqa: E402
 
 STRINGS = os.path.join(DESIGN, 'data', 'StringTable.tsv')
 PREFIX = '\tjoker.'
@@ -56,15 +55,10 @@ def rewrite_strings():
     fresh = []
     for entry in jokers.JOKERS:
         key = 'joker.%s.name' % entry[0]
-        rest = NAMES.get(entry[0], ())
-
-        # 있던 행을 바탕으로 하되 **`exp_names.py` 에 있는 것은 그쪽이 정본입니다.**
-        # 확장 350종의 4개 말은 거기서 관리하므로 여기서 덮어씁니다 — 기본 150종은
-        # 목록에 없으므로 시트의 번역이 그대로 남습니다.
+        # **있던 행이 정본입니다.** 시트의 번역이 그대로 남고, 새 조커만 한국어와 영어로
+        # 들어옵니다. 목록에서 빠진 조커의 행은 여기서 함께 빠집니다.
         cells = list(keep[key]) if key in keep else [key, entry[1], entry[2]]
         cells += [''] * (width - len(cells))
-        for at, value in enumerate(rest):
-            cells[at + 3] = value
         fresh.append('	' + '	'.join(cells[:width]))
 
     added = len(fresh) - len(keep)
