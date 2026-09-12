@@ -26,6 +26,16 @@ import { isConsumable } from './tables'
 import { newest } from './helpers'
 import { type LookTick } from './types'
 import { type Game } from './game'
+/**
+ * 소모품 한 장이 지금 얼마나 기울어 있는가. 라디안입니다.
+ *
+ * **만드는 자리와 옮기는 자리가 같은 식을 씁니다.** 둘이 갈리면 새로 만든 칸이 한 프레임
+ * 동안 다른 기울기로 놓입니다.
+ */
+function itemTilt(uid: number, clock: number): number {
+  return sway(clock, uid * 1.7, 1.1, 1.1) * (Math.PI / 180)
+}
+
 export class TrayPart {
   constructor(private readonly game: Game) {}
 
@@ -453,7 +463,10 @@ export class TrayPart {
     }
 
     const gap = 8
-    const span = buttons.reduce((sum, one) => sum + one.width, 0) + gap * (buttons.length - 1)
+    // **얼굴의 넓이로 셉니다.** `width` 에는 그림자 여백이 들어 있어서, 그것으로 세면 줄이
+    // 여백만큼 넓어지고 가운데가 왼쪽으로 밀립니다 — 상점의 「산다」가 물건의 왼쪽에
+    // 비켜서 있던 것이 그것입니다.
+    const span = buttons.reduce((sum, one) => sum + one.boxW, 0) + gap * (buttons.length - 1)
     // **화면 안으로 당깁니다.** 고른 것이 자기 줄의 끝에 놓여 있으면 그 아래에 가운데를
     // 맞춘 단추 줄이 화면 밖으로 나갑니다 — 소모품 줄은 화면 오른쪽에 붙어 있어서
     // 마지막 칸의 「쓴다 · 판다」가 30픽셀쯤 잘렸습니다.
@@ -465,13 +478,13 @@ export class TrayPart {
     // **첫 단추의 자리를 알립니다.** 이제 사는 것도 집는 것도 두 번 눌러야 하므로, 도구가
     // 두 번째 누를 자리를 알아야 합니다 — 계산을 도구가 베껴 적으면 배치를 고칠 때
     // 한쪽만 고쳐지고 그 도구는 엉뚱한 곳을 눌러 놓고 아무 말도 하지 않습니다.
-    this.game.spots.held = { x: x + (buttons[0]?.width ?? 0) / 2, y: baseline + height / 2 }
+    this.game.spots.held = { x: x + (buttons[0]?.boxW ?? 0) / 2, y: baseline + height / 2 }
     // **단추 줄이 화면 안에 있는지는 이 사각형으로만 확인됩니다.** 첫 단추의 가운데만
     // 알리면 줄이 얼마나 긴지 알 수 없고, 잘린 것은 줄의 오른쪽 끝입니다.
     this.heldBox = box(x, baseline, span, height)
     for (const button of buttons) {
       button.position.set(x, baseline)
-      x += button.width + gap
+      x += button.boxW + gap
       this.game.chrome.heldBar.addChild(button)
     }
   }
@@ -615,7 +628,7 @@ export class TrayPart {
       const phase = one.uid * 1.7
       const face = one.tile.children[0]
       if (face) {
-        face.rotation = sway(this.game.clock, phase, 1.1, 1.1) * (Math.PI / 180)
+        face.rotation = itemTilt(one.uid, this.game.clock)
         // **얼굴만 키웁니다.** 칸의 자리는 줄 밖의 여럿이 읽으므로(`spotOf` · `itemSpot` ·
         // 태우기) 칸을 키우면 그 값들의 뜻이 함께 바뀝니다.
         face.scale.set(grow.value)
@@ -704,6 +717,10 @@ export class TrayPart {
       // (`spotOf` · `placeArriving` · 태우기) 축을 옮기면 그 값들의 뜻이 함께 바뀝니다.
       face.pivot.set(SIZE.jokerWidth / 2, SIZE.jokerHeight / 2)
       face.position.set(SIZE.jokerWidth / 2, SIZE.jokerHeight / 2)
+      // **만들 때 이미 기울여 둡니다.** 이 줄은 득점이 도는 동안 `refresh` 마다 새로
+      // 만들어지는데, 새 얼굴의 기울기가 0 이면 다음 틱까지 한 프레임 동안 줄이 반듯하게
+      // 펴집니다 — 판이 끝날 때마다 소모품이 한 번씩 움찔하던 것이 그것입니다.
+      face.rotation = itemTilt(item.uid, this.game.clock)
 
       tile.addChild(face)
       tile.hitArea = new Rectangle(0, 0, SIZE.jokerWidth, SIZE.jokerHeight)

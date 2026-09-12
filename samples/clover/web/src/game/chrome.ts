@@ -16,7 +16,10 @@ import {
 import { boxInk } from './helpers'
 import { type Game } from './game'
 export class ChromePart {
-  constructor(private readonly game: Game) {}
+  constructor(private readonly game: Game) {
+    // 소지금은 값 앞에 `$` 가 붙습니다. 정산의 동전과 상점의 값이 같은 표기입니다.
+    this.money.prefix = '$'
+  }
 
   /** 고른 것 밑에 서는 버튼들. */
   readonly heldBar = new Container()
@@ -132,7 +135,8 @@ export class ChromePart {
    *
    * `-1` 은 아직 아무것도 보여 주지 않았다는 뜻이고, 그때는 차이를 적지 않습니다.
    */
-  panelShown = { hands: -1, discards: -1, ante: -1 }
+  panelShown: { hands: number; discards: number; ante: number; phase: string } =
+    { hands: -1, discards: -1, ante: -1, phase: '' }
 
   readonly hands = new Slot(t('ui.slot.hands'), CELL_SLOT_W, CELL_SLOT_H, UI.good)
 

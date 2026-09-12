@@ -82,6 +82,22 @@ export function piece(name: ChromeName, width: number, height: number, tint?: nu
 }
 
 /**
+ * 있는 부품의 크기를 고칩니다.
+ *
+ * **부품은 한 번 만들고 고쳐 씁니다.** 상태가 바뀔 때마다 새로 만들면 새 그림의 자리가
+ * 다음 프레임까지 정해지지 않아, 그 사이에 들어온 누름이 그 단추를 맞히지 못합니다 —
+ * 가리키는 순간 단추가 새로 만들어지고 곧바로 누른 것이 빈자리 누름으로 처리되어 고른
+ * 것을 놓았습니다.
+ */
+export function refit(sprite: NineSliceSprite, name: ChromeName, width: number, height: number): void {
+  const cut: Slice = ATLAS[name]
+  const pad = cut.pad
+  sprite.width = (width + pad * 2) / BAKE_SCALE
+  sprite.height = (height + pad * 2) / BAKE_SCALE
+  sprite.position.set(-pad, -pad)
+}
+
+/**
  * 그 높이에 해당하는 단추의 칸.
  *
  * **계단 넷뿐입니다** — 36 · 48 · 60 · 72. 그 사이 값이 들어오면 가장 가까운 칸으로

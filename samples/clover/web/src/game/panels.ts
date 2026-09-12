@@ -18,6 +18,7 @@ import { cardArtDir, cardPaper, drawsIndex, suitInk } from '../render/card-set'
 import { MINI_RANK, SUIT_PIP } from '../render/faces'
 import { cardArtId, drawFace } from '../render/pips'
 import { SIZE, TEXT, UI, WEIGHT } from '../render/theme'
+import { NUMERALS } from '../ui/font'
 import { Button } from '../ui/widgets'
 import { Guide } from '../ui/guide'
 import { CollectionPanel } from '../ui/collection'
@@ -29,11 +30,22 @@ import { ScrollView } from '../ui/scroll'
 import { richBlock, richLeading, richLine, richStyle } from '../ui/rich'
 import { OptionsPanel } from '../ui/options'
 import {
-  LEFT, MENU_PAD, PANEL_ROWS, PANEL_W, IN_X, IN_W,
+  MENU_PAD, PANEL_ROWS, IN_X, IN_W,
 } from './metrics'
 import { blindName, HAND_SHAPE, INSIGHT_COLOR, ruleValue, snake } from './tables'
 import { type RunInfoTab } from './types'
 import { type Game } from './game'
+
+/** 「적용 중」 목록의 한 줄. `delta` 가 있으면 값이 수이고 크게 놓입니다. */
+interface ActiveEntry {
+  label: string
+  value: string
+  delta?: string
+  lines: string[]
+}
+
+/** 「적용 중」 목록의 줄 높이. 머리글(12)과 첫 줄 사이가 22 이고, 그다음은 이 간격입니다. */
+const ACTIVE_ROW_H = 34
 export class PanelsPart {
   constructor(private readonly game: Game) {}
 
@@ -842,8 +854,8 @@ export class PanelsPart {
    * 것이 요점입니다: 손패가 11장인 이유는 조커일 수도 덱일 수도 바우처일 수도 있고,
    * 그것들을 하나씩 눌러 보게 할 수는 없습니다.
    */
-  private activeEntries(): { label: string; value: string; lines: string[] }[] {
-    const out: { label: string; value: string; lines: string[] }[] = []
+  private activeEntries(): ActiveEntry[] {
+    const out: ActiveEntry[] = []
 
     for (const tag of this.game.state.tagsPending) {
       out.push({
@@ -874,9 +886,12 @@ export class PanelsPart {
       }
       if (typeof was !== 'number' || typeof is !== 'number') continue
       const delta = is - was
+      // **값과 오르내림을 갈라 둡니다.** 값은 크게 흰 글로, 오르내림은 작게 파랑으로 —
+      // 한 글로 붙이면 한 크기 한 색이 됩니다.
       out.push({
         label: this.ruleName(key),
-        value: `${ruleValue(key, is)}   (${delta > 0 ? '+' : ''}${ruleValue(key, delta)})`,
+        value: ruleValue(key, is),
+        delta: `${delta > 0 ? '+' : ''}${ruleValue(key, delta)}`,
         lines: [],
       })
     }
@@ -905,35 +920,33 @@ export class PanelsPart {
     // **자기 무리입니다.** 552는 금액·안테 칸의 밑변에서 12픽셀이라 그 칸에 딸린 설명으로
     // 보였습니다 — 이것은 그 칸과 상관없는 다른 목록이고, 무리 사이는 26입니다.
     const top = PANEL_ROWS.active
-    const rowH = 26
+    // **줄은 판때기 없이 놓입니다.** 칸마다 상자를 두면 위의 2×2 칸과 같은 것으로 읽히는데,
+    // 이것은 값의 칸이 아니라 목록입니다 — 이름은 작게 왼쪽, 값은 크게 오른쪽입니다.
+    const rowH = ACTIVE_ROW_H
     const shown = Math.min(entries.length, entries.length > 4 ? 3 : 4)
 
-    // 구획 머리 하나. 판 안의 다른 구획과 같은 것입니다.
+    // 구획 머리 하나. 판 안의 다른 구획과 같은 것이고, 왼쪽에 붉은 눈금 하나가 붙습니다 —
+    // 규칙이 판을 바꾸는 것이라는 표시입니다.
     const head = sectionHead(IN_W, tf('ui.active.count', { n: entries.length }), undefined,
       false)
     head.position.set(IN_X, top - 6)
+    const tick = new Graphics()
+    tick.rect(-8, SECTION_H / 2 - 8, 2, 14).fill(UI.bad)
+    head.addChild(tick)
     this.game.tray.activeLayer.addChild(head)
 
     entries.slice(0, shown).forEach((entry, index) => {
-      // 머리글과 첫 줄 사이는 22 입니다. 20 은 머리글의 밑변에서 6픽셀이라 그 글이 첫
-      // 줄의 딱지에 닿아 있었습니다.
       const y = top + 22 + index * rowH
+      const middle = (rowH - 4) / 2
       const line = new Container()
       line.position.set(IN_X, y)
 
-      const plate = new Graphics()
-      plate.rect(0, 0, IN_W, rowH - 4).fill(UI.cell)
-      plate.rect(0.5, 0.5, IN_W - 1, rowH - 5)
-        .stroke({ color: UI.hairline, width: 1 })
-      line.addChild(plate)
-      // **방금 들어온 줄은 값의 색 테로 밝습니다.** 바우처가 규칙으로 들어갔다는 것이 이
+      // **방금 들어온 줄은 값의 색으로 밝습니다.** 바우처가 규칙으로 들어갔다는 것이 이
       // 줄이 밝아지는 것으로 남습니다 — 산 자리에서 이름이 한 번 뜨는 것만으로는 어디로 간
       // 것인지가 없었습니다.
       if (glow && entry.label === glow.label) {
         const lit = new Graphics()
-        lit.rect(0, 0, PANEL_W, rowH - 4).fill({ color: UI.money, alpha: 0.18 })
-        lit.rect(0.5, 0.5, PANEL_W - 1, rowH - 5)
-          .stroke({ color: UI.money, width: 1.5 })
+        lit.rect(-8, 0, IN_W + 16, rowH - 4).fill({ color: UI.money, alpha: 0.18 })
         line.addChild(lit)
         glow.plate = lit
       }
@@ -942,19 +955,40 @@ export class PanelsPart {
         text: entry.label,
         style: { fontSize: TEXT.small, fill: UI.ink, fontWeight: WEIGHT.normal },
       })
-      name.position.set(8, 4)
+      name.anchor.set(0, 0.5)
+      name.position.set(0, middle)
       line.addChild(name)
 
-      const value = richLine(entry.value,
-                             richStyle('note', { fontWeight: WEIGHT.normal }))
-      value.position.set(PANEL_W - 8 - value.width, 4)
+      // 오른쪽 끝에 오르내림이 작게 파랑으로, 그 왼쪽에 값이 크게 흰 글로 놓입니다. 값이
+      // 수가 아닌 줄(태그 · 바우처)은 값도 작고 흐립니다.
+      let right = IN_W
+      if (entry.delta !== undefined) {
+        const more = new Text({
+          text: entry.delta,
+          style: { fontSize: TEXT.small, fill: UI.chips, fontWeight: WEIGHT.bold },
+        })
+        more.anchor.set(1, 0.5)
+        more.position.set(right, middle)
+        line.addChild(more)
+        right -= more.width + 8
+      }
+      const value = new Text({
+        text: entry.value,
+        style: entry.delta !== undefined
+          ? { fontSize: TEXT.base, fill: UI.ink, fontWeight: WEIGHT.bold, fontFamily: NUMERALS }
+          : { fontSize: TEXT.small, fill: UI.inkDim, fontWeight: WEIGHT.normal },
+      })
+      value.anchor.set(1, 0.5)
+      value.position.set(right, middle)
       line.addChild(value)
 
       line.eventMode = 'static'
       line.cursor = 'pointer'
-      line.hitArea = new Rectangle(0, 0, PANEL_W, rowH - 4)
+      line.hitArea = new Rectangle(-8, 0, IN_W + 16, rowH - 4)
       this.game.input.tipOn(line, at => {
-        this.game.input.tooltip.show(entry.label, entry.value, 0, entry.lines, at, SIZE)
+        this.game.input.tooltip.show(entry.label,
+          entry.delta === undefined ? entry.value : `${entry.value}  ${entry.delta}`, 0,
+          entry.lines, at, SIZE)
       })
       line.on('pointertap', () => {
         if (this.game.input.ate()) return
@@ -968,7 +1002,7 @@ export class PanelsPart {
         text: tf('ui.active.more', { n: entries.length - shown }),
         style: { fontSize: TEXT.mini, fill: UI.inkDim, fontWeight: WEIGHT.normal },
       })
-      more.position.set(LEFT + 4, top + 22 + shown * rowH + 4)
+      more.position.set(IN_X, top + 22 + shown * rowH + 4)
       more.eventMode = 'static'
       more.cursor = 'pointer'
       more.on('pointertap', () => {

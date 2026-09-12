@@ -31,7 +31,7 @@ import { type Crossings, readCrossings, Transition } from '../render/transition'
 import { type ToolSpot } from '../ui/layout'
 import { OptionsPanel, saveOptions } from '../ui/options'
 import {
-  BOARD_X, BUTTON_GAP, BUTTON_Y, CLEAR_W, DECK_MEET, FOOT_BTN_H, HELD_RISE, ITEM_LINGER, ITEM_SETTLE, JOKER_Y, LEFT, PANEL_BTN_W, PANEL_FOOT_Y, PANEL_W, PLAY_H, PLAY_W, PLAY_Y, SORT_H, SORT_W, STEP_MS, DISCARD_W, IN_X, PANEL_BTN_GAP,
+  BOARD_X, BUTTON_GAP, BUTTON_Y, CLEAR_W, DECK_MEET, FOOT_BTN_H, HELD_RISE, ITEM_LINGER, ITEM_SETTLE, JOKER_Y, LEFT, PANEL_INFO_W, PANEL_MENU_W, PANEL_FOOT_Y, PANEL_W, PLAY_H, PLAY_W, PLAY_Y, SORT_GAP, SORT_H, SORT_W, STEP_MS, DISCARD_W, IN_X, PANEL_BTN_GAP,
 } from './metrics'
 import { blurResolution } from './helpers'
 import {
@@ -477,16 +477,17 @@ export class Game {
       () => this.cards.sortHand('suit'))
     // 위의 칸들과 같은 격자입니다 — 너비도 자리도.
     // **「족보 목록」 이 아니라 「런 정보」 입니다.** 족보는 그 안의 한 갈래가 되었습니다.
-    this.chrome.infoButton = new Button(t('ui.run_info.title'), PANEL_BTN_W, FOOT_BTN_H,
-      'neutral',
+    // **런 정보가 밝고 넓습니다.** 판 안에서 자주 여는 쪽이고, 메뉴는 곁의 단추입니다.
+    this.chrome.infoButton = new Button(t('ui.run_info.title'), PANEL_INFO_W, FOOT_BTN_H,
+      'select',
       () => this.cards.toggleHandList())
-    this.chrome.menuButton = new Button(t('ui.button.menu'), PANEL_BTN_W, FOOT_BTN_H, 'neutral',
+    this.chrome.menuButton = new Button(t('ui.button.menu'), PANEL_MENU_W, FOOT_BTN_H, 'neutral',
       () => this.panels.openMenu())
     // **자리는 화면이 알립니다.** 도구가 좌표를 베껴 적으면 판을 고칠 때 한쪽만 고쳐집니다.
-    const footCx = PANEL_BTN_W / 2
     const footCy = FOOT_BTN_H / 2
-    this.spotNodes.set('runInfo', { node: this.chrome.infoButton, cx: footCx, cy: footCy })
-    this.spotNodes.set('menu', { node: this.chrome.menuButton, cx: footCx, cy: footCy })
+    this.spotNodes.set('runInfo', { node: this.chrome.infoButton, cx: PANEL_INFO_W / 2,
+      cy: footCy })
+    this.spotNodes.set('menu', { node: this.chrome.menuButton, cx: PANEL_MENU_W / 2, cy: footCy })
     this.spotNodes.set('sort:rank',
                        { node: this.chrome.sortRankButton, cx: SORT_W / 2, cy: SORT_H / 2 })
     this.spotNodes.set('sort:suit',
@@ -542,11 +543,11 @@ export class Game {
     // 단추를 112픽셀로 키운 날부터 둘이 12픽셀 겹쳐 있었습니다.
     const sortY = BUTTON_Y + (PLAY_H - SORT_H) / 2
     this.chrome.sortRankButton.position.set(LEFT + PANEL_W + 20, sortY)
-    this.chrome.sortSuitButton.position.set(LEFT + PANEL_W + 20 + SORT_W + 10, sortY)
+    this.chrome.sortSuitButton.position.set(LEFT + PANEL_W + 20 + SORT_W + SORT_GAP, sortY)
     // **판의 밑단에 붙입니다.** 위에 두면 그 아래가 통째로 빈 자리로 남습니다 — 왼쪽 판은
     // 화면 아래 22픽셀까지 내려오고, 버튼은 그 안쪽에 있으면 됩니다.
     this.chrome.infoButton.position.set(IN_X, PANEL_FOOT_Y)
-    this.chrome.menuButton.position.set(IN_X + PANEL_BTN_W + PANEL_BTN_GAP, PANEL_FOOT_Y)
+    this.chrome.menuButton.position.set(IN_X + PANEL_INFO_W + PANEL_BTN_GAP, PANEL_FOOT_Y)
 
     // **창 전체의 예외도 받아 둡니다.** F12 를 열지 않아도 `__clover.errors` 로 읽힙니다.
     window.addEventListener('error',
@@ -1412,10 +1413,18 @@ export class Game {
     //
     // 돈은 여기서 세지 않습니다 — 동전이 날아가 꽂히는 것이 이미 그 일을 하고 있고,
     // 둘이 겹치면 같은 말이 한 자리에서 두 번입니다.
-    this.show.slotDelta(this.chrome.hands, this.chrome.panelShown.hands, state.handsLeft, UI.good)
-    this.show.slotDelta(this.chrome.discards, this.chrome.panelShown.discards,
-      state.discardsLeft, UI.discard)
-    this.show.slotDelta(this.chrome.anteSlot, this.chrome.panelShown.ante, state.ante, UI.ink)
+    //
+    // **국면이 바뀌는 순간에는 띄우지 않습니다.** 라운드가 시작되며 핸드와 버리기가 다시
+    // 채워지는 것은 줄어든 것이 아니라 새 판이고, 그때 「+4」 둘이 칸 위에 떠 있으면 판이
+    // 시작부터 어수선합니다 — 판 안에서 값이 움직인 것만 띄웁니다.
+    if (this.chrome.panelShown.phase === state.phase) {
+      this.show.slotDelta(this.chrome.hands, this.chrome.panelShown.hands, state.handsLeft,
+        UI.good)
+      this.show.slotDelta(this.chrome.discards, this.chrome.panelShown.discards,
+        state.discardsLeft, UI.discard)
+      this.show.slotDelta(this.chrome.anteSlot, this.chrome.panelShown.ante, state.ante, UI.ink)
+    }
+    this.chrome.panelShown.phase = state.phase
     this.chrome.panelShown.hands = state.handsLeft
     this.chrome.panelShown.discards = state.discardsLeft
     this.chrome.panelShown.ante = state.ante
@@ -1426,7 +1435,7 @@ export class Game {
     this.chrome.scoreBar.set(this.shown.score, Math.max(1, Number(this.state.target)))
     this.chrome.hands.text = String(state.handsLeft)
     this.chrome.discards.text = String(state.discardsLeft)
-    this.chrome.anteSlot.text = `${state.ante} / ${this.data.run.winAnte}`
+    this.chrome.anteSlot.text = `${state.ante}/${this.data.run.winAnte}`
     this.chrome.deckLabel.text = tf('ui.stat.deck', { left: state.drawPile.length,
       all: state.deck.length })
     this.chrome.jokerCount.text = `${state.jokers.length} / ${state.rules.jokerSlots}`

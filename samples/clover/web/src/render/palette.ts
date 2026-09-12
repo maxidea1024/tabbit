@@ -70,6 +70,16 @@ export interface SurfaceSeed {
 interface Ratio {
   /** 판을 1로 둔 배수. */
   ratio: number
+  /**
+   * 판의 OKLCH 밝기에 더하는 값. 적으면 `ratio` 대신 이것이 밝기를 정합니다.
+   *
+   * **어두운 겉면에서 단추가 회색으로 떠오르는 것을 막습니다.** 대비의 배수는
+   * `(휘도 + 0.05)` 의 비이므로 어두운 쪽에서는 0.05 가 지배하고, 검은 판(휘도 0.004)
+   * 위의 단추와 슬레이트 판(0.023) 위의 단추가 같은 배수에서 거의 같은 회색이 됩니다 —
+   * 검은 겉면을 골랐는데 단추가 전부 회색이었습니다. 밝기의 차로 두면 판이 어두운 만큼
+   * 단추도 어둡습니다.
+   */
+  lift?: number
   /** 중립 채도에 곱하는 값. 강조색은 `chroma` 를 대신 적습니다. */
   tint?: number
   /** 채도를 직접 정합니다. 강조색이 씁니다. */
@@ -156,30 +166,31 @@ const LINES: Record<string, Ratio> = {
  */
 const CONTROLS: Record<string, Ratio> = {
   /**
-   * 그 밖의 단추의 채움. **판과 같은 색상각에 채도만 두 배, 확실히 밝습니다.**
+   * 그 밖의 단추의 채움. **판과 같은 색상각에 채도는 세 배 남짓, 판보다 0.19 밝습니다.**
    *
-   * 판에 붙여 두었던 동안(1.24) 단추가 비활성으로 읽혔습니다 — 회색은 아무리 밝혀도
-   * 꺼진 것으로 보입니다. 그렇다고 판과 다른 색상각을 쓰면 판 위에 놓였을 때 다른 재질로
-   * 보입니다. 그래서 판의 색상각에 채도를 올리고 판 대비 3.2 로 둡니다 — 언어의
-   * `#5D7290` 이 그 값이고, 판에 속하면서 켜져 있는 자리입니다. 「갈래 다섯」이 정본입니다.
+   * 판과 다른 색상각을 쓰면 판 위에 놓였을 때 다른 재질로 보이므로 색상각은 판의 것이고,
+   * 밝기는 배수가 아니라 차로 둡니다(`lift`) — 배수(3.2)로 두었을 때 검은 겉면의 단추가
+   * 슬레이트 겉면의 단추와 같은 회색이 되어 검은 겉면이 회색 겉면으로 보였습니다.
+   * 슬레이트에서 이 값은 시안의 `#4A5568` 근처(판 대비 2.3배)이고, 검은 겉면에서는
+   * `#383838` 근처(1.7배)입니다. 「갈래 다섯」이 정본입니다.
    */
-  btn: { ratio: 3.2, tint: 2.8 },
-  btnHover: { ratio: 4.0, tint: 2.8 },
-  btnPress: { ratio: 2.7, tint: 2.8 },
+  btn: { ratio: 2.3, lift: 0.19, tint: 2.8 },
+  btnHover: { ratio: 2.9, lift: 0.26, tint: 2.8 },
+  btnPress: { ratio: 2.0, lift: 0.15, tint: 2.8 },
   /**
    * 그 밖의 단추의 테. 지금은 그림이 실루엣을 따라가는 테를 들고 있어 그리지 않습니다.
-   * 대비 게이트가 단추와의 관계를 확인하므로 값은 남겨 둡니다.
+   * 값은 단추 위에 얹는 밝은 변의 자리로 남겨 둡니다.
    */
-  btnEdge: { ratio: 4.8, tint: 2.6 },
-  btnEdgeHover: { ratio: 6.0, tint: 2.6 },
+  btnEdge: { ratio: 3.4, lift: 0.30, tint: 2.6 },
+  btnEdgeHover: { ratio: 4.2, lift: 0.36, tint: 2.6 },
   /** 잠긴 단추. **채도를 걷습니다.** 글의 알파만 내리면 켜진 것과 같아 보입니다. */
-  locked: { ratio: 1.5, tint: 0.35 },
-  lockedEdge: { ratio: 2.0, tint: 0.4 },
+  locked: { ratio: 1.3, lift: 0.09, tint: 0.35 },
+  lockedEdge: { ratio: 1.5, lift: 0.13, tint: 0.4 },
   /** 판 위에 조용히 놓이는 단추. 그 밖의 단추보다 한 단 낮습니다. */
-  quiet: { ratio: 2.4, tint: 2.4 },
-  quietHover: { ratio: 3.0, tint: 2.4 },
-  quietPress: { ratio: 1.06, tint: 2.0 },
-  quietEdge: { ratio: 1.62, tint: 2.4 },
+  quiet: { ratio: 1.4, lift: 0.08, tint: 2.4 },
+  quietHover: { ratio: 1.7, lift: 0.13, tint: 2.4 },
+  quietPress: { ratio: 1.06, lift: 0.02, tint: 2.0 },
+  quietEdge: { ratio: 1.2, lift: 0.05, tint: 2.4 },
   /** 스크롤 막대의 홈. */
   track: { ratio: 1.40, tint: 1.4 },
   /** 스크롤 막대의 손잡이. */
@@ -331,8 +342,9 @@ function makeRatio(panel: number, seed: SurfaceSeed, spec: Ratio, name?: string,
   const chroma = spec.chroma !== undefined
     ? spec.chroma * (seed.vivid ?? 1)
     : neutralize(family.chroma * (spec.tint ?? 1))
-  const want = luminanceFor(panel, spec.ratio)
-  let level = solveLevel(want, chroma, hue)
+  let level = spec.lift !== undefined
+    ? solveLevel(panel, chroma, hue) + spec.lift
+    : solveLevel(luminanceFor(panel, spec.ratio), chroma, hue)
   if (spec.max !== undefined) level = Math.min(level, spec.max)
   if (spec.min !== undefined) level = Math.max(level, spec.min)
   level = clampLevel(level)
@@ -580,10 +592,11 @@ export const CONTRAST_GATE: {
   // 두 선을 가르는 데 필요한 값이 아닙니다.
   { what: '구획선과 가르는 줄', a: 'rule', b: 'groove', least: 1.20 },
 
-  // **그 밖의 단추는 판보다 확실히 밝습니다.** 판에 붙어 있으면 비활성으로 읽힙니다.
-  // 단추의 테는 구운 그림이 실루엣을 따라 들고 있으므로 토큰의 테는 그리지 않고, 그
-  // 관계를 확인하던 줄도 걷었습니다.
-  { what: '판과 단추', a: 'btn', b: 'panel', least: 2.6 },
+  // **그 밖의 단추는 판보다 밝기의 차로 뜹니다.** 판에 붙어 있으면 비활성으로 읽히고,
+  // 배수로 벌리면 검은 겉면에서 회색이 됩니다 — 검은 겉면에서 1.7배, 슬레이트에서 2.3배가
+  // 나오므로 그 아래를 요구합니다. 단추의 테는 구운 그림이 실루엣을 따라 들고 있으므로
+  // 토큰의 테는 그리지 않고, 그 관계를 확인하던 줄도 걷었습니다.
+  { what: '판과 단추', a: 'btn', b: 'panel', least: 1.60 },
   { what: '단추와 잠긴 단추', a: 'btn', b: 'locked', least: 1.12 },
   { what: '단추와 가리킨 단추', a: 'btnHover', b: 'btn', least: 1.22 },
   { what: '단추와 눌린 단추', a: 'btn', b: 'btnPress', least: 1.08 },

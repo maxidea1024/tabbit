@@ -836,11 +836,14 @@ export class Slot extends Container {
     this.lifted = Math.max(this.lifted, scale - 1)
   }
 
+  /** 수 앞에 붙는 글. 소지금의 `$` 입니다 — 값이 굴러가는 동안에도 붙어 있습니다. */
+  prefix = ''
+
   private redraw(): void {
     const shown = Math.round(this.shown)
-    this.value.text = shown >= 1_000_000
+    this.value.text = this.prefix + (shown >= 1_000_000
       ? shown.toExponential(2).replace('e+', 'e')
-      : COMMAS.format(shown)
+      : COMMAS.format(shown))
     // **자릿수가 바뀌면 조용한 모습을 다시 앉힙니다.** 칸에 들어가려 줄인 배율은 글자 수가
     // 정하는 값이고, 조용한 모습은 「이미 앉혔다」로 한 번만 적용됩니다 — 다시 적지 않으면
     // 여섯 자리가 된 수가 앞의 배율로 그려집니다.
@@ -892,7 +895,9 @@ export class BlindBadge extends Container {
   })
   private readonly need = new Text({
     text: '',
-    // **그 화면의 주인공 하나입니다** — 계단의 맨 위 칸(72)입니다.
+    // **그 화면의 주인공 하나입니다** — 계단의 맨 위 칸(72)입니다. 규칙 한 줄이 함께
+    // 놓이는 판(보스)에서는 한 계단 내려갑니다(`fitNeed`) — 72로 두면 그 줄이 딱지
+    // 밖으로 밀려 판의 변을 넘어갑니다.
     style: { fontSize: STEP[4], fill: UI.bad, fontWeight: WEIGHT.bold, fontFamily: NUMERALS },
   })
   /** 요구 점수라는 것을 적는 작은 글. */
@@ -902,8 +907,16 @@ export class BlindBadge extends Container {
   })
   /** 보스의 규칙 한 줄. 수가 그 규칙의 요점이라 여기도 강조가 붙습니다. */
   private readonly note = new Container()
-  private readonly reward = new Text({
-    text: '', style: { fontSize: TEXT.body, fill: UI.money, fontWeight: WEIGHT.normal },
+  /**
+   * 격파 보상. **이름은 작고 값은 큽니다** — 사람이 찾는 것은 값이고, 이름과 값이 같은
+   * 크기면 문장을 처음부터 읽어야 찾습니다. 글 표의 한 줄을 마지막 빈칸에서 가릅니다.
+   */
+  private readonly rewardLabel = new Text({
+    text: '', style: { fontSize: TEXT.small, fill: UI.inkDim, fontWeight: WEIGHT.normal },
+  })
+  private readonly rewardValue = new Text({
+    text: '',
+    style: { fontSize: TEXT.base, fill: UI.money, fontWeight: WEIGHT.bold, fontFamily: NUMERALS },
   })
 
   /**
@@ -943,8 +956,8 @@ export class BlindBadge extends Container {
 
   constructor(private readonly boxWidth: number) {
     super()
-    this.body.addChild(this.title, this.caption, this.need, this.reward, this.note,
-      this.lead, this.info)
+    this.body.addChild(this.title, this.caption, this.need, this.rewardLabel, this.rewardValue,
+      this.note, this.lead, this.info)
     this.addChild(this.plate, this.body)
   }
 
@@ -1021,7 +1034,6 @@ export class BlindBadge extends Container {
 
     this.plate.clear()
     this.dressPlate(height, mark)
-    if (!seal) this.plate.circle(20, HEAD_H / 2, 5).stroke({ color: mark, width: 2 })
 
     this.seal?.destroy()
     this.seal = undefined
@@ -1041,7 +1053,8 @@ export class BlindBadge extends Container {
     // 요구 점수 쪽은 비웁니다. 자리는 그대로이고 글만 없습니다.
     this.caption.text = ''
     this.need.text = ''
-    this.reward.text = ''
+    this.rewardLabel.text = ''
+    this.rewardValue.text = ''
     this.fill(this.note, [], BlindBadge.infoRich(), richLeading('note'), 0)
 
     const rows = this.fill(this.lead, [lead], BlindBadge.leadRich(), richLeading('body'), HEAD_H + 24)
@@ -1083,10 +1096,9 @@ export class BlindBadge extends Container {
 
     this.plate.clear()
     this.dressPlate(height, mark)
-    // **문양은 하나입니다.** 화면이 넘겨주는 딱지가 그 문양이므로 여기서 또 그리면 같은
-    // 것이 둘이고, 그중 하나는 색만 같은 다른 그림입니다. 넘겨주지 않는 판(상점)은
-    // 문양이 없습니다 — `mark` 는 그 딱지가 없을 때의 자리 표시입니다.
-    if (!seal) this.plate.circle(20, HEAD_H / 2, 5).stroke({ color: mark, width: 2 })
+    // **문양은 하나입니다.** 화면이 넘겨주는 딱지가 그 문양이므로 여기서 또 그리지 않습니다.
+    // 넘겨주지 않는 판(상점)은 문양이 없고, 자리 표시도 두지 않습니다 — 머리 판에는 이름
+    // 하나만 놓입니다.
 
     // 앞의 표시를 걷고 새것을 답니다. **그대로 두면 보스가 바뀌어도 앞의 것이 남습니다.**
     this.seal?.destroy()
@@ -1111,21 +1123,85 @@ export class BlindBadge extends Container {
       this.body.addChild(seal)
     }
 
-    // 요구 점수. **바와 같은 색입니다** — 채워야 하는 것으로 읽힙니다.
-    this.caption.text = t('ui.label.target')
+    this.layoutValue(t('ui.label.target'), target.toLocaleString('en-US'), reward, note)
+
+    this.setTags(tags)
+  }
+
+  /**
+   * 이름 밑의 세 줄 — 무엇의 수인가 · 그 수 · 격파 보상. 규칙 한 줄이 있으면 그 밑입니다.
+   *
+   * **줄의 자리가 규칙 한 줄의 있고 없음으로 갈립니다.** 딱지의 높이는 어느 판에서나
+   * 같으므로(`BADGE_H`), 넷째 줄이 들어오는 판에서는 위의 셋이 함께 올라가고 수가 한
+   * 계단 내려갑니다 — 자리를 고정해 두었더니 보스의 규칙과 고르는 판의 안내가 딱지
+   * 밖으로 밀려 판의 변을 넘었습니다.
+   */
+  private layoutValue(caption: string, value: string, reward: number, note: string): void {
+    const dense = note !== ''
+    this.caption.text = caption
     this.caption.anchor.set(0.5, 0)
-    this.caption.position.set(this.boxWidth / 2, HEAD_H + 24)
+    this.caption.position.set(this.boxWidth / 2, HEAD_H + 22)
 
-    this.need.text = target.toLocaleString('en-US')
+    this.need.style.fontSize = dense ? STEP[3] : STEP[4]
+    this.need.text = value
     this.need.anchor.set(0.5, 0)
-    this.need.position.set(this.boxWidth / 2, HEAD_H + 44)
+    this.need.position.set(this.boxWidth / 2, HEAD_H + (dense ? 36 : 40))
 
-    this.reward.text = tf('ui.blind.reward', { n: reward })
-    this.reward.anchor.set(0.5, 0)
-    this.reward.position.set(this.boxWidth / 2, HEAD_H + 134)
+    // **한 줄을 마지막 빈칸에서 가릅니다.** 앞은 이름이고 뒤는 값입니다 — 값만 크고 금색입니다.
+    const rewardText = tf('ui.blind.reward', { n: reward })
+    const cut = rewardText.lastIndexOf(' ')
+    this.rewardLabel.text = cut > 0 ? rewardText.slice(0, cut).trim() : ''
+    this.rewardValue.text = cut > 0 ? rewardText.slice(cut + 1) : rewardText
+    const between = this.rewardLabel.text === '' ? 0 : 8
+    const span = this.rewardLabel.width + between + this.rewardValue.width
+    const start = (this.boxWidth - span) / 2
+    const rewardY = HEAD_H + (dense ? 100 : 148)
+    this.rewardLabel.anchor.set(0, 0.5)
+    this.rewardLabel.position.set(start, rewardY)
+    this.rewardValue.anchor.set(0, 0.5)
+    this.rewardValue.position.set(start + this.rewardLabel.width + between, rewardY)
 
-    this.fill(this.note, [note], BlindBadge.infoRich(), richLeading('note'), HEAD_H + 160)
+    // **딱지 안에 들어오는 만큼만 적습니다.** 넘치는 줄은 딱지 밖으로 나가 판의 변을
+    // 넘어가므로, 들어갈 줄 수를 남은 높이에서 셉니다.
+    const top = HEAD_H + 118
+    const room = Math.max(0, BADGE_H - top - 8)
+    const rows = Math.floor(room / richLeading('note'))
+    this.fill(this.note, dense && rows > 0 ? [note] : [], BlindBadge.infoRich(),
+              richLeading('note'), top)
+  }
 
+  /**
+   * 다음에 붙을 판을 적습니다 — 상점입니다.
+   *
+   * **블라인드 딱지와 같은 세 줄입니다.** 상점에서만 문단으로 적어 두었더니 그 문단이
+   * 딱지의 폭을 넘어 낱말 가운데에서 접혔고, 왼쪽 판이 판 안에서 두 가지 물건이 되었습니다.
+   */
+  setNext(name: string, caption: string, target: number, reward: number, mark: number,
+          seal?: Container, tags: Container[] = []): void {
+    this.settle(`next|${name}|${caption}|${target}|${reward}`)
+    this.fill(this.lead, [], BlindBadge.leadRich(), richLeading('body'), 0)
+    this.fill(this.info, [], BlindBadge.infoRich(), richLeading('note'), 0)
+    this.boxHeight = BADGE_H
+
+    this.plate.clear()
+    this.dressPlate(BADGE_H, mark)
+
+    this.seal?.destroy()
+    this.seal = undefined
+    if (seal) {
+      this.seal = seal
+      seal.position.set(20, HEAD_H / 2)
+      this.body.addChild(seal)
+    }
+
+    this.title.text = name
+    this.title.anchor.set(0.5, 0.5)
+    this.title.scale.set(1)
+    const room = this.boxWidth - 40 * 2
+    if (this.title.width > room) this.title.scale.set(room / this.title.width)
+    this.title.position.set(this.boxWidth / 2, HEAD_H / 2)
+
+    this.layoutValue(caption, target.toLocaleString('en-US'), reward, '')
     this.setTags(tags)
   }
 

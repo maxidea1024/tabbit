@@ -4,16 +4,16 @@
 // 손으로 그려져야 화면이 한 벌로 보입니다.**
 
 import { PAINT } from '../render/ink'
-import { Container, Graphics, Rectangle, Sprite, Text } from 'pixi.js'
+import { Container, Graphics, NineSliceSprite, Rectangle, Sprite, Text } from 'pixi.js'
 
 import { contrast } from '../render/color'
 import type { Surface } from '../render/palette'
 import { LIP, mix, panelStyle, plate, plateTint, pressable,
          type ButtonLook, type PlateStyle } from '../render/skin'
-import { UI, TEXT, WEIGHT } from '../render/theme'
+import { inkDrop, TEXT, UI, WEIGHT } from '../render/theme'
 import { outlined, outlineOf, outlineWidth, strokeWidthOf } from './font'
 import { iconFor, type IconName } from './icon'
-import { piece, rungFor, rungOf } from './chrome'
+import { piece, refit, rungFor, rungOf } from './chrome'
 import type { RungName } from './atlas'
 
 /**
@@ -250,6 +250,16 @@ export class Button extends Container {
   }
 
   /**
+   * 단추가 차지하기로 한 넓이와 높이.
+   *
+   * **`width` 가 아닙니다.** 구운 그림은 그림자만큼 밖으로 물러나 있어서 통의 넓이에는
+   * 그 여백(좌우 14픽셀씩)이 들어 있습니다 — 줄을 세거나 가운데를 맞추는 쪽이 `width` 를
+   * 읽으면 그만큼 넓게 세고, 단추 줄이 왼쪽으로 밀립니다.
+   */
+  get boxW(): number { return this.boxWidth }
+  get boxH(): number { return this.boxHeight }
+
+  /**
    * 화면의 모든 단추를 한 걸음 옮깁니다. **게임의 시계가 프레임마다 부릅니다.**
    *
    * 색은 가려는 색으로 미끄러지고, 옛 글은 올라가며 옅어지고, 새 글은 아래에서 듭니다.
@@ -447,7 +457,9 @@ export class Button extends Container {
   private captionY(pushed: boolean): number {
     if (this.skin !== undefined || piece === undefined) {
       const tall = rungOf(this.rung).height
-      return tall / 2 + (pushed ? SINK / 2 : 0)
+      // **상자가 아니라 획의 가운데입니다.** `inkDrop` 이 글꼴의 내림을 재서 그만큼
+      // 내립니다 — 얹지 않으면 글이 얼굴의 위쪽에 붙습니다.
+      return tall / 2 + inkDrop(this.textSize) + (pushed ? SINK / 2 : 0)
     }
     const flat = INTENTS[this.intent].edge !== undefined || !this.enabledState
     if (flat) return this.boxHeight / 2 + (pushed ? 1 : 0)
@@ -472,18 +484,23 @@ export class Button extends Container {
     //
     // 누르면 얼굴이 턱 위로 내려앉습니다 — 그만큼 낮게, 그만큼 아래에 놓습니다. 아랫변은
     // 제자리에 남으므로 단추가 자리를 옮기지 않습니다.
-    this.skin?.destroy()
     const tall = rungOf(this.rung).height
     const sunk = this.pushed ? SINK : 0
     // **색은 건너갑니다.** 새 그림은 지금 띤 색으로 놓고, 가려는 색은 `step` 이 옮깁니다.
     this.tintWant = this.shown.face
     if (this.tintNow === undefined || !TICKING.has(this)) this.tintNow = this.tintWant
-    this.skin = piece(this.rung, this.boxWidth, tall - sunk, this.tintNow)
+    // **그림은 한 번 만들고 고쳐 씁니다.** 상태마다 새로 만들면 새 그림의 자리가 다음
+    // 프레임까지 없어서, 가리킨 직후의 누름이 단추를 맞히지 못하고 빈자리 누름이 됩니다.
+    if (this.skin === undefined) {
+      this.skin = piece(this.rung, this.boxWidth, tall, this.tintNow)
+      if (this.skin !== undefined) this.addChildAt(this.skin, 0)
+    }
     if (this.skin !== undefined) {
-      // `piece()` 가 그림자 여백만큼 물러앉혀 두었으므로 그 위에 더합니다 — 덮어쓰면 얼굴이
+      refit(this.skin as NineSliceSprite, this.rung, this.boxWidth, tall - sunk)
+      // `refit()` 이 그림자 여백만큼 물러앉혀 두었으므로 그 위에 더합니다 — 덮어쓰면 얼굴이
       // 여백만큼 아래로 내려가 글이 얼굴의 윗변에 붙습니다.
       this.skin.y += sunk
-      this.addChildAt(this.skin, 0)
+      ;(this.skin as { tint: number }).tint = this.tintNow
       this.applyInk()
       return
     }

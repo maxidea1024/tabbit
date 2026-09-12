@@ -304,7 +304,7 @@ export class Title extends Container {
     const art = piece('tray', CARD_W - 2, ART_H, wellTint(card.tone))
     if (art !== undefined) {
       art.position.set(1, 1)
-      art.alpha = 0.55
+      art.alpha = 0.4
       node.addChild(art)
     }
     const picture = card.art(CARD_W - 2, ART_H, this.back)

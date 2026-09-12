@@ -550,7 +550,10 @@ export const PLAY_H = 72
  * **손가락으로 누를 수 있는 크기입니다.** 모바일에서 이것이 가장 작은 단추였습니다 —
  * 자리를 세는 쪽이 이 값을 읽으므로, 키워도 둘이 겹치지 않습니다.
  */
-export const SORT_W = 84
+export const SORT_W = 72
+
+/** 정렬 단추 둘의 사이. */
+export const SORT_GAP = 12
 
 /** 곁단추입니다 — 높이 계단의 `sm`. */
 export const SORT_H = 36
@@ -591,6 +594,13 @@ export const SHOP_FOOT_H = 60
  * 8픽셀을 둡니다 — 적어 두면 단추를 키운 날에 판 밖으로 밀려납니다.
  */
 export const PANEL_BTN_W = (IN_W - PANEL_BTN_GAP) / 2
+
+/**
+ * 런 정보와 메뉴의 폭. **런 정보가 넓습니다** — 판 안에서 더 자주 여는 쪽이고, 둘과 그
+ * 사이가 안쪽 폭을 다 씁니다.
+ */
+export const PANEL_INFO_W = 128
+export const PANEL_MENU_W = IN_W - PANEL_BTN_GAP - PANEL_INFO_W
 
 /** 판의 아랫변(788)에서 24 위입니다. */
 export const PANEL_FOOT_Y = SIZE.height - 12 - 24 - FOOT_BTN_H

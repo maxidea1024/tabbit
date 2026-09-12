@@ -220,12 +220,43 @@ export function leading(size: number): number {
   return line
 }
 
+/**
+ * 글을 가운데에 놓을 때 더 내려야 하는 만큼.
+ *
+ * **가운데를 맞추는 것은 상자가 아니라 획입니다.** `anchor.y = 0.5` 는 글자 상자의
+ * 한가운데를 잡는데, 그 상자에는 내림(descent)이 들어 있고 한글과 숫자의 획은 그 위에만
+ * 있습니다 — 그래서 단추의 글이 늘 얼굴의 위쪽에 붙었습니다. 내림의 절반만큼 내리면
+ * 획이 한가운데에 옵니다.
+ *
+ * **글꼴에서 잽니다.** 상수로 적으면 글꼴을 바꾼 날 다시 어긋납니다.
+ */
+export function inkDrop(size: number): number {
+  const family = TextStyle.defaultTextStyle.fontFamily
+  const name = Array.isArray(family) ? family.join(', ') : String(family)
+  const key = `${name}|${size}`
+  const found = DROP.get(key)
+  if (found !== undefined) return found
+  let drop = 0
+  try {
+    const metrics = CanvasTextMetrics.measureFont(`${size}px ${name}`)
+    if (metrics.fontSize > 0) drop = Math.round(Math.min(size * 0.2, metrics.descent / 2))
+  } catch {
+    // 글꼴을 잴 수 없는 곳(헤드리스)에서는 옮기지 않습니다.
+  }
+  DROP.set(key, drop)
+  return drop
+}
+
 /** 재어 둔 줄 사이. 글꼴이 바뀌면(`useFont`) 비워야 합니다. */
 const LEADING = new Map<string, number>()
+
+/** 재어 둔 내림의 절반. `LEADING` 과 같은 규칙입니다. */
+const DROP = new Map<string, number>()
 
 /** 글꼴이 바뀌었으니 재어 둔 줄 사이를 비웁니다. */
 export function forgetLeading(): void {
   LEADING.clear()
+  DROP.clear()
 }
 
 /** 글자의 굵기. **셋뿐입니다** — 넷째를 더하면 어느 것이 더 무거운지가 보이지 않습니다. */

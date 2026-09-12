@@ -320,7 +320,7 @@ export class RunPanel implements ModalPanel {
       const art = piece('tray', CARD_W - 2, ART_H, wellTint(card.tone))
       if (art) {
         art.position.set(1, 1)
-        art.alpha = card.locked ? 0.25 : 0.55
+        art.alpha = card.locked ? 0.2 : 0.4
         node.addChild(art)
       }
       const band = glowEdge(CARD_W, card.primary ? UI.yellow : UI.rule)

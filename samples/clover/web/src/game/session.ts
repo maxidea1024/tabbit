@@ -1030,7 +1030,7 @@ export class SessionPart {
     this.game.cards.fadeUntil = 0
     // 떠오르던 차이 글. **글은 두고 상태만 되돌립니다** — 풀이므로 다시 쓰입니다.
     for (const one of this.game.show.deltas) one.node.visible = false
-    this.game.chrome.panelShown = { hands: -1, discards: -1, ante: -1 }
+    this.game.chrome.panelShown = { hands: -1, discards: -1, ante: -1, phase: '' }
     this.game.blind.tagFlashId = ''
     this.game.blind.tagFlashLife = 1
     this.game.blind.tagSpent = []
@@ -1245,7 +1245,7 @@ export class SessionPart {
     this.gameOver.addChild(veil)
 
     const board = new Container()
-    const width = 520
+    const width = 640
     const pad = 24
     const inner = width - pad * 2
     const state = this.game.state

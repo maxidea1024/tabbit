@@ -663,12 +663,8 @@ export class BlindPart {
       // 보스를 넘긴 뒤의 다음은 다음 안테의 스몰 블라인드입니다.
       const ahead = next === BlindKind.Small ? { ...state, ante: state.ante + 1 } : state
       const name = tf('ui.blind.named', { name: blindName(next) })
-      this.badge.setInfo(t('ui.guide.shop.head'),
-        tf('ui.badge.next', { name }),
-        [tf('ui.badge.next_target', { n: targetOf(this.game.data, ahead,
-          next).toLocaleString('en-US') })
-          + '   ' + tf('ui.blind.reward', { n: rewardOf(this.game.data, ahead, next) }),
-          t('ui.shop.note')],
+      this.badge.setNext(t('ui.guide.shop.head'), tf('ui.badge.next', { name }),
+        targetOf(this.game.data, ahead, next), rewardOf(this.game.data, ahead, next),
         UI.bar, undefined, chips)
       return
     }
@@ -677,9 +673,12 @@ export class BlindPart {
     const bossRow = boss ? this.game.data.tables.bossBlind.findByBossId(state.bossId) : undefined
 
     // 고르는 중이면 무엇을 하라는 것인지가 여기에도 적힙니다. 보스의 규칙이 있으면 그것이 먼저입니다.
+    // **고르는 판의 안내는 적지 않습니다.** 그 화면에 이미 딱지 셋과 「이 블라인드로 ·
+    // 건너뛴다」가 놓여 있어서 같은 말이 두 번이고, 딱지 안에서는 그 줄이 넷째 줄이라
+    // 수를 한 계단 내려앉혀 판의 주인공을 지웁니다.
     const note = bossRow
       ? describe(this.game.data, this.game.data.bossEffects.get(state.bossId) ?? []).join(' · ')
-      : state.phase === 'blind-select' ? t('ui.badge.pick_note') : ''
+      : ''
 
     this.badge.set(
       bossRow

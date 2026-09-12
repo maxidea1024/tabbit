@@ -21,8 +21,9 @@ import { setLookOf, setsOf, type SetLook } from '../render/card-set'
 import { cardArtId, drawFace, drawSuit } from '../render/pips'
 import { SuitKind } from '../generated/enums/suit-kind'
 import { hapticsAvailable } from '../feedback/haptics'
-import { SIZE, STROKE, TEXT, UI, UI_THEMES, UI_THEME_KEYS, WEIGHT }
-  from '../render/theme'
+import {
+  leading, SIZE, STROKE, TEXT, UI, UI_THEME_KEYS, UI_THEMES, WEIGHT,
+} from '../render/theme'
 import type { ToolSpot } from './layout'
 import { FOOTER_BAR, panelFrame, TITLE_BAR, type ModalPanel } from './modal'
 import { richLeading, richStyle, richLine, type RichStyle } from './rich'
@@ -336,7 +337,15 @@ const TAB_Y = TITLE_BAR + 14
  */
 const body = (): number => UI.cell
 /** 값을 고르는 줄 하나의 높이. */
-const ROW = 52
+const ROW = 64
+
+/**
+ * 이름 줄과 설명 줄이 함께 차지하는 높이.
+ *
+ * **글꼴에서 잽니다.** 두 줄의 사이를 24로 적어 두었더니 24픽셀 이름의 아랫줄 위에 설명이
+ * 얹혔고, 글꼴을 바꾸면 다시 어긋납니다.
+ */
+const NOTE_ROOM = 4 + 24 + 15
 /** 시드를 적을 수 있는 길이. 주소에 실려 나가므로 길게 둘 이유가 없습니다. */
 const SEED_MAX = 28
 /** 시드 줄의 높이. 칸과 「무작위」 가 나란히 놓입니다. */
@@ -1055,29 +1064,31 @@ export class OptionsPanel implements ModalPanel {
       this.body.addChild(label)
 
       if (row.note !== undefined) {
+        // **이름 줄의 아래입니다.** 24픽셀로 못박아 두었더니 24픽셀 글의 아랫줄 위에
+        // 설명이 얹혔습니다 — 줄 사이는 글꼴에서 잽니다.
         const note = richLine(row.note, rich(), WIDTH - 220, richLeading('note'))
-        note.position.set(44, y + 24)
+        note.position.set(44, y + 4 + leading(TEXT.base))
         this.body.addChild(note)
       }
 
       if (row.seed) {
         // 설명 줄 아래입니다 — `y + 24` 에 설명이 서므로 그보다 내려야 겹치지 않습니다.
-        y += this.drawSeed(y + 46)
+        y += this.drawSeed(y + NOTE_ROOM + 12)
         continue
       }
 
       if (row.cards !== undefined) {
-        y += this.drawCardChoices(row, y + 50)
+        y += this.drawCardChoices(row, y + NOTE_ROOM + 16)
         continue
       }
 
       if (row.themes !== undefined) {
-        y += this.drawThemeChoices(row, y + 50)
+        y += this.drawThemeChoices(row, y + NOTE_ROOM + 16)
         continue
       }
 
       if (row.choices === undefined) {
-        const value = new Button(row.read(), 128, 34, 'neutral', () => {
+        const value = new Button(row.read(), 128, 36, 'neutral', () => {
           row.next()
           this.applyLater()
         })
@@ -1086,13 +1097,13 @@ export class OptionsPanel implements ModalPanel {
         // 넘기는 단추도 이름이 붙어 있으면 알립니다. **줄의 `y` 는 그 위에 선 줄들의 글
         // 길이가 정하므로** 도구가 셈하면 말을 바꾼 판에서 어긋납니다.
         if (row.id !== undefined) {
-          this.choiceNodes.set(`value:${row.id}`, { node: value, cx: 64, cy: 17 })
+          this.choiceNodes.set(`value:${row.id}`, { node: value, cx: 64, cy: 18 })
         }
         y += ROW
         continue
       }
 
-      y += this.drawChoices(row, y + 50)
+      y += this.drawChoices(row, y + NOTE_ROOM + 16)
     }
 
     // **그린 뒤에 잽니다.** 줄의 높이가 글의 길이에 달려 있으므로 그리기 전에는 알 수
