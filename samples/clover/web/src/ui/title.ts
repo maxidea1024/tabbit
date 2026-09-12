@@ -91,15 +91,6 @@ const COLUMN_GAP = 14
  * 등급이 넷 생깁니다.
  */
 const ROW_H = 56
-/**
- * 단추 글자 크기.
- *
- * **넷이 다 같습니다.** 콜렉션과 리더보드에만 17이 넘어가 있었고 시작과 나가기는 기본값
- * 15였습니다 — 재어 보니 글자 높이가 18과 14로 갈렸습니다. 같은 등급의 단추이므로 크기를
- * 한 자리에 둡니다.
- */
-const ROW_TEXT = 17
-
 const LOGO_SIZE = 76
 const LOGO_Y = 96
 const TAGLINE_Y = 334
@@ -254,7 +245,7 @@ export class Title extends Container {
     // **시작만 금색입니다.** 넷이 다 회색이면 무엇을 누를지가 화면에 없습니다 — 크기와
     // 서체는 같게 두고 색으로만 가릅니다. 나가기는 붉은빛입니다.
     const start = new Button(t('ui.button.start'), START_W, START_H, 'primary',
-                             hooks.onStart, ROW_TEXT)
+                             hooks.onStart)
     start.position.set(COLUMN_X, START_Y)
     this.buttons.push({ key: 'ui.button.start', button: start })
     this.toolNodes.set('start', { node: start, cx: START_W / 2, cy: START_H / 2 })
@@ -264,13 +255,13 @@ export class Title extends Container {
     const secondX = COLUMN_X
 
     const pool = new Button(t('ui.button.collection'), SECOND_W, SECOND_H, 'neutral',
-                            hooks.onCollection, ROW_TEXT)
+                            hooks.onCollection)
     pool.position.set(secondX, SECOND_Y)
     this.buttons.push({ key: 'ui.button.collection', button: pool })
     this.toolNodes.set('collection', { node: pool, cx: SECOND_W / 2, cy: SECOND_H / 2 })
 
     const board = new Button(t('ui.button.leaderboard'), SECOND_W, SECOND_H, 'neutral',
-                             hooks.onLeaderboard, ROW_TEXT)
+                             hooks.onLeaderboard)
     board.position.set(secondX, SECOND_Y + SECOND_H + COLUMN_GAP)
     this.buttons.push({ key: 'ui.button.leaderboard', button: board })
     this.toolNodes.set('leaderboard', { node: board, cx: SECOND_W / 2, cy: SECOND_H / 2 })
@@ -278,7 +269,7 @@ export class Title extends Container {
     // 나가기. **가장 아래이고 낮습니다** — 위의 둘과 같은 높이로 두면 게임을 끝내는 것이
     // 도감을 여는 것과 같은 무게가 됩니다.
     const quit = new Button(t('ui.button.quit'), QUIT_W, QUIT_H, 'danger',
-                            hooks.onQuit, ROW_TEXT)
+                            hooks.onQuit)
     quit.position.set(COLUMN_X, QUIT_Y)
     this.buttons.push({ key: 'ui.button.quit', button: quit })
     this.toolNodes.set('quit', { node: quit, cx: QUIT_W / 2, cy: QUIT_H / 2 })
@@ -291,13 +282,13 @@ export class Title extends Container {
     this.accountSlot.visible = false
 
     const link = new Button(t('ui.account.link'), ACCOUNT_W, ACCOUNT_H - 20, 'quiet',
-                            hooks.onAccount, 15)
+                            hooks.onAccount)
     link.position.set(EDGE, EDGE)
     this.linkButton = link
     this.buttons.push({ key: 'ui.account.link', button: link })
 
     const signOut = new Button(t('ui.button.logout'), ACCOUNT_W, SIGNOUT_H, 'neutral',
-                               hooks.onSignOut, 13)
+                               hooks.onSignOut)
     signOut.position.set(EDGE, EDGE + ACCOUNT_H + 8)
     signOut.visible = false
     this.signOutButton = signOut

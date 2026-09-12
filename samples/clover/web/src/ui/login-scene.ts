@@ -314,7 +314,7 @@ export class LoginScene extends Container {
         // 아무 표시가 없으면 눌리지 않은 것으로 보입니다.
         this.showBand(t('ui.account.signingIn'))
         account.goToProvider(provider.id)
-      }, 18)
+      })
       button.position.set(SIZE.width / 2 - BUTTON_W / 2, y)
       // **제공자의 색은 작은 네모 하나에만 듭니다.** 단추 넷을 저마다의 색으로 칠하면
       // 어느 것을 고르라는 화면인지가 색으로 정해지지 않고, 화면에 채도가 넷 늘어납니다.
@@ -331,7 +331,7 @@ export class LoginScene extends Container {
     // 배포 빌드에는 이 코드가 없습니다.
     if (import.meta.env.DEV && this.dev) {
       const fake = new Button(t('ui.account.devLogin'), BUTTON_W, BUTTON_H - 6, 'neutral',
-                              () => void this.signInAsDev(), 16)
+                              () => void this.signInAsDev())
       fake.position.set(SIZE.width / 2 - BUTTON_W / 2, y)
       this.body.addChild(fake)
       y += BUTTON_H - 6 + GAP
@@ -383,7 +383,7 @@ export class LoginScene extends Container {
     void y
 
     const single = new Button(t('ui.account.guestStart'), BUTTON_W, BUTTON_H, 'select',
-                              () => void this.startWithoutAccount(), 18)
+                              () => void this.startWithoutAccount())
     single.position.set(SIZE.width / 2 - BUTTON_W / 2, singleY)
     this.body.addChild(single)
 
@@ -402,7 +402,7 @@ export class LoginScene extends Container {
     // 것이므로 목록의 끝입니다.
     const quitW = 132
     const quit = new Button(t('ui.button.quit'), quitW, 38, 'neutral',
-                            () => this.onQuit?.(), 14)
+                            () => this.onQuit?.())
     quit.position.set(SIZE.width / 2 - quitW / 2, singleY + BUTTON_H + 44)
     this.body.addChild(quit)
 

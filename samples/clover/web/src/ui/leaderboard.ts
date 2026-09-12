@@ -623,7 +623,7 @@ export class LeaderboardPanel implements ModalPanel {
 
       if (guest) {
         const link = new Button(t('ui.account.link'), 120, 26, 'primary',
-                                () => this.later(() => this.onNeedAccount?.()), 12)
+                                () => this.later(() => this.onNeedAccount?.()))
         link.position.set(TABLE_X + TABLE_W - 132, y + (MINE_H - 26) / 2)
         this.mineBar.addChild(link)
       }
@@ -660,7 +660,7 @@ export class LeaderboardPanel implements ModalPanel {
     const onPage = shown.rows.some(row => row.rank === shown.me?.rank)
     if (!onPage) {
       const jump = new Button(t('ui.button.toMe'), 96, 26, 'select',
-                              () => this.later(() => void this.loadPage('me')), 12)
+                              () => this.later(() => void this.loadPage('me')))
       jump.position.set(TABLE_X + COL.value - amount.width - 118, y + (MINE_H - 26) / 2)
       this.mineBar.addChild(jump)
     }

@@ -473,12 +473,12 @@ class ResumeBody {
     // **이어서 하기가 큽니다.** 버리는 것은 되돌릴 수 없으므로 같은 크기로 나란히 두면
     // 잘못 누르는 일이 생깁니다.
     const resume = new Button(t('ui.run.resume'), 320, 48, 'primary',
-                              () => this.onResume?.(), 18)
+                              () => this.onResume?.())
     resume.position.set(24, CARD_H - 72)
     this.resumeButton = resume
 
     const discard = new Button(t('ui.run.discard'), 132, 48, 'neutral',
-                               () => this.onDiscard?.(), 15)
+                               () => this.onDiscard?.())
     discard.position.set(CARD_W - 24 - 132, CARD_H - 72)
     this.discardButton = discard
 

@@ -1342,7 +1342,7 @@ export class SessionPart {
       const clip = globalThis.navigator?.clipboard
       if (!clip) return
       void clip.writeText(state.seed).then(() => { copy.text = t('ui.over.copied') })
-    }, 11)
+    })
     copy.position.set(seed.x + seed.width + 8, yy + 8)
     board.addChild(seedLabel, seed, copy)
 

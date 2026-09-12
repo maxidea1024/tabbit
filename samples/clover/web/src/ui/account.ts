@@ -172,7 +172,7 @@ export class HandlePanel implements ModalPanel {
     }
 
     const done = new Button(t('ui.button.confirmName'), 200, 44, 'primary',
-                            () => void this.submit(), 16)
+                            () => void this.submit())
     done.position.set(WIDTH / 2 - 100, height - 68)
     this.body.addChild(done)
   }
@@ -333,7 +333,7 @@ export class ProfilePanel implements ModalPanel {
 
   private drawFoot(width: number, height: number, shown: Me): void {
     if (!this.mine) {
-      const report = new Button(t('ui.button.report'), 150, 40, 'danger', () => undefined, 15)
+      const report = new Button(t('ui.button.report'), 150, 40, 'danger', () => undefined)
       report.position.set(width / 2 - 75, height - 62)
       this.body.addChild(report)
       return
@@ -360,7 +360,7 @@ export class ProfilePanel implements ModalPanel {
     const gap = 12
     const bw = (width - 80 - gap * 2) / 3
     const rename = new Button(t('ui.button.confirmName'), bw, 40, 'select',
-                              () => this.onRename?.(), 14)
+                              () => this.onRename?.())
     rename.position.set(40, height - 62)
 
     // **여기서 곧바로 나가지 않습니다.** 묻는 것과 그 뒤의 화면 전환이 한 곳에 있어야
@@ -368,7 +368,7 @@ export class ProfilePanel implements ModalPanel {
     const out = new Button(t('ui.button.logout'), bw, 40, 'neutral', () => {
       this.onClose()
       this.onSignOut?.()
-    }, 14)
+    })
     out.position.set(40 + bw + gap, height - 62)
 
     // **두 번 누릅니다.** 되돌리지 않는 것이므로 한 번에 지워지지 않아야 합니다.
@@ -386,7 +386,7 @@ export class ProfilePanel implements ModalPanel {
         this.onSignedOut?.()
         this.onClose()
       })
-    }, 14)
+    })
     remove.position.set(40 + (bw + gap) * 2, height - 62)
 
     this.body.addChild(rename, out, remove)

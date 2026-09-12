@@ -491,7 +491,7 @@ export class PayoutPart {
         this.game.panels.modals.close(this.panel)
         this.game.refresh()
       }
-    }, 16)
+    })
     take.position.set((width - 240) / 2, buttonTop)
     take.enabled = this.game.clock >= readyAt
     layer.addChild(take)

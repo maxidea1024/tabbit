@@ -146,32 +146,51 @@ export function setUiTheme(key: string): void {
  */
 export const TEXT = {
   /** 곁들이는 수 · 칸 아래의 개수. */
-  micro: 10,
+  micro: 12,
   /** 칩 · 딱지. */
-  mini: 11,
+  mini: 12,
   /** 이름표 · 흐린 설명. */
   small: 12,
   /** 본문. **가장 많이 쓰는 크기입니다.** */
-  body: 13,
+  body: 12,
   /** 조금 큰 본문. 줄이 그 자리의 주인공일 때입니다. */
-  copy: 14,
+  copy: 12,
   /** 단추의 글. */
-  base: 15,
+  base: 24,
   /** 판의 제목 줄 · 핸드의 이름. */
-  big: 17,
+  big: 24,
   /** 판의 큰 제목. */
-  lead: 20,
+  lead: 24,
   /** 점수 · 끝난 판의 머리. */
-  head: 23,
+  head: 24,
   /** 값 하나가 그 판의 주인공일 때. */
-  display: 26,
+  display: 36,
   /** 굴러가는 점수. */
-  banner: 30,
+  banner: 36,
   /** 뒤에 옅게 깔리는 큰 글자. */
-  hero: 34,
+  hero: 36,
   /** 정산의 합계. */
-  giant: 40,
+  giant: 48,
 } as const
+
+/**
+ * 글자 계단의 다섯 칸. **이 밖의 크기를 쓰지 않습니다.**
+ *
+ * 물마루는 픽셀 서체입니다. 1em 이 192유닛이고 1픽셀이 16유닛이라 **12의 배수에서만 획이
+ * 격자에 맞습니다** — 그 사이 값(11 · 13 · 17 · 23 · 34)에서는 획의 굵기가 자리마다
+ * 달라집니다.
+ *
+ * 위의 `TEXT` 는 이 다섯 칸으로 접힌 이름들입니다. 이름을 남겨 둔 까닭은 부르는 자리가
+ * 「어느 자리의 글인가」를 계속 말하기 때문입니다 — 크기가 같아도 뜻이 다릅니다.
+ */
+export const STEP = [12, 24, 36, 48, 72] as const
+
+/** 그 크기에 가장 가까운 계단. 계단 밖의 값이 들어오면 여기서 접힙니다. */
+export function step(size: number): number {
+  let best = STEP[0] as number
+  for (const one of STEP) if (Math.abs(one - size) < Math.abs(best - size)) best = one
+  return best
+}
 
 /**
  * 줄 사이.
@@ -181,7 +200,8 @@ export const TEXT = {
  * 가장 좁은 값입니다.
  */
 export function leading(size: number): number {
-  return Math.round(size * 1.45)
+  // **줄 사이도 12의 배수입니다.** 픽셀 서체는 줄이 반 픽셀 어긋나면 획이 흐려집니다.
+  return Math.max(12, Math.round(size * 1.45 / 12) * 12)
 }
 
 /** 글자의 굵기. **셋뿐입니다** — 넷째를 더하면 어느 것이 더 무거운지가 보이지 않습니다. */
@@ -197,18 +217,17 @@ export const WEIGHT = {
 /**
  * 모서리.
  *
- * **네 단계입니다.** 4·6·8·12 이고, 그 사이의 값(5·7·9·10)은 들여 그린 테가 계산해
- * 내는 것이지 고르는 것이 아닙니다 — `insetRadius()` 가 그 일을 합니다.
+ * **전부 0 입니다.** 화면에 둥근 모서리가 하나도 없습니다 — 둥근 상자는 웹의 문법이고,
+ * 이 화면의 표시는 마주 보는 두 귀를 사선으로 자른 것입니다.
+ *
+ * 이름을 남겨 둔 까닭은 부르는 자리가 300곳이 넘기 때문입니다. 값이 한 자리에 있으면
+ * 어긴 자리가 생기지 않습니다.
  */
 export const RADIUS = {
-  /** 칩 · 작은 딱지. */
-  tight: 4,
-  /** 칸 · 단추. */
-  small: 6,
-  /** 판. */
-  base: 8,
-  /** 크게 뜨는 판 · 알림. */
-  large: 12,
+  tight: 0,
+  small: 0,
+  base: 0,
+  large: 0,
 } as const
 
 /**
@@ -247,7 +266,7 @@ export const SIZE = {
 
   cardWidth: 88,
   cardHeight: 124,
-  cardRadius: 9,
+  cardRadius: 0,
 
   /**
    * 조커 딱지의 크기. **플레잉 카드와 같습니다.**

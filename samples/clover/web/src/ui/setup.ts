@@ -209,13 +209,13 @@ export class SetupBody {
     this.body.addChild(this.grid, this.stakes)
 
     this.startButton = new Button(t('ui.setup.start'), START_W, BTN_H, 'primary',
-                                  () => this.onStart?.(this.picked()), 19)
+                                  () => this.onStart?.(this.picked()))
     this.startButton.position.set(BTN_X, BTN_Y)
 
     // **랭크는 조용합니다.** 같은 색으로 같은 크기면 눌러야 하는 것이 둘로 보입니다 —
     // 이 화면에서 대개 누르는 것은 왼쪽의 하나입니다.
     this.rankedButton = new Button(t('ui.lb.ranked'), RANKED_W, BTN_H, 'neutral',
-                                   () => this.onStartRanked?.(), 15)
+                                   () => this.onStartRanked?.())
     this.rankedButton.position.set(BTN_X + START_W + BTN_GAP, BTN_Y)
 
     // 랭크가 잠긴 이유는 **올렸을 때 적힙니다.** 단추 밑에 한 줄을 늘 두면 로그인한

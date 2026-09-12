@@ -134,7 +134,7 @@ export class ChallengeBody {
     this.body.addChild(this.grid)
 
     this.start = new Button(t('ui.challenge.start'), BTN_W, BTN_H, 'primary',
-                            () => this.fire(), 19)
+                            () => this.fire())
     this.start.position.set(BTN_X, BTN_Y)
     this.body.addChild(this.start)
   }

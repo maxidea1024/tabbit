@@ -3,12 +3,12 @@ import { BlindKind } from '../generated/enums/blind-kind'
 import { describe } from '../core/describe'
 import { rewardOf, tagFor, targetOf } from '../core/run'
 import { nameOf, t, tf } from '../core/strings'
-import { cornerPiece, frameTint } from '../ui/chrome'
+import { piece } from '../ui/chrome'
 import { BlindBadge } from '../render/hud'
 import { Motion } from '../render/motion'
 import { artFor } from '../render/art'
 import { blindFace, packInk, packName, shopLabel, tagFace } from '../render/faces'
-import { groove } from '../render/skin'
+import { groove, plateTint } from '../render/skin'
 import { popupLeft, SIZE, TEXT, UI, WEIGHT } from '../render/theme'
 import { Button } from '../ui/widgets'
 import { PANEL_BOTTOM } from '../ui/modal'
@@ -383,13 +383,13 @@ export class BlindPart {
         .stroke({ color: now ? UI.panelEdge : UI.hairline, width: 1.5 })
       group.addChild(plate)
 
-      // **네 귀의 꺾쇠.** 얇은 테 위에 얹힙니다.
-      const rim = cornerPiece(cardW, height, frameTint())
+      // **구워 둔 판 한 장입니다.** 채움과 잘린 귀가 그 안에 있습니다.
+      const rim = piece('plate', cardW, height, plateTint(UI.panel))
       if (rim !== undefined) {
-        // **고를 차례가 아닌 판은 꺾쇠도 옅습니다.** 판만 옅고 꺾쇠가 또렷하면 그 판이
-        // 앞으로 나온 것으로 보입니다.
+        // **고를 차례가 아닌 판은 옅습니다.** 판만 옅고 테가 또렷하면 그 판이 앞으로 나온
+        // 것으로 보입니다.
         rim.alpha = now ? 1 : 0.55
-        group.addChild(rim)
+        group.addChildAt(rim, 0)
       }
 
       const label = (text: string, size: number, fill: number, weight = '700') =>

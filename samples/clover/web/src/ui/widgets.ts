@@ -8,17 +8,27 @@ import { Container, Graphics, Rectangle, Sprite, Text } from 'pixi.js'
 
 import { contrast } from '../render/color'
 import type { Surface } from '../render/palette'
-import { LIP, mix, panelStyle, plate, pressable,
+import { LIP, mix, panelStyle, plate, plateTint, pressable,
          type ButtonLook, type PlateStyle } from '../render/skin'
 import { UI, TEXT, WEIGHT } from '../render/theme'
 import { outlined, outlineOf, outlineWidth, strokeWidthOf } from './font'
 import { iconFor, type IconName } from './icon'
-import { cornerPiece, frameTint } from './chrome'
+import { piece, rungFor, rungOf } from './chrome'
+import type { RungName } from './atlas'
 
+/**
+ * 판.
+ *
+ * **구워 둔 그림 한 장입니다.** 채움과 위 변의 빛과 오른쪽 아래의 잘린 귀가 그 안에 다
+ * 있습니다 — 코드로 그린 채움과 테는 잘 만든 웹 화면의 문법이고, 이 게임의 그림 화풍과는
+ * 어긋납니다.
+ *
+ * 그림이 아직 오지 않았으면 지금까지의 길로 그립니다. 첫 프레임에 판이 사라지는 것보다
+ * 낫습니다.
+ */
 export class Panel extends Container {
   private readonly board = new Graphics()
-  /** 네 귀의 꺾쇠. 판 크기와 무관한 고정 크기입니다. */
-  private frame?: Container
+  private skin?: Container
 
   constructor(width: number, height: number, tint?: number) {
     super()
@@ -27,20 +37,20 @@ export class Panel extends Container {
   }
 
   resize(width: number, height: number, tint?: number): void {
-    // **금속 테 그림이 있으면 강조색 테를 그리지 않습니다.** 둘이 겹치면 금속 안쪽에 주황
-    // 선이 한 줄 더 놓이고, 그 선이 웹 화면의 인상을 만듭니다.
+    this.skin?.destroy()
+    this.skin = piece('plate', width, height, plateTint(tint ?? panelStyle().top))
+    this.board.clear()
+    if (this.skin !== undefined) {
+      this.addChildAt(this.skin, 0)
+      this.alpha = panelStyle().alpha ?? 1
+      return
+    }
+
     const border = panelStyle().border
     const style: PlateStyle = tint === undefined
       ? { ...panelStyle(), border }
       : { ...panelStyle(), top: mix(tint, PAINT.sheen, 0.1), bottom: tint, border }
-    this.board.clear()
     plate(this.board, width, height, style)
-
-    // **네 귀의 꺾쇠.** 얇은 테 위에 얹혀 단조로움을 덜어 냅니다 — 테 전체를 그림으로
-    // 두르면 판이 도스 시절의 대화상자가 됩니다.
-    this.frame?.destroy()
-    this.frame = cornerPiece(width, height, frameTint())
-    if (this.frame !== undefined) this.addChild(this.frame)
   }
 }
 
@@ -140,8 +150,19 @@ function captionInk(base: number): number {
   return contrast(UI.onLight, base) > contrast(UI.ink, base) * 1.15 ? UI.onLight : UI.ink
 }
 
+/**
+ * 단추가 내려앉는 깊이.
+ *
+ * 구워 둔 그림의 아래 턱과 같은 값입니다. 누르면 얼굴이 이만큼 내려가 턱에 얹히므로
+ * 실루엣의 아랫변은 제자리에 남습니다.
+ */
+const SINK = 3
+
 export class Button extends Container {
   private readonly board = new Graphics()
+  private skin?: Container
+  /** 이 단추가 서 있는 높이의 칸. 계단 넷 안에서만 고릅니다. */
+  private readonly rung: RungName
   private readonly caption = new Text({
     text: '',
     style: {
@@ -161,16 +182,17 @@ export class Button extends Container {
   static onPressed?: () => void
 
   /**
-   * @param textSize 글자 크기. **큰 단추는 글자도 커야 합니다** — 236 × 72 짜리 시작
-   *   단추에 15픽셀 글자를 얹으면 단추 가운데에 작은 딱지가 하나 놓인 것으로 보입니다.
-   *   판 안의 단추들은 기본값 그대로입니다.
+   * **글자 크기를 받지 않습니다.** 높이의 칸이 글자를 정합니다 — 36은 12, 48과 60은 24,
+   * 72는 36입니다. 부르는 자리마다 고르게 두었더니 한 화면에 15 · 16 · 18 · 19가 함께
+   * 놓였고, 그 차이는 나란히 보아야만 보입니다.
    */
   constructor(text: string, private readonly boxWidth: number,
               private readonly boxHeight: number,
-              private readonly intent: Intent, onPress: () => void, textSize = 15) {
+              private readonly intent: Intent, onPress: () => void) {
     super()
-    this.textSize = textSize
-    this.caption.style.fontSize = textSize
+    this.rung = rungFor(boxHeight)
+    this.textSize = rungOf(this.rung).font
+    this.caption.style.fontSize = this.textSize
     this.addChild(this.board, this.caption)
     this.caption.anchor.set(0.5)
     this.caption.position.set(boxWidth / 2, this.captionY(false))
@@ -209,8 +231,8 @@ export class Button extends Container {
     this.draw()
   }
 
-  /** 넘겨받은 글자 크기. 글이 길어 줄였다가 되돌릴 때 씁니다. */
-  private textSize = 15
+  /** 이 칸의 글자 크기. 글이 길어 줄였다가 되돌릴 때 씁니다. */
+  private textSize = 24
 
   /**
    * 단추에 적히는 글.
@@ -231,10 +253,13 @@ export class Button extends Container {
     this.caption.text = value
 
     // 양쪽에 8픽셀씩 남깁니다. 글이 테두리에 닿으면 칸이 터진 것으로 보입니다.
+    //
+    // **줄일 때에도 계단을 밟습니다.** 한 픽셀씩 내리면 12의 배수를 벗어나 획이 격자에서
+    // 어긋납니다 — 픽셀 서체는 그 사이 값에서 굵기가 자리마다 달라집니다.
     const room = this.boxWidth - 16
     let size = this.textSize
-    while (size > 9 && this.caption.width > room) {
-      size -= 1
+    while (size > 12 && this.caption.width > room) {
+      size -= 12
       this.caption.style.fontSize = size
     }
 
@@ -345,6 +370,10 @@ export class Button extends Container {
    * 두꺼운 단추는 얼굴이 턱 안으로 내려앉는 만큼 함께 갑니다.
    */
   private captionY(pushed: boolean): number {
+    if (this.skin !== undefined || piece === undefined) {
+      const tall = rungOf(this.rung).height
+      return tall / 2 + (pushed ? SINK / 2 : 0)
+    }
     const flat = INTENTS[this.intent].edge !== undefined || !this.enabledState
     if (flat) return this.boxHeight / 2 + (pushed ? 1 : 0)
     return (this.boxHeight - LIP) / 2 + (pushed ? LIP : 0)
@@ -362,13 +391,24 @@ export class Button extends Container {
 
   private draw(): void {
     this.board.clear()
-    // **금속 단추 그림이 있으면 그것을 씁니다.** 코드로 그린 채움과 테는 잘 만든 웹 화면의
-    // 문법이고, 이 게임의 그림 화풍과는 어긋납니다.
-    //
-    // **회색조 그림에 갈래의 색을 물들입니다.** 갈래 8개 × 상태 3개를 그림으로 두면 24장이
-    // 되므로, 그림은 한 장이고 색은 지금까지의 토큰에서 그대로 옵니다.
-    pressable(this.board, this.boxWidth, this.boxHeight, this.shown, this.pushed)
 
+    // **회색조 그림 한 장에 갈래의 색을 물들입니다.** 갈래 8 × 상태 4 를 그림으로 두면
+    // 32장이 되므로, 그림은 칸마다 한 장이고 색은 지금까지의 토큰에서 그대로 옵니다.
+    //
+    // 누르면 얼굴이 턱 위로 내려앉습니다 — 그만큼 낮게, 그만큼 아래에 놓습니다. 아랫변은
+    // 제자리에 남으므로 단추가 자리를 옮기지 않습니다.
+    this.skin?.destroy()
+    const tall = rungOf(this.rung).height
+    const sunk = this.pushed ? SINK : 0
+    this.skin = piece(this.rung, this.boxWidth, tall - sunk, this.shown.face)
+    if (this.skin !== undefined) {
+      this.skin.y = sunk
+      this.addChildAt(this.skin, 0)
+      this.applyInk()
+      return
+    }
+
+    pressable(this.board, this.boxWidth, this.boxHeight, this.shown, this.pushed)
     this.applyInk()
   }
 }

@@ -426,7 +426,7 @@ export class CollectionPanel implements ModalPanel {
     const tabsX = Math.round((WIDTH - (TABS.length * tabW + (TABS.length - 1) * tabGap)) / 2)
     for (const [index, one] of TABS.entries()) {
       const button = new Button(t(one.label), tabW, TAB_H, 'neutral',
-                                () => this.choose(one.key), 15)
+                                () => this.choose(one.key))
       button.position.set(tabsX + index * (tabW + tabGap), TAB_Y)
       this.tabButtons.push({ key: one.key, button, label: one.label })
       this.toolNodes.set(`tab:${one.key}`, { node: button, cx: tabW / 2, cy: TAB_H / 2 })
@@ -439,13 +439,13 @@ export class CollectionPanel implements ModalPanel {
     const sw = 70
     for (const [index, one] of SORTS.entries()) {
       const button = new Button(t(one.label), sw, HEAD_H, 'neutral',
-                                () => this.sortBy(one.key), 14)
+                                () => this.sortBy(one.key))
       button.position.set(GRID_X + index * (sw + 6), HEAD_Y)
       this.sortButtons.push({ key: one.key, button, label: one.label })
       this.toolNodes.set(`sort:${one.key}`, { node: button, cx: sw / 2, cy: HEAD_H / 2 })
       this.body.addChild(button)
     }
-    this.order = new Button('', 40, HEAD_H, 'neutral', () => this.flip(), 18)
+    this.order = new Button('', 40, HEAD_H, 'neutral', () => this.flip())
     this.order.position.set(GRID_X + SORTS.length * (sw + 6), HEAD_Y)
     this.toolNodes.set('order', { node: this.order, cx: 20, cy: HEAD_H / 2 })
     this.body.addChild(this.order)

@@ -1,0 +1,42 @@
+// 이 파일은 design-data/tools/ui.py 가 씁니다. 손으로 고치지 않습니다.
+//
+// 굽는 배율이 2 이므로 놓을 때 1 / 2 로 줄입니다. 여기의 값은 전부 1배 기준입니다.
+
+export type Slice = {
+  /** 1배 기준의 본디 크기입니다. */
+  w: number
+  h: number
+  /** 겉면 밖으로 나가는 그림자의 여백입니다. 놓을 때 이만큼 물러앉습니다. */
+  pad: number
+  left: number
+  right: number
+  top: number
+  bottom: number
+}
+
+export const BAKE_SCALE = 1 / 2
+
+export const ATLAS: Record<string, Slice> = {
+  'plate': { w: 96, h: 96, pad: 0, left: 24, right: 24, top: 6, bottom: 24 },
+  'well': { w: 64, h: 64, pad: 0, left: 12, right: 12, top: 8, bottom: 8 },
+  'tray': { w: 96, h: 96, pad: 0, left: 14, right: 14, top: 8, bottom: 8 },
+  'head': { w: 96, h: 64, pad: 0, left: 14, right: 14, top: 8, bottom: 10 },
+  'keycap': { w: 64, h: 36, pad: 14, left: 18, right: 18, top: 10, bottom: 14 },
+  'gauge': { w: 48, h: 12, pad: 0, left: 6, right: 6, top: 0, bottom: 0 },
+  'gauge-fill': { w: 48, h: 8, pad: 0, left: 6, right: 6, top: 0, bottom: 0 },
+  'glow-edge': { w: 64, h: 2, pad: 0, left: 0, right: 0, top: 0, bottom: 0 },
+  'button-sm': { w: 48, h: 36, pad: 14, left: 14, right: 14, top: 0, bottom: 0 },
+  'button': { w: 56, h: 48, pad: 14, left: 16, right: 16, top: 0, bottom: 0 },
+  'button-lg': { w: 64, h: 60, pad: 14, left: 18, right: 18, top: 0, bottom: 0 },
+  'button-xl': { w: 72, h: 72, pad: 14, left: 20, right: 20, top: 0, bottom: 0 },
+}
+
+/** 단추 높이의 계단 넷입니다. 그 사이 값은 쓰지 않습니다. */
+export const RUNG = {
+  'button-sm': { height: 36, font: 12, cut: 8 },
+  'button': { height: 48, font: 24, cut: 10 },
+  'button-lg': { height: 60, font: 24, cut: 12 },
+  'button-xl': { height: 72, font: 36, cut: 14 }
+} as const
+
+export type RungName = keyof typeof RUNG
