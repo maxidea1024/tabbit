@@ -60,7 +60,7 @@ export class ConfirmPanel implements ModalPanel {
       text: body,
       style: {
         fontSize: TEXT.copy, fill: UI.ink, wordWrap: true, wordWrapWidth: WIDTH - 72,
-        align: 'center', lineHeight: 21,
+        align: 'center',
       },
     })
     text.anchor.set(0.5, 0)
@@ -96,13 +96,13 @@ export class ConfirmPanel implements ModalPanel {
     const y = height - 30 - 44
 
     const no = new Button(t('ui.button.no'), width, 44, 'neutral',
-                          () => this.onClose(), 16)
+                          () => this.onClose())
     no.position.set(30, y)
 
     const ok = new Button(yes, width, 44, danger ? 'danger' : 'confirm', () => {
       this.onClose()
       this.onYes()
-    }, 16)
+    })
     ok.position.set(30 + width + gap, y)
 
     this.view.addChild(no, ok)

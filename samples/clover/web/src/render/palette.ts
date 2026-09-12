@@ -70,6 +70,16 @@ export interface SurfaceSeed {
 interface Ratio {
   /** 판을 1로 둔 배수. */
   ratio: number
+  /**
+   * 판의 OKLCH 밝기에 더하는 값. 적으면 `ratio` 대신 이것이 밝기를 정합니다.
+   *
+   * **어두운 겉면에서 단추가 회색으로 떠오르는 것을 막습니다.** 대비의 배수는
+   * `(휘도 + 0.05)` 의 비이므로 어두운 쪽에서는 0.05 가 지배하고, 검은 판(휘도 0.004)
+   * 위의 단추와 슬레이트 판(0.023) 위의 단추가 같은 배수에서 거의 같은 회색이 됩니다 —
+   * 검은 겉면을 골랐는데 단추가 전부 회색이었습니다. 밝기의 차로 두면 판이 어두운 만큼
+   * 단추도 어둡습니다.
+   */
+  lift?: number
   /** 중립 채도에 곱하는 값. 강조색은 `chroma` 를 대신 적습니다. */
   tint?: number
   /** 채도를 직접 정합니다. 강조색이 씁니다. */
@@ -97,8 +107,13 @@ interface Level {
  * 밝기면 테 하나로만 갈립니다 — 그 테도 흐렸습니다(판 대비 1.05~1.24 였습니다).
  */
 const SURFACES: Record<string, Ratio> = {
-  /** 판 뒤. 배경이 셰이더로 덮이지 않는 자리에 보입니다. */
-  ground: { ratio: 0.58 },
+  /**
+   * 판 뒤. 배경이 셰이더로 덮이지 않는 자리에 보입니다.
+   *
+   * **바닥은 검정입니다.** 기본 겉면이 검정이고 나머지 겉면은 여기서 갈라져 나옵니다.
+   * 바닥에 색을 섞으면 화면 전체가 한 색으로 물들고 강조색이 설 자리가 없어집니다.
+   */
+  ground: { ratio: 0.25, tint: 0.5 },
   /** 값 칸 · 입력 · 물건 칸. 판 대비 1.35 입니다. */
   cell: { ratio: 0.741 },
   /** 진행 바의 바탕. 칸보다 한 단 더 팹니다. */
@@ -151,31 +166,31 @@ const LINES: Record<string, Ratio> = {
  */
 const CONTROLS: Record<string, Ratio> = {
   /**
-   * 보통 단추의 채움. **판에 거의 붙어 있습니다.**
+   * 그 밖의 단추의 채움. **판과 같은 색상각에 채도는 세 배 남짓, 판보다 0.19 밝습니다.**
    *
-   * 판보다 두 배 밝게 두었더니 회색 판때기가 되었습니다. 잘 만든 웹의 어두운 화면을 재어
-   * 보면 반대입니다 — GitHub 의 어두운 단추는 바탕 대비 1.24 이고 Radix 의 단추 단계는
-   * 1.12 입니다. **단추를 단추로 보이게 하는 것은 채움이 아니라 테입니다.**
+   * 판과 다른 색상각을 쓰면 판 위에 놓였을 때 다른 재질로 보이므로 색상각은 판의 것이고,
+   * 밝기는 배수가 아니라 차로 둡니다(`lift`) — 배수(3.2)로 두었을 때 검은 겉면의 단추가
+   * 슬레이트 겉면의 단추와 같은 회색이 되어 검은 겉면이 회색 겉면으로 보였습니다.
+   * 슬레이트에서 이 값은 시안의 `#4A5568` 근처(판 대비 2.3배)이고, 검은 겉면에서는
+   * `#383838` 근처(1.7배)입니다. 「갈래 다섯」이 정본입니다.
    */
-  btn: { ratio: 1.24, tint: 2.0 },
-  btnHover: { ratio: 1.58, tint: 2.0 },
-  btnPress: { ratio: 1.12, tint: 2.0 },
+  btn: { ratio: 2.3, lift: 0.19, tint: 2.8 },
+  btnHover: { ratio: 2.9, lift: 0.26, tint: 2.8 },
+  btnPress: { ratio: 2.0, lift: 0.15, tint: 2.8 },
   /**
-   * 보통 단추의 테. **단추에서 가장 밝은 부분입니다.**
-   *
-   * 잉크색으로 두르던 동안 어두운 판 위의 검은 테는 테가 아니라 틈으로 보였고, 그 안의
-   * 회색 채움이 떠 있는 판때기가 되었습니다. GitHub 는 1.55, Radix 는 1.53~1.92 입니다.
+   * 그 밖의 단추의 테. 지금은 그림이 실루엣을 따라가는 테를 들고 있어 그리지 않습니다.
+   * 값은 단추 위에 얹는 밝은 변의 자리로 남겨 둡니다.
    */
-  btnEdge: { ratio: 2.00, tint: 2.6 },
-  btnEdgeHover: { ratio: 2.75, tint: 2.6 },
-  /** 잠긴 단추. **판 쪽으로 당기고 채도를 걷습니다.** */
-  locked: { ratio: 1.08, tint: 0.4 },
-  lockedEdge: { ratio: 1.38, tint: 0.5 },
-  /** 판 위에 조용히 놓이는 단추. 보통 단추보다 한 단 낮습니다. */
-  quiet: { ratio: 1.14, tint: 2.0 },
-  quietHover: { ratio: 1.40, tint: 2.0 },
-  quietPress: { ratio: 1.06, tint: 2.0 },
-  quietEdge: { ratio: 1.62, tint: 2.4 },
+  btnEdge: { ratio: 3.4, lift: 0.30, tint: 2.6 },
+  btnEdgeHover: { ratio: 4.2, lift: 0.36, tint: 2.6 },
+  /** 잠긴 단추. **채도를 걷습니다.** 글의 알파만 내리면 켜진 것과 같아 보입니다. */
+  locked: { ratio: 1.3, lift: 0.09, tint: 0.35 },
+  lockedEdge: { ratio: 1.5, lift: 0.13, tint: 0.4 },
+  /** 판 위에 조용히 놓이는 단추. 그 밖의 단추보다 한 단 낮습니다. */
+  quiet: { ratio: 1.4, lift: 0.08, tint: 2.4 },
+  quietHover: { ratio: 1.7, lift: 0.13, tint: 2.4 },
+  quietPress: { ratio: 1.06, lift: 0.02, tint: 2.0 },
+  quietEdge: { ratio: 1.2, lift: 0.05, tint: 2.4 },
   /** 스크롤 막대의 홈. */
   track: { ratio: 1.40, tint: 1.4 },
   /** 스크롤 막대의 손잡이. */
@@ -215,8 +230,13 @@ const INTENTS: Record<string, Ratio> = {
   green: { ratio: 8.0, chroma: 0.132, hue: 160, max: 0.88 },
   /** 된 것. */
   good: { ratio: 7.2, chroma: 0.147, hue: 154, max: 0.86 },
-  /** 되돌릴 수 없는 것 · 버리기. */
-  red: { ratio: 3.8, chroma: 0.190, hue: 29, max: 0.70 },
+  /**
+   * 되돌릴 수 없는 것 · 버리기.
+   *
+   * **짙은 붉음 채움입니다.** 글은 밝은 붉음(`bad`)으로 얹습니다 — 밝은 붉음 채움에 흰
+   * 글은 경고판이고, 짙은 채움에 밝은 글이 이 화면의 문법입니다.
+   */
+  red: { ratio: 2.0, chroma: 0.150, hue: 29, max: 0.56 },
   /** 안 된 것 · 모자란 값. */
   bad: { ratio: 5.4, chroma: 0.163, hue: 22, max: 0.82 },
   /** 걸어 보는 것. 블라인드를 건너뜁니다. */
@@ -236,7 +256,7 @@ const INTENTS: Record<string, Ratio> = {
    * **붉음의 어두운 쪽입니다.** 두 번 눌러야 지워지는 단추가 처음부터 붉으면 그 판에서
    * 가장 먼저 보이는 것이 「지운다」가 됩니다 — 두 번째 누름에서 `danger` 로 갑니다.
    */
-  caution: { ratio: 2.3, chroma: 0.115, hue: 29, max: 0.62 },
+  caution: { ratio: 2.7, chroma: 0.115, hue: 40, max: 0.64 },
   /** 글 속의 수. 칩과 같은 계열입니다. */
   accentNumber: { ratio: 7.0, chroma: 0.11, hue: 246, max: 0.86 },
   /** 글 속의 이름. */
@@ -322,8 +342,9 @@ function makeRatio(panel: number, seed: SurfaceSeed, spec: Ratio, name?: string,
   const chroma = spec.chroma !== undefined
     ? spec.chroma * (seed.vivid ?? 1)
     : neutralize(family.chroma * (spec.tint ?? 1))
-  const want = luminanceFor(panel, spec.ratio)
-  let level = solveLevel(want, chroma, hue)
+  let level = spec.lift !== undefined
+    ? solveLevel(panel, chroma, hue) + spec.lift
+    : solveLevel(luminanceFor(panel, spec.ratio), chroma, hue)
   if (spec.max !== undefined) level = Math.min(level, spec.max)
   if (spec.min !== undefined) level = Math.max(level, spec.min)
   level = clampLevel(level)
@@ -571,21 +592,18 @@ export const CONTRAST_GATE: {
   // 두 선을 가르는 데 필요한 값이 아닙니다.
   { what: '구획선과 가르는 줄', a: 'rule', b: 'groove', least: 1.20 },
 
-  { what: '판과 단추', a: 'btn', b: 'panel', least: 1.15 }
-  // **단추를 단추로 보이게 하는 것은 테입니다.** 채움이 아니라 이 줄이 요점입니다.
-  ,{ what: '판과 단추의 테', a: 'btnEdge', b: 'panel', least: 1.85 }
-  ,{ what: '단추와 그 테', a: 'btnEdge', b: 'btn', least: 1.50 }
-  ,{ what: '가리킨 단추와 그 테', a: 'btnEdgeHover', b: 'btnHover', least: 1.35 }
-  ,{ what: '잠긴 단추와 그 테', a: 'lockedEdge', b: 'locked', least: 1.20 }
-  ,{ what: '단추의 테와 잠긴 단추의 테', a: 'btnEdge', b: 'lockedEdge', least: 1.35 }
-  ,{ what: '판과 조용한 단추의 테', a: 'quietEdge', b: 'panel', least: 1.45 },
+  // **그 밖의 단추는 판보다 밝기의 차로 뜹니다.** 판에 붙어 있으면 비활성으로 읽히고,
+  // 배수로 벌리면 검은 겉면에서 회색이 됩니다 — 검은 겉면에서 1.7배, 슬레이트에서 2.3배가
+  // 나오므로 그 아래를 요구합니다. 단추의 테는 구운 그림이 실루엣을 따라 들고 있으므로
+  // 토큰의 테는 그리지 않고, 그 관계를 확인하던 줄도 걷었습니다.
+  { what: '판과 단추', a: 'btn', b: 'panel', least: 1.60 },
   { what: '단추와 잠긴 단추', a: 'btn', b: 'locked', least: 1.12 },
   { what: '단추와 가리킨 단추', a: 'btnHover', b: 'btn', least: 1.22 },
   { what: '단추와 눌린 단추', a: 'btn', b: 'btnPress', least: 1.08 },
   { what: '판과 잠긴 단추', a: 'locked', b: 'panel', least: 1.04 },
   { what: '판과 조용한 단추', a: 'quiet', b: 'panel', least: 1.10 },
-  { what: '조용한 단추의 테와 잠긴 단추의 테', a: 'quietEdge', b: 'lockedEdge', least: 1.12 },
-  { what: '단추와 밝은 단추', a: 'light', b: 'btn', least: 4.50 },
+  // 밝은 단추는 고른 것입니다. 그 밖의 단추가 밝아졌으므로 간격은 두 배 남짓입니다.
+  { what: '단추와 밝은 단추', a: 'light', b: 'btn', least: 2.20 },
   { what: '밝은 단추와 가리킨 것', a: 'lightHover', b: 'light', least: 1.10 },
   { what: '밝은 단추와 그 위의 글', a: 'light', b: 'onLight', least: 7.00 },
 
@@ -610,14 +628,17 @@ export const CONTRAST_GATE: {
   { what: '칸과 고른 것', a: 'pick', b: 'cell', least: 3.65, line: true },
   { what: '판과 승리', a: 'green', b: 'panel', least: 6.20 },
   { what: '판과 된 것', a: 'good', b: 'panel', least: 5.60 },
-  { what: '판과 붉음', a: 'red', b: 'panel', least: 3.60 },
+  // **붉음은 짙은 채움입니다.** 글이 밝은 붉음으로 얹히므로 채움은 판에서 조금만 뜹니다.
+  { what: '판과 붉음', a: 'red', b: 'panel', least: 1.80 },
   { what: '판과 안 된 것', a: 'bad', b: 'panel', least: 4.80 },
   { what: '판과 걸어 보는 것', a: 'dare', b: 'panel', least: 3.70 },
   { what: '판과 남은 버리기', a: 'discard', b: 'panel', least: 5.20 },
   { what: '남은 버리기와 걸어 보는 것', a: 'discard', b: 'dare', least: 1.20 },
   { what: '판과 그렇게 합니다', a: 'confirm', b: 'panel', least: 3.25 },
   { what: '판과 첫 누름', a: 'caution', b: 'panel', least: 2.15 },
-  { what: '첫 누름과 붉음', a: 'red', b: 'caution', least: 1.50 },
+  // **첫 누름이 붉음보다 밝습니다.** 붉음이 짙은 채움이 되었으므로 차례가 뒤집혔습니다 —
+  // 첫 누름은 주황이고, 두 번째가 짙은 붉음으로 내려앉습니다.
+  { what: '첫 누름과 붉음', a: 'caution', b: 'red', least: 1.25 },
   { what: '판과 글 속의 수', a: 'accentNumber', b: 'panel', least: 6.30 },
   { what: '판과 글 속의 이름', a: 'accentTerm', b: 'panel', least: 7.40 },
 

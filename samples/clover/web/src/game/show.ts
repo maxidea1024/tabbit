@@ -19,22 +19,20 @@ import { Motion, Spring } from '../render/motion'
 import { Particles } from '../render/particles'
 import { MotesLayer } from '../render/motes-layer'
 import { packInk, packInkLit, packName } from '../render/faces'
-import { burst, groove } from '../render/skin'
 import { SIZE, TEXT, UI, WEIGHT } from '../render/theme'
 import { box, CENTER, pointOf, putText, splitX } from '../ui/layout'
 import { Button, Panel } from '../ui/widgets'
 import { RuleBanner, type RuleNote } from '../ui/rule-banner'
 import {
-  ACTIVE_GLOW, BLIND_MUSIC_DIM, BLUR_BACK_PX, BLUR_PX, BOARD_X, BUTTON_Y, CHIPS_GAP, CHIPS_H,
-  CHIPS_Y, CONSUMABLE_TRAY, DEALER, DECK_X, DECK_Y, DELTA_LIFE, DELTA_POOL, EMBER, HAND_Y,
-  JOKER_TRAY, JOKER_Y, LAND_AT, LEFT, PACK_TITLE_Y, PACK_X, PANEL_GROOVES, PANEL_ROWS, PANEL_W,
-  PLAY_H, PLAY_W, PLAY_Y, RIGHT_COL, RISER_HOLD, RISER_LIFT, RISER_ON_CARD, RISER_SPAN,
-  SELL_WAIT, TRAY_PAD_X, within,
+  ACTIVE_GLOW, BLIND_MUSIC_DIM, BLUR_BACK_PX, BLUR_PX, BOARD_X, BUTTON_Y, CHIPS_GAP, CHIPS_H, CHIPS_Y, CONSUMABLE_TRAY, DEALER, DECK_X, DECK_Y, DELTA_LIFE, DELTA_POOL, EMBER, HAND_Y, JOKER_TRAY, JOKER_Y, LAND_AT, LEFT, PACK_TITLE_Y, PACK_X, PANEL_ROWS, PANEL_W, PLAY_H, PLAY_W, PLAY_Y, RIGHT_COL, RISER_HOLD, RISER_LIFT, RISER_ON_CARD, RISER_SPAN, SELL_WAIT, TRAY_PAD_X, within, IN_X, IN_W, SCORE_H,
 } from './metrics'
 import { ACT_KINDS, ACT_LOOK, moneyReason, ruleChange, SCORING_BEATS, VALUE_OPS } from './tables'
 import { edgeBlur, rgbOf } from './helpers'
 import { type Riser } from './types'
 import { type Game } from './game'
+/** 곱셈표. 어느 말에서나 같은 기호입니다. */
+const TIMES_SIGN = String.fromCharCode(0xd7)
+
 export class ShowPart {
   constructor(private readonly game: Game) {}
 
@@ -273,9 +271,10 @@ export class ShowPart {
   heatShown = 0.1
 
   buildPanel(): void {
-    const panel = new Panel(PANEL_W + 24, SIZE.height - 44)
+    // **판은 16 · 32 에서 시작하고 물건 자리의 윗변과 같습니다.**
+    const panel = new Panel(PANEL_W, SIZE.height - 32 - 12)
     this.game.chrome.panelPlate = panel
-    panel.position.set(LEFT - 12, 22)
+    panel.position.set(LEFT, 32)
     // **조커와 소모품의 자리는 상점 아래에 그립니다.** 상점이 판 안에 서므로, 이 사각형이
     // 위에 있으면 상점의 머리띠를 가로질러 자리가 그려집니다.
     this.game.chrome.frames.zIndex = -2
@@ -284,8 +283,10 @@ export class ShowPart {
     // 이유가 없습니다.
     this.game.chrome.drawFrames()
 
-    this.game.blind.badge.position.set(LEFT, 34)
-    this.game.chrome.score.position.set(LEFT, PANEL_ROWS.score)
+    this.game.blind.badge.position.set(LEFT, 32)
+    this.game.chrome.score.position.set(IN_X, PANEL_ROWS.score)
+    // 게이지는 칸의 아랫변 안쪽입니다.
+    this.game.chrome.scoreBar.position.set(IN_X + 12, PANEL_ROWS.score + SCORE_H - 14)
     // **자원 넷은 오르내림이 바탕색에 드러납니다.** 라운드 득점과 칩·배수는 오르기만 하므로
     // 그 색이 아무것도 가르지 않습니다.
     //
@@ -307,38 +308,33 @@ export class ShowPart {
     // **네 무리이고 사이가 26입니다.** 이 넷은 판이 도는 동안 가끔 보는 것이고 칩과 배수는
     // 매 순간 보는 것인데, 사이가 12·30·12로 제각각이면 여섯 칸이 한 덩어리로 보여서
     // 그중 어느 둘이 지금 중요한지가 자리로 드러나지 않습니다.
-    this.game.chrome.hands.position.set(LEFT, PANEL_ROWS.hands)
+    this.game.chrome.hands.position.set(IN_X, PANEL_ROWS.hands)
     this.game.chrome.discards.position.set(RIGHT_COL, PANEL_ROWS.hands)
-    this.game.chrome.money.position.set(LEFT, PANEL_ROWS.money)
+    this.game.chrome.money.position.set(IN_X, PANEL_ROWS.money)
     this.game.chrome.anteSlot.position.set(RIGHT_COL, PANEL_ROWS.money)
 
-    // 무리를 가르는 줄 셋. **각 사이의 한가운데입니다.**
-    //
-    // 아래 버튼 앞에는 두지 않습니다 — 적용 중이 넷까지 차면 남는 자리가 20픽셀뿐이라,
-    // 거기에 줄이 서면 그 줄이 목록에 딸린 것으로 보입니다.
-    for (const at of PANEL_GROOVES) groove(this.game.chrome.panelGrooves, LEFT, at, PANEL_W)
+    // **무리를 가르는 줄을 두지 않습니다.** 무리는 사이의 넓이가 가릅니다 — 줄까지 두면
+    // 판 안에 선이 셋 늘고, 그 선들이 웹 화면의 인상을 만듭니다.
 
     // **상자 둘과 그 사이의 곱셈표입니다.** 원작의 배치이고, 붙여 놓는 것보다 이 편이
     // 「칩 곱하기 배수」 라는 식으로 읽힙니다.
-    const block = box(LEFT, CHIPS_Y, PANEL_W, CHIPS_H)
+    const block = box(IN_X, CHIPS_Y, IN_W, CHIPS_H)
     const [chipsBox, gapBox, multBox] =
-      splitX(block, [1, CHIPS_GAP / (PANEL_W - CHIPS_GAP) * 2, 1])
+      splitX(block, [1, CHIPS_GAP / (IN_W - CHIPS_GAP) * 2, 1])
     this.game.chrome.paintScoreBox(chipsBox, multBox)
     this.game.chrome.chips.position.set(chipsBox.x, chipsBox.y)
     this.game.chrome.mult.position.set(multBox.x, multBox.y)
 
-    // **곱셈표는 글자가 아니라 그림입니다.** 글꼴마다 `×` 의 굵기와 세로 자리가 달라서,
-    // 글자로 두면 말을 바꿀 때마다 두 칸 사이에서 비뚤어집니다.
+    // **곱셈표는 글자입니다.** 물마루가 `×` 를 들고 있고, 말마다 글꼴이 갈리던 자리에서
+    // 한글·라틴은 한 글꼴이 되었습니다 — 그림으로 그리면 두 칸의 숫자와 획의 굵기가
+    // 다른 물건이 됩니다.
     //
     // **두 상자 사이의 한가운데입니다.** 식의 연산자이므로 어느 상자에도 속하지 않는
     // 것이 맞습니다.
-    const times = new Graphics()
-    for (const angle of [Math.PI / 4, -Math.PI / 4]) {
-      const dx = Math.cos(angle) * 8.5
-      const dy = Math.sin(angle) * 8.5
-      times.moveTo(-dx, -dy).lineTo(dx, dy)
-        .stroke({ color: UI.ink, width: 4, cap: 'round' })
-    }
+    const times = new Text({
+      text: TIMES_SIGN, style: { fontSize: TEXT.head, fill: UI.ink, fontWeight: WEIGHT.bold },
+    })
+    times.anchor.set(0.5)
     const seam = pointOf(gapBox, CENTER)
     times.position.set(seam.x, seam.y)
 
@@ -350,14 +346,17 @@ export class ShowPart {
     // **두 무리의 한가운데가 아니라 아래 무리의 머리입니다.** 사이의 한가운데에 두었더니
     // 위의 점수와 아래의 두 수 어느 쪽에도 붙지 않은 글 한 줄이 되었습니다 — 이 글이
     // 설명하는 것은 아래의 두 수이므로, 그 상자와 8픽셀을 두고 붙습니다.
-    putText(this.game.chrome.handLabel, box(LEFT, PANEL_ROWS.handLabel, PANEL_W, 24), CENTER)
+    // **족보 이름은 판 안이 아니라 손패 위에 뜹니다.** 고른 카드 바로 위에서 무엇을 만들었는지가
+    // 읽혀야 하고, 판 안에 두면 눈이 왼쪽으로 한 번 가야 합니다.
+    putText(this.game.chrome.handLabel,
+            box(BOARD_X - 200, HAND_Y - SIZE.cardHeight / 2 - 52, 400, 24), CENTER)
 
     // **딱지 아래의 것들은 한 통에 담습니다.** 블라인드 딱지는 들고 있는 태그만큼 자라고,
     // 그러면 그 아래가 통째로 내려가야 합니다 — 낱개로 자리를 다시 세면 여섯 곳을 고쳐야
     // 하고 그중 하나를 빠뜨리면 그것만 겹칩니다.
     //
     this.game.chrome.panelStack.addChild(this.game.chrome.panelGrooves, this.game.chrome.score,
-      this.game.chrome.scoreBox,
+      this.game.chrome.scoreBar, this.game.chrome.scoreBox,
       this.game.chrome.scoreFlash, this.game.chrome.scoreWave.view, this.game.chrome.chips,
       this.game.chrome.mult, times, this.game.chrome.handLabel,
       this.game.chrome.hands, this.game.chrome.discards, this.game.chrome.money,
@@ -389,9 +388,13 @@ export class ShowPart {
     const pile = this.game.chrome.deckPile
     this.game.cards.drawDeckPile()
 
-    // **지시문은 누를 버튼 바로 위입니다.** 패널 아래에 두면 눈이 화면 왼쪽 끝까지 갔다
-    // 와야 하고, 정작 누를 것은 가운데에 있습니다.
-    this.game.input.hint.position.set(BOARD_X, BUTTON_Y - 30)
+    // **지시문은 손패 위, 족보 이름이 서던 그 자리입니다.**
+    //
+    // 손패와 단추 줄 사이에 두었던 동안 그 줄은 카드 밑의 점들과 겹쳤습니다 — 그 사이는
+    // 43픽셀이고 점이 그 한가운데에 있어서, 글 한 줄이 더 들어갈 자리가 아닙니다.
+    // 족보 이름과 이 글은 함께 뜨지 않으므로(고른 것이 있으면 이름, 없으면 지시문) 한
+    // 자리를 나눠 씁니다.
+    this.game.input.hint.position.set(BOARD_X, HAND_Y - SIZE.cardHeight / 2 - 40)
 
     // **덱은 판이 도는 동안만 화면에 있습니다.** 상점에서는 오른쪽으로 밀려 나가고,
     // 다음 블라인드로 가면 다시 들어옵니다 — 상점의 물건과 자리를 다투지 않습니다.
@@ -1123,13 +1126,15 @@ export class ShowPart {
   }
 
   /**
-   * 알림 판이 서는 자리. **손패의 윗변 바로 위 가운데입니다.**
+   * 알림 띠가 놓이는 자리. **손패의 윗변 바로 위, 화면의 가운데입니다.**
    *
-   * 손패가 몇 장인지와 무관하게 줄의 높이는 같으므로 자리도 고정이지만, 판의 세로 길이는
-   * 규칙 수마다 다르므로 아랫변을 기준으로 놓습니다.
+   * **판의 가운데가 아니라 화면의 가운데입니다.** 띠는 화면보다 넓어 양 끝이 화면 밖으로
+   * 나가므로, 판의 가운데(`BOARD_X`)에 놓으면 왼쪽 끝이 화면 안에서 끊깁니다. 손패가 몇
+   * 장인지와 무관하게 줄의 높이는 같으므로 자리는 고정이고, 띠의 세로 길이는 규칙 수마다
+   * 다르므로 아랫변을 기준으로 놓습니다.
    */
   private placeRuleBanner(): void {
-    this.ruleBanner.place(BOARD_X, HAND_Y - SIZE.cardHeight / 2 - 14)
+    this.ruleBanner.place(SIZE.width / 2, HAND_Y - SIZE.cardHeight / 2 - 14)
   }
 
   /**
@@ -1379,23 +1384,21 @@ export class ShowPart {
 
   popAt(target: { x: number; y: number } | undefined, text: string, tint: number,
                 intensity: number): void {
+    // **크기는 계단에서 고릅니다.** 세기가 크면 한 칸 큽니다 — 24 또는 36.
     const label = new Text({
       text,
       style: {
-        ...outlined(20 + intensity * 16, UI.outline),
+        ...outlined(intensity > 0.5 ? TEXT.display : TEXT.base, UI.outline),
         fill: tint, fontWeight: WEIGHT.bold,
+        // **뒤에 어두운 번짐 하나.** 판 위에는 카드와 그림이 깔려 있어서 글자만으로는
+        // 읽히지 않습니다 — 만화의 번쩍임을 걷고 번짐으로 띄웁니다.
+        dropShadow: { color: UI.outline, alpha: 0.9, blur: 6 + intensity * 6, distance: 0 },
       },
     })
     label.anchor.set(0.5, 0.5)
     label.resolution = this.game.textScale
 
-    // **글 뒤에 번쩍임 하나를 둡니다.** 판 위에는 카드와 그림이 깔려 있어서, 테를 두른
-    // 글자만으로는 그 위에서 읽히지 않았습니다 — 만화가 소리를 적을 때 쓰는 그 모양이고,
-    // 뾰족함과 크기는 그 사건의 세기가 정합니다.
     const flare = new Graphics()
-    // 넘기는 것은 몸통의 반지름입니다. 뾰족한 끝은 `burst` 가 그 바깥으로 더 그립니다.
-    burst(flare, label.width / 2 + 12 + intensity * 5, label.height / 2 + 9 + intensity * 4,
-          intensity, tint)
 
     const node = new Container()
     node.addChild(flare, label)
@@ -1569,7 +1572,7 @@ export class ShowPart {
       if (this.panelTint !== this.panelKey) {
         this.panelKey = this.panelTint
         this.game.chrome.panelFlash.clear()
-        this.game.chrome.panelFlash.roundRect(LEFT - 12, 22, PANEL_W + 24, SIZE.height - 44, 12)
+        this.game.chrome.panelFlash.rect(LEFT - 12, 22, PANEL_W + 24, SIZE.height - 44)
           .fill({ color: this.panelTint, alpha: 0.3 })
       }
       this.game.chrome.panelFlash.alpha = ease
@@ -1762,14 +1765,16 @@ export class ShowPart {
     // **판 아래 단추 줄입니다.** 라운드에서 낸다·취소·버린다가 놓이는 그 줄이고, 그 크기입니다 —
     // 팩에서 고르는 것은 손패를 한 번 더 치는 것이므로 단추도 그 자리에 놓입니다.
     // 블라인드를 건너뛰는 것과 같은 소리입니다. 소리 없이 판이 걷히던 유일한 자리였습니다.
-    const skip = new Button(t('ui.button.skip'), PLAY_W, PLAY_H, 'neutral', () => {
+    // **건너뛰기는 `lg` 입니다.** 판을 움직이는 낸다·버린다만 `xl` 이고, 이것은 그 줄의
+    // 자리를 잠깐 빌려 쓰는 나아가는 단추입니다 — 줄의 세로 가운데에 앉습니다.
+    const skip = new Button(t('ui.button.skip'), PLAY_W, 60, 'neutral', () => {
       this.game.audio.play('blind_skip')
       this.game.act({ t: 'skip_pack' })
     })
-    skip.position.set(PACK_X - PLAY_W / 2, BUTTON_Y)
+    skip.position.set(PACK_X - PLAY_W / 2, BUTTON_Y + (PLAY_H - 60) / 2)
     this.game.pack.packSkip = skip
     // 도구가 팩을 건너뛰는 자리입니다. 걷을 때 함께 지웁니다.
-    this.game.spotNodes.set('packSkip', { node: skip, cx: PLAY_W / 2, cy: PLAY_H / 2 })
+    this.game.spotNodes.set('packSkip', { node: skip, cx: PLAY_W / 2, cy: 30 })
 
     this.game.pack.packTitle = title
 

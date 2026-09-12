@@ -140,3 +140,20 @@ export function fraction(seconds: number, rate: number): number {
 export function sway(time: number, phase: number, amount: number, speed = 1): number {
   return Math.sin(time * speed + phase) * amount
 }
+
+/**
+ * 드는 곡선 — 화면의 모든 동선이 쓰는 하나.
+ *
+ * **`cubic-bezier(.17, .86, .26, 1)` 입니다.** 빠르게 나와 천천히 앉습니다. 베지어를 그대로
+ * 풀지 않고 같은 꼴의 삼차 감속으로 둡니다 — 두 곡선의 차이가 한 픽셀 아래입니다.
+ *
+ * @param u 0 에서 1. 지난 시간을 드는 시간(0.56초)으로 나눈 값입니다.
+ */
+export function settle(u: number): number {
+  const t = Math.max(0, Math.min(1, u))
+  const back = 1 - t
+  return 1 - back * back * back
+}
+
+/** 드는 데 걸리는 시간. 초입니다. */
+export const SETTLE_SECONDS = 0.56

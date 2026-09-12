@@ -4,21 +4,31 @@
 // 손으로 그려져야 화면이 한 벌로 보입니다.**
 
 import { PAINT } from '../render/ink'
-import { Container, Graphics, Rectangle, Sprite, Text } from 'pixi.js'
+import { Container, Graphics, NineSliceSprite, Rectangle, Sprite, Text } from 'pixi.js'
 
 import { contrast } from '../render/color'
 import type { Surface } from '../render/palette'
-import { LIP, mix, panelStyle, plate, pressable,
+import { LIP, mix, panelStyle, plate, plateTint, pressable,
          type ButtonLook, type PlateStyle } from '../render/skin'
-import { UI, TEXT, WEIGHT } from '../render/theme'
+import { inkDrop, TEXT, UI, WEIGHT } from '../render/theme'
 import { outlined, outlineOf, outlineWidth, strokeWidthOf } from './font'
 import { iconFor, type IconName } from './icon'
-import { cornerPiece, frameTint } from './chrome'
+import { piece, refit, rungFor, rungOf } from './chrome'
+import type { RungName } from './atlas'
 
+/**
+ * 판.
+ *
+ * **구워 둔 그림 한 장입니다.** 채움과 위 변의 빛과 오른쪽 아래의 잘린 귀가 그 안에 다
+ * 있습니다 — 코드로 그린 채움과 테는 잘 만든 웹 화면의 문법이고, 이 게임의 그림 화풍과는
+ * 어긋납니다.
+ *
+ * 그림이 아직 오지 않았으면 지금까지의 길로 그립니다. 첫 프레임에 판이 사라지는 것보다
+ * 낫습니다.
+ */
 export class Panel extends Container {
   private readonly board = new Graphics()
-  /** 네 귀의 꺾쇠. 판 크기와 무관한 고정 크기입니다. */
-  private frame?: Container
+  private skin?: Container
 
   constructor(width: number, height: number, tint?: number) {
     super()
@@ -27,20 +37,20 @@ export class Panel extends Container {
   }
 
   resize(width: number, height: number, tint?: number): void {
-    // **금속 테 그림이 있으면 강조색 테를 그리지 않습니다.** 둘이 겹치면 금속 안쪽에 주황
-    // 선이 한 줄 더 놓이고, 그 선이 웹 화면의 인상을 만듭니다.
+    this.skin?.destroy()
+    this.skin = piece('plate', width, height, plateTint(tint ?? panelStyle().top))
+    this.board.clear()
+    if (this.skin !== undefined) {
+      this.addChildAt(this.skin, 0)
+      this.alpha = panelStyle().alpha ?? 1
+      return
+    }
+
     const border = panelStyle().border
     const style: PlateStyle = tint === undefined
       ? { ...panelStyle(), border }
       : { ...panelStyle(), top: mix(tint, PAINT.sheen, 0.1), bottom: tint, border }
-    this.board.clear()
     plate(this.board, width, height, style)
-
-    // **네 귀의 꺾쇠.** 얇은 테 위에 얹혀 단조로움을 덜어 냅니다 — 테 전체를 그림으로
-    // 두르면 판이 도스 시절의 대화상자가 됩니다.
-    this.frame?.destroy()
-    this.frame = cornerPiece(width, height, frameTint())
-    if (this.frame !== undefined) this.addChild(this.frame)
   }
 }
 
@@ -140,8 +150,37 @@ function captionInk(base: number): number {
   return contrast(UI.onLight, base) > contrast(UI.ink, base) * 1.15 ? UI.onLight : UI.ink
 }
 
+/**
+ * 단추가 내려앉는 깊이.
+ *
+ * 구워 둔 그림의 아래 턱과 같은 값입니다. 누르면 얼굴이 이만큼 내려가 턱에 얹히므로
+ * 실루엣의 아랫변은 제자리에 남습니다.
+ */
+const SINK = 3
+
+/**
+ * 상태가 건너가는 시간. 초입니다.
+ *
+ * **한 프레임에 바뀌면 눌린 것인지 잠긴 것인지가 갈립니다.** 활성과 비활성, 색이 바뀌는
+ * 것, 글이 바뀌는 것이 전부 이 시간에 건너갑니다.
+ */
+const CROSS = 0.16
+
+/** 지금 화면에 붙어 있는 단추들. 프레임마다 건너가는 것을 한 걸음 옮깁니다. */
+const TICKING = new Set<Button>()
+
 export class Button extends Container {
   private readonly board = new Graphics()
+  private skin?: Container
+  /** 그림이 지금 띤 색과 가려는 색. 건너가는 동안 그 사이입니다. */
+  private tintNow?: number
+  private tintWant?: number
+  /** 물러나는 옛 글. 올라가며 옅어지고, 다 지면 지웁니다. */
+  private fading?: { text: Text; left: number }
+  /** 새 글이 드는 정도. 0 이면 아래에서 시작하고 1 이면 제자리입니다. */
+  private rising = 1
+  /** 이 단추가 서 있는 높이의 칸. 계단 넷 안에서만 고릅니다. */
+  private readonly rung: RungName
   private readonly caption = new Text({
     text: '',
     style: {
@@ -161,16 +200,17 @@ export class Button extends Container {
   static onPressed?: () => void
 
   /**
-   * @param textSize 글자 크기. **큰 단추는 글자도 커야 합니다** — 236 × 72 짜리 시작
-   *   단추에 15픽셀 글자를 얹으면 단추 가운데에 작은 딱지가 하나 놓인 것으로 보입니다.
-   *   판 안의 단추들은 기본값 그대로입니다.
+   * **글자 크기를 받지 않습니다.** 높이의 칸이 글자를 정합니다 — 36은 12, 48과 60은 24,
+   * 72는 36입니다. 부르는 자리마다 고르게 두었더니 한 화면에 15 · 16 · 18 · 19가 함께
+   * 놓였고, 그 차이는 나란히 보아야만 보입니다.
    */
   constructor(text: string, private readonly boxWidth: number,
               private readonly boxHeight: number,
-              private readonly intent: Intent, onPress: () => void, textSize = 15) {
+              private readonly intent: Intent, onPress: () => void) {
     super()
-    this.textSize = textSize
-    this.caption.style.fontSize = textSize
+    this.rung = rungFor(boxHeight)
+    this.textSize = rungOf(this.rung).font
+    this.caption.style.fontSize = this.textSize
     this.addChild(this.board, this.caption)
     this.caption.anchor.set(0.5)
     this.caption.position.set(boxWidth / 2, this.captionY(false))
@@ -204,13 +244,58 @@ export class Button extends Container {
     // 않고, 그러면 그 단추만 눌린 색으로 남습니다.
     this.on('pointerup', () => this.release())
     this.on('pointerupoutside', () => this.release())
-    this.on('added', () => LIVE.add(this))
-    this.on('removed', () => LIVE.delete(this))
+    this.on('added', () => { LIVE.add(this); TICKING.add(this) })
+    this.on('removed', () => { LIVE.delete(this); TICKING.delete(this) })
     this.draw()
   }
 
-  /** 넘겨받은 글자 크기. 글이 길어 줄였다가 되돌릴 때 씁니다. */
-  private textSize = 15
+  /**
+   * 단추가 차지하기로 한 넓이와 높이.
+   *
+   * **`width` 가 아닙니다.** 구운 그림은 그림자만큼 밖으로 물러나 있어서 통의 넓이에는
+   * 그 여백(좌우 14픽셀씩)이 들어 있습니다 — 줄을 세거나 가운데를 맞추는 쪽이 `width` 를
+   * 읽으면 그만큼 넓게 세고, 단추 줄이 왼쪽으로 밀립니다.
+   */
+  get boxW(): number { return this.boxWidth }
+  get boxH(): number { return this.boxHeight }
+
+  /**
+   * 화면의 모든 단추를 한 걸음 옮깁니다. **게임의 시계가 프레임마다 부릅니다.**
+   *
+   * 색은 가려는 색으로 미끄러지고, 옛 글은 올라가며 옅어지고, 새 글은 아래에서 듭니다.
+   */
+  static advanceAll(seconds: number): void {
+    for (const one of TICKING) one.step(seconds)
+  }
+
+  private step(seconds: number): void {
+    const k = Math.min(1, seconds / CROSS)
+    if (this.skin !== undefined && this.tintWant !== undefined && this.tintNow !== undefined
+        && this.tintNow !== this.tintWant) {
+      this.tintNow = mix(this.tintNow, this.tintWant, k)
+      // 8비트로 반올림한 뒤 같으면 다 간 것입니다.
+      if (mix(this.tintNow, this.tintWant, 0.5) === this.tintWant) this.tintNow = this.tintWant
+      ;(this.skin as { tint: number }).tint = this.tintNow
+    }
+    if (this.fading !== undefined) {
+      this.fading.left -= seconds
+      const gone = 1 - Math.max(0, this.fading.left) / CROSS
+      this.fading.text.alpha = 1 - gone
+      this.fading.text.y = this.captionY(this.pushed) - gone * 10
+      if (this.fading.left <= 0) {
+        this.fading.text.destroy()
+        this.fading = undefined
+      }
+    }
+    if (this.rising < 1) {
+      this.rising = Math.min(1, this.rising + seconds / CROSS)
+      this.caption.alpha = this.enabledState ? this.rising : this.rising * 0.5
+      this.caption.y = this.captionY(this.pushed) + (1 - this.rising) * 10
+    }
+  }
+
+  /** 이 칸의 글자 크기. 글이 길어 줄였다가 되돌릴 때 씁니다. */
+  private textSize = 24
 
   /**
    * 단추에 적히는 글.
@@ -226,15 +311,30 @@ export class Button extends Container {
     // **같은 글이면 손대지 않습니다.** 아래의 줄이기가 글자 크기를 바꿀 때마다 글을 다시
     // 굽고, 조커 풀은 쪽을 넘길 때마다 단추 7개에 같은 글을 다시 적습니다.
     if (value === this.captionShown) return
+    // **옛 글이 올라가며 옅어지고 새 글이 아래에서 듭니다.** 처음 적는 글은 그냥 놓입니다.
+    if (this.captionShown !== undefined && this.caption.text !== '') {
+      this.fading?.text.destroy()
+      const old = new Text({ text: this.caption.text, style: this.caption.style.clone() })
+      old.anchor.set(0.5)
+      old.position.set(this.caption.x, this.caption.y)
+      old.alpha = this.caption.alpha
+      this.addChild(old)
+      this.fading = { text: old, left: CROSS }
+      this.rising = 0
+      this.caption.alpha = 0
+    }
     this.captionShown = value
     this.caption.style.fontSize = this.textSize
     this.caption.text = value
 
     // 양쪽에 8픽셀씩 남깁니다. 글이 테두리에 닿으면 칸이 터진 것으로 보입니다.
+    //
+    // **줄일 때에도 계단을 밟습니다.** 한 픽셀씩 내리면 12의 배수를 벗어나 획이 격자에서
+    // 어긋납니다 — 픽셀 서체는 그 사이 값에서 굵기가 자리마다 달라집니다.
     const room = this.boxWidth - 16
     let size = this.textSize
-    while (size > 9 && this.caption.width > room) {
-      size -= 1
+    while (size > 12 && this.caption.width > room) {
+      size -= 12
       this.caption.style.fontSize = size
     }
 
@@ -254,11 +354,21 @@ export class Button extends Container {
    * 크기를 9까지 내립니다.
    */
   private applyInk(): void {
-    const ink = captionInk(this.shownBase)
+    // **되돌릴 수 없는 단추의 글은 밝은 붉음입니다.** 짙은 붉음 채움 위에 흰 글을 얹으면
+    // 경고판이 됩니다. 잠긴 것은 잠긴 것의 글색입니다.
+    const ink = this.intent === 'danger' && this.enabledState && !this.held
+      ? UI.bad
+      : captionInk(this.shownBase)
     this.caption.style.fill = ink
     const size = this.caption.style.fontSize as number
     const width = ink === UI.onLight ? 0 : outlineWidth(size)
     this.caption.style.stroke = outlineOf(width, UI.outline)
+    // **글은 얼굴 위에 얹힌 것이므로 아래로 한 픽셀 그림자가 집니다.** 밝은 단추는 글이
+    // 어두우므로 그림자도 밝은 쪽입니다.
+    this.caption.style.dropShadow = {
+      color: ink === UI.onLight ? PAINT.sheen : UI.outline,
+      alpha: ink === UI.onLight ? 0.35 : 0.6, blur: 0, distance: 1, angle: Math.PI / 2,
+    }
   }
 
   /** 지금 글에 걸려 있는 테두리의 굵기. **검증 도구가 읽습니다.** */
@@ -345,6 +455,12 @@ export class Button extends Container {
    * 두꺼운 단추는 얼굴이 턱 안으로 내려앉는 만큼 함께 갑니다.
    */
   private captionY(pushed: boolean): number {
+    if (this.skin !== undefined || piece === undefined) {
+      const tall = rungOf(this.rung).height
+      // **상자가 아니라 획의 가운데입니다.** `inkDrop` 이 글꼴의 내림을 재서 그만큼
+      // 내립니다 — 얹지 않으면 글이 얼굴의 위쪽에 붙습니다.
+      return tall / 2 + inkDrop(this.textSize) + (pushed ? SINK / 2 : 0)
+    }
     const flat = INTENTS[this.intent].edge !== undefined || !this.enabledState
     if (flat) return this.boxHeight / 2 + (pushed ? 1 : 0)
     return (this.boxHeight - LIP) / 2 + (pushed ? LIP : 0)
@@ -362,13 +478,34 @@ export class Button extends Container {
 
   private draw(): void {
     this.board.clear()
-    // **금속 단추 그림이 있으면 그것을 씁니다.** 코드로 그린 채움과 테는 잘 만든 웹 화면의
-    // 문법이고, 이 게임의 그림 화풍과는 어긋납니다.
-    //
-    // **회색조 그림에 갈래의 색을 물들입니다.** 갈래 8개 × 상태 3개를 그림으로 두면 24장이
-    // 되므로, 그림은 한 장이고 색은 지금까지의 토큰에서 그대로 옵니다.
-    pressable(this.board, this.boxWidth, this.boxHeight, this.shown, this.pushed)
 
+    // **회색조 그림 한 장에 갈래의 색을 물들입니다.** 갈래 8 × 상태 4 를 그림으로 두면
+    // 32장이 되므로, 그림은 칸마다 한 장이고 색은 지금까지의 토큰에서 그대로 옵니다.
+    //
+    // 누르면 얼굴이 턱 위로 내려앉습니다 — 그만큼 낮게, 그만큼 아래에 놓습니다. 아랫변은
+    // 제자리에 남으므로 단추가 자리를 옮기지 않습니다.
+    const tall = rungOf(this.rung).height
+    const sunk = this.pushed ? SINK : 0
+    // **색은 건너갑니다.** 새 그림은 지금 띤 색으로 놓고, 가려는 색은 `step` 이 옮깁니다.
+    this.tintWant = this.shown.face
+    if (this.tintNow === undefined || !TICKING.has(this)) this.tintNow = this.tintWant
+    // **그림은 한 번 만들고 고쳐 씁니다.** 상태마다 새로 만들면 새 그림의 자리가 다음
+    // 프레임까지 없어서, 가리킨 직후의 누름이 단추를 맞히지 못하고 빈자리 누름이 됩니다.
+    if (this.skin === undefined) {
+      this.skin = piece(this.rung, this.boxWidth, tall, this.tintNow)
+      if (this.skin !== undefined) this.addChildAt(this.skin, 0)
+    }
+    if (this.skin !== undefined) {
+      refit(this.skin as NineSliceSprite, this.rung, this.boxWidth, tall - sunk)
+      // `refit()` 이 그림자 여백만큼 물러앉혀 두었으므로 그 위에 더합니다 — 덮어쓰면 얼굴이
+      // 여백만큼 아래로 내려가 글이 얼굴의 윗변에 붙습니다.
+      this.skin.y += sunk
+      ;(this.skin as { tint: number }).tint = this.tintNow
+      this.applyInk()
+      return
+    }
+
+    pressable(this.board, this.boxWidth, this.boxHeight, this.shown, this.pushed)
     this.applyInk()
   }
 }

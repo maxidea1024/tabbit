@@ -24,7 +24,16 @@ export const PANEL_W = SIDE_PANEL.width
  * 그대로입니다. 예전에는 오른쪽 칸을 `LEFT + 134` 에 두었고, 그러면 줄이 6픽셀 일찍
  * 끝나서 **오른쪽에만 여백이 남았습니다.**
  */
-export const RIGHT_COL = LEFT + 140
+/** 판 안쪽의 여백. 칸과 자리는 이 안에 놓이고, 머리 판과 요구 점수는 판의 폭을 다 씁니다. */
+export const IN_X = LEFT + 16
+export const IN_W = PANEL_W - 32
+/** 2×2 칸의 오른쪽 열. */
+export const RIGHT_COL = IN_X + IN_W / 2
+/** 칸 하나의 크기. 2×2 가 안쪽 폭을 다 씁니다. */
+export const CELL_SLOT_W = IN_W / 2
+export const CELL_SLOT_H = 48
+/** 판 아래 단추 둘의 사이. */
+export const PANEL_BTN_GAP = 8
 
 /** 판이 놓이는 자리의 가운데. 왼쪽 패널을 뺀 나머지의 한가운데입니다. */
 export const BOARD_X = (LEFT + PANEL_W + 20 + SIZE.width) / 2
@@ -280,7 +289,7 @@ export const HELD_EDGE = 10
  * 올라가고, 단추는 바닥에 그대로 있습니다 — 고를 때마다 단추가 다른 높이에 서면 두 번째
  * 누름이 매번 다른 자리입니다.
  */
-export const HELD_H = 32
+export const HELD_H = 36
 
 /**
  * 고른 상점 칸이 밀려 올라가는 거리.
@@ -520,12 +529,20 @@ export const PACK_TITLE_Y = PACK_CARDS_Y - PACK_CARD_H / 2 - 108
  * 낸다와 버린다 사이의 취소를 잘못 누릅니다 — 키운 만큼 줄이 위로 올라오고, 손패와 지시문도
  * 그만큼 비켜섭니다.
  */
-export const BUTTON_Y = 728
+export const BUTTON_Y = 712
 
-/** 낸다·버린다의 크기. */
-export const PLAY_W = 148
+/**
+ * 낸다·버린다의 크기.
+ *
+ * **높이 계단의 `xl` 입니다.** 판을 움직이는 단추라서 가장 큽니다 — 매번 누르는 것이고,
+ * 화면에서 이 칸을 쓰는 것은 이 줄뿐입니다.
+ */
+export const PLAY_W = 214
 
-export const PLAY_H = 56
+/** 버린다는 낸다보다 좁습니다 — 나아가는 것이 더 큽니다. */
+export const DISCARD_W = 180
+
+export const PLAY_H = 72
 
 /**
  * 정렬 단추 하나의 크기.
@@ -533,9 +550,13 @@ export const PLAY_H = 56
  * **손가락으로 누를 수 있는 크기입니다.** 모바일에서 이것이 가장 작은 단추였습니다 —
  * 자리를 세는 쪽이 이 값을 읽으므로, 키워도 둘이 겹치지 않습니다.
  */
-export const SORT_W = 112
+export const SORT_W = 72
 
-export const SORT_H = 42
+/** 정렬 단추 둘의 사이. */
+export const SORT_GAP = 12
+
+/** 곁단추입니다 — 높이 계단의 `sm`. */
+export const SORT_H = 36
 
 /** 정렬 단추가 숨을 때 내려가는 거리. 화면 아래 밖까지입니다. */
 export const SORT_HIDE = 120
@@ -550,13 +571,21 @@ export const SORT_HIDE = 120
 export const BLIND_MUSIC_DIM = 0.5
 
 /**
- * 판의 밑단에 서는 단추의 높이.
+ * 왼쪽 판의 밑단에 서는 단추의 높이.
  *
- * **낸다·버린다와 같습니다.** 왼쪽 판의 런 정보·메뉴와 상점의 리롤·다음 블라인드가
- * 그것들입니다 — 34픽셀짜리들이 56픽셀짜리 줄과 한 화면에 있으면 아래 변에 높이가 다른
- * 단추 줄이 여럿 있는 것이 되고, 손가락으로 누르는 크기도 그만큼 갈립니다.
+ * **높이 계단의 기본 칸입니다.** 런 정보와 메뉴는 그 밖의 단추이고, 그 밖의 단추는 48
+ * 입니다. 낸다·버린다(`xl`)와 같이 두었던 것을 걷었습니다 — 판을 움직이는 것과 판을
+ * 읽는 것이 같은 크기이면 무엇이 매번 누르는 것인지가 크기로 드러나지 않습니다.
  */
-export const FOOT_BTN_H = PLAY_H
+export const FOOT_BTN_H = 48
+
+/**
+ * 상점 밑단의 단추 둘 — 리롤과 다음 블라인드.
+ *
+ * **나아가는 줄이므로 `lg` 입니다.** 그 줄의 단추는 갈래가 달라도 전부 같은 높이이고,
+ * 금색은 그 안에 하나입니다.
+ */
+export const SHOP_FOOT_H = 60
 
 /**
  * 왼쪽 판의 밑단에 서는 단추 둘 — 런 정보와 메뉴.
@@ -564,9 +593,17 @@ export const FOOT_BTN_H = PLAY_H
  * **윗변은 판의 밑변에서 셉니다.** 판은 화면 아래 22픽셀까지 내려오고, 그 안쪽으로
  * 8픽셀을 둡니다 — 적어 두면 단추를 키운 날에 판 밖으로 밀려납니다.
  */
-export const PANEL_BTN_W = 124
+export const PANEL_BTN_W = (IN_W - PANEL_BTN_GAP) / 2
 
-export const PANEL_FOOT_Y = SIZE.height - 22 - 8 - FOOT_BTN_H
+/**
+ * 런 정보와 메뉴의 폭. **런 정보가 넓습니다** — 판 안에서 더 자주 여는 쪽이고, 둘과 그
+ * 사이가 안쪽 폭을 다 씁니다.
+ */
+export const PANEL_INFO_W = 128
+export const PANEL_MENU_W = IN_W - PANEL_BTN_GAP - PANEL_INFO_W
+
+/** 판의 아랫변(788)에서 24 위입니다. */
+export const PANEL_FOOT_Y = SIZE.height - 12 - 24 - FOOT_BTN_H
 
 /** 취소. 가운데에 서고 그 둘보다 좁습니다. */
 export const CLEAR_W = 76
@@ -654,7 +691,7 @@ export function within(at: number, half: number, span: number): number {
   return Math.max(room, Math.min(span - room, at))
 }
 
-export const CHIPS_Y = 336
+export const CHIPS_Y = 344
 
 /**
  * 왼쪽 판의 줄들이 서는 자리.
@@ -681,14 +718,19 @@ export const CHIPS_Y = 336
  * 것으로 보입니다 — 절반인 10픽셀입니다.
  */
 export const PANEL_ROWS = {
-  score: 200,
-  /** 족보 이름이 앉는 띠의 윗변. 높이는 24 입니다. */
+  /** 라운드 점수 칸의 윗변. 딱지(32~244) 아래 24 입니다. */
+  score: 268,
+  /** 족보 이름은 판 안이 아니라 손패 위에 뜹니다. 남겨 둔 값은 옛 자리입니다. */
   handLabel: 304,
-  hands: 420,
-  money: 484,
+  /** 2×2 칸의 첫 줄. */
+  hands: 416,
+  money: 464,
   /** 적용 중 목록의 머리글. */
-  active: 562,
+  active: 536,
 } as const
+
+/** 라운드 점수 칸의 높이. 이름과 값 한 줄, 그 아래 게이지입니다. */
+export const SCORE_H = 64
 
 /**
  * 무리를 가르는 줄들. **각 사이의 한가운데입니다.**
@@ -705,13 +747,13 @@ export const PANEL_GROOVES = [278, 407, 549] as const
  * 나란히 놓이고, 그 사이에 곱셈표가 놓입니다. 파랑과 붉음은 값이 움직이는 동안에만 들고,
  * 조용할 때의 왼쪽 판은 같은 색의 칸들입니다.
  */
-export const CHIPS_H = 58
+export const CHIPS_H = 60
 
-/** 두 상자의 모서리. **판의 다른 칸과 같습니다** — 바탕색을 맞추었으므로 모서리도 같습니다. */
-export const CHIPS_R = 6
+/** 두 상자의 모서리. **0 입니다** — 화면에 둥근 모서리가 없습니다. */
+export const CHIPS_R = 0
 
 /** 두 상자 사이. **곱셈표가 그 사이에 놓입니다.** */
-export const CHIPS_GAP = 34
+export const CHIPS_GAP = 12
 
 /** 구분선 하나가 차지하는 높이. 줄은 그 한가운데입니다. */
 export const RULE_H = 14

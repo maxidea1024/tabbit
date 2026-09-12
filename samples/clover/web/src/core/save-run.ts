@@ -45,15 +45,22 @@ export interface SavedRun {
   money: number
   jokers: number
   phase: string
+  /** 들고 있던 조커. 이어하기 화면이 그대로 보여 줍니다. */
+  jokerIds: string[]
+  /** 들고 있던 소모품. 갈래와 식별자입니다. */
+  consumableList: { kind: number; id: string }[]
 }
 
 /** 이 판을 목록에 적을 값들. 되살리지 않고 읽을 수 있어야 합니다. */
-function digest(state: RunState): Pick<SavedRun, 'ante' | 'money' | 'jokers' | 'phase'> {
+function digest(state: RunState):
+    Pick<SavedRun, 'ante' | 'money' | 'jokers' | 'phase' | 'jokerIds' | 'consumableList'> {
   return {
     ante: state.ante,
     money: state.money,
     jokers: state.jokers.length,
     phase: state.phase,
+    jokerIds: state.jokers.map(one => one.jokerId),
+    consumableList: state.consumables.map(one => ({ kind: one.kind, id: one.id })),
   }
 }
 
@@ -64,7 +71,8 @@ function digest(state: RunState): Pick<SavedRun, 'ante' | 'money' | 'jokers' | '
  * 남고, 눌러 보면 진 자리로 되돌아갑니다.
  */
 export function saveRun(entry: Omit<SavedRun, 'version' | 'savedAt' | 'ante' | 'money'
-                                              | 'jokers' | 'phase'>,
+                                              | 'jokers' | 'phase' | 'jokerIds'
+                                              | 'consumableList'>,
                         state: RunState): void {
   if (state.phase === 'lost' || state.phase === 'won') {
     clearRun()
@@ -114,6 +122,12 @@ export function loadRun(): SavedRun | undefined {
       money: typeof found.money === 'number' ? found.money : 0,
       jokers: typeof found.jokers === 'number' ? found.jokers : 0,
       phase: typeof found.phase === 'string' ? found.phase : 'blind-select',
+      jokerIds: Array.isArray(found.jokerIds)
+        ? found.jokerIds.filter(one => typeof one === 'string') : [],
+      consumableList: Array.isArray(found.consumableList)
+        ? found.consumableList.filter(one => one && typeof one.id === 'string'
+                                             && typeof one.kind === 'number')
+        : [],
     }
   } catch {
     // 읽지 못하는 저장은 없는 것으로 봅니다.

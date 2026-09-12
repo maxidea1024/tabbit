@@ -8,9 +8,10 @@
 
 import { Container, Graphics, Text } from 'pixi.js'
 
-import { plate, floatingStyle } from '../render/skin'
-import { fraction } from '../render/motion'
-import { UI, SIZE, TEXT, WEIGHT, RADIUS, STROKE } from '../render/theme'
+import { plate, floatingStyle, plateTint } from '../render/skin'
+import { fraction, settle } from '../render/motion'
+import { UI, SIZE, TEXT, WEIGHT } from '../render/theme'
+import { piece } from './chrome'
 import { richLeading, richStyle, richBlock, type RichStyle } from './rich'
 
 /** 이 줄의 글에 붙는 강조. */
@@ -107,29 +108,30 @@ export class Toasts extends Container {
     const heading = new Text({
       text: title,
       style: {
-        fontSize: TEXT.base, fill: UI.ink, fontWeight: WEIGHT.bold, lineHeight: 21,
+        fontSize: TEXT.small, fill: UI.ink, fontWeight: WEIGHT.bold,
         wordWrap: true, wordWrapWidth: WIDTH - 40, breakWords: true,
       },
     })
-    heading.position.set(20, 8)
+    heading.position.set(16, 10)
 
     // **수와 이름은 다른 색입니다.** 「8 → 10」 에서 사람이 보는 것은 그 둘입니다.
-    const body = richBlock(note.split(NEWLINE), rich(), richLeading('note'), WIDTH - 30)
-    body.position.set(20, 10 + heading.height)
+    const body = richBlock(note.split(NEWLINE), rich(), richLeading('note'), WIDTH - 28)
+    body.position.set(16, 12 + heading.height)
 
     const height = Math.max(HEIGHT, body.y + body.height + 12)
 
+    // **판을 물들이지 않습니다.** 구운 판 한 장이고, 색은 왼쫝의 3픽셀 표시와 글 속의
+    // 값에만 듭니다 — 테를 색으로 두르면 알림마다 판이 다른 물건이 됩니다.
     const board = new Graphics()
-    plate(board, WIDTH, height, {
-      ...floatingStyle(),
-      top: UI.tipBack, bottom: UI.tipBack, border: tint, radius: RADIUS.large, weight: STROKE.picked, gloss: 0.1,
-    })
+    const skin = piece('plate', WIDTH, height, plateTint(UI.tipBack))
+    if (skin === undefined) plate(board, WIDTH, height, { ...floatingStyle(), top: UI.tipBack, bottom: UI.tipBack })
 
-    // 왼쪽에 색 띠 하나. 무엇에 관한 것인지가 색으로 먼저 읽힙니다.
     const stripe = new Graphics()
-    stripe.roundRect(8, 10, 5, height - 20, 3).fill(tint)
+    stripe.rect(0, 0, 3, height).fill(tint)
 
-    box.addChild(board, stripe, heading, body)
+    box.addChild(board)
+    if (skin !== undefined) box.addChild(skin)
+    box.addChild(stripe, heading, body)
     box.pivot.set(WIDTH / 2, 0)
     // **아직 붙이지 않습니다.** 차례가 되면 `admit` 이 붙이고, 그때부터 이 줄의 시간이
     // 흐릅니다 — 여기서 붙이면 같은 프레임에 들어온 것들이 함께 뜨고 함께 사라집니다.
@@ -190,9 +192,8 @@ export class Toasts extends Container {
 
       const gone = 1 - entry.life / entry.span
 
-      // 들어올 때 위에서 내려오며 커집니다.
-      const enter = Math.min(1, gone / 0.12)
-      const scale = enter < 1 ? 0.7 + 0.42 * enter : 1.12 - 0.12 * Math.min(1, (gone - 0.12) / 0.1)
+      // **오른쪽 변에서 들어와 제자리에 앉습니다.** 커지면서 튀지 않습니다.
+      const enter = settle(Math.min(1, gone * entry.span / 0.56))
 
       // 앞의 것들이 차지한 높이만큼 내려갑니다. **높이가 저마다 달라서 자리마다 셉니다.**
       let want = TOP
@@ -202,9 +203,9 @@ export class Toasts extends Container {
       // 자리로 미끄러집니다. 위의 것이 사라져 자리가 바뀌어도 튀지 않습니다.
       entry.shown += (want - entry.shown) * fraction(seconds, 12)
 
-      entry.box.scale.set(scale)
-      // 오른쪽에서 미끄러져 들어옵니다. 위에서 내려오면 조커 줄을 가로지릅니다.
-      entry.box.position.set(this.centerX + (1 - enter) * 30, entry.shown)
+      // 오른쪽 변 밖에서 미끄러져 들어옵니다. 위에서 내려오면 조커 줄을 가로지릅니다.
+      entry.box.position.set(this.centerX + (1 - enter) * (SIZE.width - this.centerX + WIDTH),
+                             entry.shown)
       entry.box.alpha = Math.min(enter, Math.min(1, entry.life / 0.4))
     }
   }

@@ -31,9 +31,7 @@ import { type Crossings, readCrossings, Transition } from '../render/transition'
 import { type ToolSpot } from '../ui/layout'
 import { OptionsPanel, saveOptions } from '../ui/options'
 import {
-  BOARD_X, BUTTON_GAP, BUTTON_Y, CLEAR_W, DECK_MEET, FOOT_BTN_H, HELD_RISE, ITEM_LINGER,
-  ITEM_SETTLE, JOKER_Y, LEFT, PANEL_BTN_W, PANEL_FOOT_Y, PANEL_W, PLAY_H, PLAY_W, PLAY_Y,
-  RIGHT_COL, SORT_H, SORT_W, STEP_MS,
+  BOARD_X, BUTTON_GAP, BUTTON_Y, CLEAR_W, DECK_MEET, FOOT_BTN_H, HELD_RISE, ITEM_LINGER, ITEM_SETTLE, JOKER_Y, LEFT, PANEL_INFO_W, PANEL_MENU_W, PANEL_FOOT_Y, PANEL_W, PLAY_H, PLAY_W, PLAY_Y, SORT_GAP, SORT_H, SORT_W, STEP_MS, DISCARD_W, IN_X, PANEL_BTN_GAP,
 } from './metrics'
 import { blurResolution } from './helpers'
 import {
@@ -258,17 +256,21 @@ export class Game {
     this.player = new TimelinePlayer(beat => this.show.showBeat(beat))
     this.session.hub = new LeaderboardHub(data, this.panels.modals, this.input.toasts)
     this.session.netStatus = new NetStatus(this.input.toasts)
+    const redDeck = data.tables.deck.findByDeckId('red_deck')
     this.session.title = new Title({
+      back: redDeck ? backLookOf(redDeck) : undefined,
       onStart: () => this.session.openRunPanel(),
       onGuide: () => this.panels.modals.open(this.panels.guide),
       onOptions: () => this.session.openOptions(),
-      onCollection: () => this.panels.modals.open(this.panels.collection),
+      onCollection: () => this.session.openScreen(this.panels.collection.view),
       onLeaderboard: () => this.session.hub.openLeaderboard(),
       onAccount: () => this.session.openAccount(),
       onSignOut: () => this.session.signOut(),
       onQuit: () => this.session.askQuit(),
     })
     this.session.hub.onAccountChanged = () => this.session.syncAccount()
+    this.session.hub.onOpenBoard = view => this.session.openScreen(view)
+    this.session.hub.onCloseBoard = () => this.session.leaveScreen()
     this.session.hub.onNeedLogin = () => this.session.cross('title_login',
       () => this.session.enterLogin())
     this.session.hub.onSignOut = () => this.session.signOut()
@@ -294,8 +296,15 @@ export class Game {
     // 고릅니다. 처음 열 때 조커 탭이 보여 주는 범위만 그 값을 따릅니다.
     // **칸을 굽는 렌더러와 글씨의 배율을 넘깁니다.** 배율은 창의 크기를 따라 바뀌므로 값이
     // 아니라 읽는 함수입니다.
+    // **닫는 길이 둘입니다.** 타이틀에서는 씬으로 열리고(`openScreen`) 판 안에서는 메뉴의
+    // 한 줄로 열립니다 — 씬에서 나가는 것 하나만 걸어 두었더니 판 안에서 연 콜렉션은
+    // ESC 키캡을 눌러도 아무 일도 없었습니다. 키보드의 `Esc` 는 판 더미가 따로 받습니다.
     this.panels.collection = new CollectionPanel(data, this.session.collected,
-      () => this.panels.modals.close(this.panels.collection),
+      () => {
+        if (this.panels.modals.has(this.panels.collection)) {
+          this.panels.modals.close(this.panels.collection)
+        } else this.session.leaveScreen()
+      },
       { renderer: this.app.renderer, density: () => this.textScale })
     this.panels.optionsPanel = new OptionsPanel(data, this.session.settings,
       () => this.session.applyOptions(),
@@ -304,7 +313,7 @@ export class Game {
 
     // 판을 여는 자리 하나. **탭 셋이 저마다 판을 엽니다.**
     this.panels.runPanel = new RunPanel(data, this.session.setup(), this.session.challenges, {
-      onClose: () => this.panels.modals.close(this.panels.runPanel),
+      onClose: () => this.session.leaveScreen(),
       // **고른 그 자리에서 저장합니다.** 판을 닫을 때 저장하면 판을 닫지 않고 시작한
       // 판이 다음 번에 다른 덱으로 열립니다.
       onPickSetup: (next: RunSetup) => {
@@ -401,7 +410,8 @@ export class Game {
     // **알갱이는 조각보다 위, 떠 있는 판들보다 아래입니다.** 삭는 카드는 판 위의 일이고,
     // 그 위에 상점이나 옵션이 떠 있으면 알갱이가 그 뒤로 가야 합니다.
     this.show.recede.addChild(this.board, this.show.particles, this.show.motes, this.overlay,
-      this.show.screenFlash, this.session.title)
+      this.show.screenFlash, this.session.title, this.session.screens)
+    this.session.screens.visible = false
     // **알림은 판 위입니다.** 흐려지는 층 안에 있어서 판이 열려 있는 동안의 알림이 그 판
     // 뒤에서 흐린 채로 떴습니다 — 순위표를 열었을 때의 「서버가 받지 않았습니다」가 정확히
     // 그 자리였고, 알림은 무엇이 열려 있든 읽혀야 하는 것입니다.
@@ -424,6 +434,7 @@ export class Game {
 
     // 통신 표시와 입력 막이. **판보다 위입니다.**
     this.world.addChild(this.session.netStatus)
+
 
     // 되돌아온 주소를 보고, 로그인되어 있으면 내 것을 읽습니다. 그다음에 어느 씬으로
     // 갈지가 정해집니다 — **로그인했거나 싱글플레이로 정했으면 타이틀입니다.**
@@ -452,20 +463,20 @@ export class Game {
 
     this.chrome.playButton = new Button(t('ui.button.play'), PLAY_W, PLAY_H, 'primary',
       () => this.cards.play())
-    this.chrome.discardButton = new Button(t('ui.button.discard'), PLAY_W, PLAY_H, 'danger',
+    this.chrome.discardButton = new Button(t('ui.button.discard'), DISCARD_W, PLAY_H, 'danger',
       () => this.cards.discard())
     // **가운데 버튼이 곧 몇 장 골랐는가입니다.** 점 다섯을 따로 두면 같은 것을 두 곳에서
     // 세게 되고, 그 둘 사이를 눈이 오갑니다.
     this.chrome.clearButton = new Button('-', CLEAR_W, PLAY_H, 'neutral',
       () => this.cards.clearSelection())
-    this.chrome.primaryButton = new Button(t('ui.button.select_blind'), 210, 50, 'primary',
+    this.chrome.primaryButton = new Button(t('ui.button.select_blind'), 210, 48, 'primary',
       () => this.chrome.primary())
-    this.chrome.skipButton = new Button(t('ui.button.skip'), 150, 38, 'dare',
+    this.chrome.skipButton = new Button(t('ui.button.skip'), 150, 36, 'dare',
       () => {
         this.audio.play('blind_skip')
         this.act({ t: 'skip_blind' })
       })
-    this.chrome.rerollButton = new Button(t('ui.button.reroll'), 128, 44, 'select',
+    this.chrome.rerollButton = new Button(t('ui.button.reroll'), 128, 48, 'select',
       () => this.shop.reroll())
     this.chrome.sortRankButton = new Button(t('ui.button.sort_rank'), SORT_W, SORT_H, 'neutral',
       () => this.cards.sortHand('rank'))
@@ -473,16 +484,17 @@ export class Game {
       () => this.cards.sortHand('suit'))
     // 위의 칸들과 같은 격자입니다 — 너비도 자리도.
     // **「족보 목록」 이 아니라 「런 정보」 입니다.** 족보는 그 안의 한 갈래가 되었습니다.
-    this.chrome.infoButton = new Button(t('ui.run_info.title'), PANEL_BTN_W, FOOT_BTN_H,
-      'neutral',
+    // **런 정보가 밝고 넓습니다.** 판 안에서 자주 여는 쪽이고, 메뉴는 곁의 단추입니다.
+    this.chrome.infoButton = new Button(t('ui.run_info.title'), PANEL_INFO_W, FOOT_BTN_H,
+      'select',
       () => this.cards.toggleHandList())
-    this.chrome.menuButton = new Button(t('ui.button.menu'), PANEL_BTN_W, FOOT_BTN_H, 'neutral',
+    this.chrome.menuButton = new Button(t('ui.button.menu'), PANEL_MENU_W, FOOT_BTN_H, 'neutral',
       () => this.panels.openMenu())
     // **자리는 화면이 알립니다.** 도구가 좌표를 베껴 적으면 판을 고칠 때 한쪽만 고쳐집니다.
-    const footCx = PANEL_BTN_W / 2
     const footCy = FOOT_BTN_H / 2
-    this.spotNodes.set('runInfo', { node: this.chrome.infoButton, cx: footCx, cy: footCy })
-    this.spotNodes.set('menu', { node: this.chrome.menuButton, cx: footCx, cy: footCy })
+    this.spotNodes.set('runInfo', { node: this.chrome.infoButton, cx: PANEL_INFO_W / 2,
+      cy: footCy })
+    this.spotNodes.set('menu', { node: this.chrome.menuButton, cx: PANEL_MENU_W / 2, cy: footCy })
     this.spotNodes.set('sort:rank',
                        { node: this.chrome.sortRankButton, cx: SORT_W / 2, cy: SORT_H / 2 })
     this.spotNodes.set('sort:suit',
@@ -519,13 +531,16 @@ export class Game {
     // 가기 전에 되돌리는 것이기 때문입니다.
     // **줄을 세어 가운데에 놓습니다.** 자리를 하나하나 적어 두면 버튼 크기를 고친 날에
     // 가운데가 어긋납니다.
+    // **낸다와 버린다 둘입니다.** 판의 가운데에 나란히 서고 낸다가 더 큽니다 — 취소는
+    // 고른 카드를 다시 누르는 것이고, 셋째 단추는 줄을 셋으로 가릅니다.
     const row = splitX(
-      box(BOARD_X - (PLAY_W * 2 + CLEAR_W + BUTTON_GAP * 2) / 2, BUTTON_Y,
-        PLAY_W * 2 + CLEAR_W + BUTTON_GAP * 2, PLAY_H),
-      [PLAY_W, CLEAR_W, PLAY_W], BUTTON_GAP)
+      box(BOARD_X - (PLAY_W + DISCARD_W + 14) / 2, BUTTON_Y, PLAY_W + DISCARD_W + 14, PLAY_H),
+      [PLAY_W, DISCARD_W], 14)
     this.chrome.playButton.position.set(row[0].x, row[0].y)
-    this.chrome.clearButton.position.set(row[1].x, row[1].y)
-    this.chrome.discardButton.position.set(row[2].x, row[2].y)
+    this.chrome.clearButton.position.set(row[0].x, row[0].y)
+    this.chrome.discardButton.position.set(row[1].x, row[1].y)
+    void CLEAR_W
+    void BUTTON_GAP
     this.chrome.primaryButton.position.set(BOARD_X - 105, 520)
     this.chrome.skipButton.position.set(BOARD_X - 75, 586)
     this.chrome.rerollButton.position.set(BOARD_X - 64, 578)
@@ -534,12 +549,12 @@ export class Game {
     // **간격은 단추의 너비에서 셉니다.** 100픽셀을 적어 두었고, 손가락으로 누를 수 있게
     // 단추를 112픽셀로 키운 날부터 둘이 12픽셀 겹쳐 있었습니다.
     const sortY = BUTTON_Y + (PLAY_H - SORT_H) / 2
-    this.chrome.sortRankButton.position.set(LEFT + PANEL_W + 30, sortY)
-    this.chrome.sortSuitButton.position.set(LEFT + PANEL_W + 30 + SORT_W + 10, sortY)
+    this.chrome.sortRankButton.position.set(LEFT + PANEL_W + 20, sortY)
+    this.chrome.sortSuitButton.position.set(LEFT + PANEL_W + 20 + SORT_W + SORT_GAP, sortY)
     // **판의 밑단에 붙입니다.** 위에 두면 그 아래가 통째로 빈 자리로 남습니다 — 왼쪽 판은
     // 화면 아래 22픽셀까지 내려오고, 버튼은 그 안쪽에 있으면 됩니다.
-    this.chrome.infoButton.position.set(LEFT, PANEL_FOOT_Y)
-    this.chrome.menuButton.position.set(RIGHT_COL, PANEL_FOOT_Y)
+    this.chrome.infoButton.position.set(IN_X, PANEL_FOOT_Y)
+    this.chrome.menuButton.position.set(IN_X + PANEL_INFO_W + PANEL_BTN_GAP, PANEL_FOOT_Y)
 
     // **창 전체의 예외도 받아 둡니다.** F12 를 열지 않아도 `__clover.errors` 로 읽힙니다.
     window.addEventListener('error',
@@ -652,7 +667,11 @@ export class Game {
     app.stage.on('pointertap', () => this.input.dismissAfterTap())
     window.addEventListener('keydown', event => {
       this.audio.unlock()
-      if (event.key === 'Escape') {
+      // **`Esc` 와 백스페이스가 같은 일을 합니다.** 데스크탑에서 한 단계 물러나는 키가
+      // 사람마다 다르고, 둘 다 「되돌아간다」로 쓰입니다 — 브라우저의 뒤로 가기가 걸린
+      // 자리이므로 기본 동작을 막습니다.
+      if (event.key === 'Escape' || event.key === 'Backspace') {
+        event.preventDefault()
         this.session.back()
         return
       }
@@ -1066,6 +1085,8 @@ export class Game {
       this.artDueAt = Infinity
       this.pack.repaintPack()
       this.session.repaintGameOver()
+      // **이어하기의 딱지도 늦게 닿는 그림을 씁니다.** 다시 그리지 않으면 빈 칸으로 남습니다.
+      this.panels.runPanel.repaintArt()
       this.refresh()
     }
 
@@ -1087,6 +1108,8 @@ export class Game {
     this.tray.advanceBurningItems(seconds)
     this.payout.coins.advance(seconds)
     this.input.toasts.advance(seconds)
+    // **단추의 색과 글이 건너갑니다.** 한 프레임에 바뀌면 눌린 것인지 잠긴 것인지가 갈립니다.
+    Button.advanceAll(seconds)
     this.show.decayFlashes(seconds)
 
     // **하나가 던져도 프레임의 나머지는 돕니다.** 이 셋은 겉모습이고, 그 뒤에 오는 것이
@@ -1403,19 +1426,29 @@ export class Game {
     //
     // 돈은 여기서 세지 않습니다 — 동전이 날아가 꽂히는 것이 이미 그 일을 하고 있고,
     // 둘이 겹치면 같은 말이 한 자리에서 두 번입니다.
-    this.show.slotDelta(this.chrome.hands, this.chrome.panelShown.hands, state.handsLeft, UI.good)
-    this.show.slotDelta(this.chrome.discards, this.chrome.panelShown.discards,
-      state.discardsLeft, UI.discard)
-    this.show.slotDelta(this.chrome.anteSlot, this.chrome.panelShown.ante, state.ante, UI.ink)
+    //
+    // **국면이 바뀌는 순간에는 띄우지 않습니다.** 라운드가 시작되며 핸드와 버리기가 다시
+    // 채워지는 것은 줄어든 것이 아니라 새 판이고, 그때 「+4」 둘이 칸 위에 떠 있으면 판이
+    // 시작부터 어수선합니다 — 판 안에서 값이 움직인 것만 띄웁니다.
+    if (this.chrome.panelShown.phase === state.phase) {
+      this.show.slotDelta(this.chrome.hands, this.chrome.panelShown.hands, state.handsLeft,
+        UI.good)
+      this.show.slotDelta(this.chrome.discards, this.chrome.panelShown.discards,
+        state.discardsLeft, UI.discard)
+      this.show.slotDelta(this.chrome.anteSlot, this.chrome.panelShown.ante, state.ante, UI.ink)
+    }
+    this.chrome.panelShown.phase = state.phase
     this.chrome.panelShown.hands = state.handsLeft
     this.chrome.panelShown.discards = state.discardsLeft
     this.chrome.panelShown.ante = state.ante
 
     this.chrome.money.target = this.shown.money
     this.chrome.score.target = this.shown.score
+    // 게이지는 요구 점수를 넘긴 만큼까지 보입니다.
+    this.chrome.scoreBar.set(this.shown.score, Math.max(1, Number(this.state.target)))
     this.chrome.hands.text = String(state.handsLeft)
     this.chrome.discards.text = String(state.discardsLeft)
-    this.chrome.anteSlot.text = `${state.ante} / ${this.data.run.winAnte}`
+    this.chrome.anteSlot.text = `${state.ante}/${this.data.run.winAnte}`
     this.chrome.deckLabel.text = tf('ui.stat.deck', { left: state.drawPile.length,
       all: state.deck.length })
     this.chrome.jokerCount.text = `${state.jokers.length} / ${state.rules.jokerSlots}`

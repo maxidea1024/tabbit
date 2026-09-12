@@ -152,6 +152,8 @@ function bakedBack(width: number, height: number, radius: number,
 /** 뒷면 하나를 선으로 그립니다. 굽는 쪽과 렌더러가 없는 쪽이 씁니다. */
 function drawCardBackVector(node: Container, width: number, height: number,
                             radius: number, look: BackLook): void {
+  // 모서리는 0 입니다. 부르는 쪽의 인자 순서를 지키기 위해 매개변수만 남깁니다.
+  void radius
   const cx = width / 2
   const cy = height / 2
   // **자기 Graphics 를 만들어 담습니다.** 부르는 쪽의 `Graphics` 에 자식을 붙이면 Pixi 가
@@ -160,11 +162,11 @@ function drawCardBackVector(node: Container, width: number, height: number,
   node.addChild(g)
 
   // 1. 바탕.
-  g.roundRect(0, 0, width, height, radius).fill(look.ground)
+  g.rect(0, 0, width, height).fill(look.ground)
 
   // 2. 굵은 바깥 테두리.
   const edge = Math.max(2, Math.round(width * 0.045))
-  g.roundRect(edge / 2, edge / 2, width - edge, height - edge, radius - edge / 2)
+  g.rect(edge / 2, edge / 2, width - edge, height - edge)
     .stroke({ color: look.ink, width: edge })
 
   // 3. 점선 띠. **작은 네모가 줄지어 있는 것이 이 뒷면의 표식입니다.**

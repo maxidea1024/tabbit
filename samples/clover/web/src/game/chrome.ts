@@ -1,21 +1,26 @@
 import { Container, Graphics, Text } from 'pixi.js'
 import { t } from '../core/strings'
 import { outlined } from '../ui/font'
+import { piece } from '../ui/chrome'
 import { ScoreWave } from '../shader/wave'
 import { Slot } from '../render/hud'
 import { Spring } from '../render/motion'
-import { insetRadius, slotStyle } from '../render/skin'
-import { TEXT, UI, WEIGHT } from '../render/theme'
+import { slotStyle, mix } from '../render/skin'
+import { SIZE, TEXT, UI, WEIGHT } from '../render/theme'
 import { type Box } from '../ui/layout'
+import { ProgressBar } from '../ui/parts'
 import { Button, Panel } from '../ui/widgets'
 import {
-  BOARD_X, BUTTON_Y, CHIPS_GAP, CHIPS_H, CHIPS_R, CONSUMABLE_TRAY, COUNT_PULSE, JOKER_TRAY,
-  PANEL_W, PLAY_H, PLAY_Y, SORT_H, SORT_HIDE,
+  BOARD_X, BUTTON_Y, CELL_SLOT_H, CELL_SLOT_W, CHIPS_GAP, CHIPS_H, CHIPS_R, CONSUMABLE_TRAY,
+  COUNT_PULSE, HAND_Y, IN_W, JOKER_TRAY, PLAY_H, PLAY_Y, SCORE_H, SORT_H, SORT_HIDE,
 } from './metrics'
 import { boxInk } from './helpers'
 import { type Game } from './game'
 export class ChromePart {
-  constructor(private readonly game: Game) {}
+  constructor(private readonly game: Game) {
+    // 소지금은 값 앞에 `$` 가 붙습니다. 정산의 동전과 상점의 값이 같은 표기입니다.
+    this.money.prefix = '$'
+  }
 
   /** 고른 것 밑에 서는 버튼들. */
   readonly heldBar = new Container()
@@ -46,7 +51,12 @@ export class ChromePart {
    */
   panelPlate?: Panel
 
-  readonly score = new Slot(t('ui.slot.round_score'), PANEL_W, 52, UI.ink)
+  readonly score = new Slot(t('ui.slot.round_score'), IN_W, SCORE_H, UI.ink)
+  /**
+   * 라운드 점수 아래의 게이지. **눈금의 끝은 요구 점수가 아닙니다** — 넘긴 만큼이 금색으로
+   * 보입니다.
+   */
+  readonly scoreBar = new ProgressBar(IN_W - 24)
 
   // **이 둘이 화면에서 가장 큰 두 숫자입니다.** 점수는 이 둘의 곱이고, 나머지 칸들은
   // 그것을 설명하는 것들입니다 — 크기가 그 서열을 그대로 보여야 합니다.
@@ -108,14 +118,16 @@ export class ChromePart {
    * **이름이 없습니다.** 두 수 사이에 `×` 가 있으면 그것이 무엇인지 더 적을 것이 없습니다 —
    * 이름은 자리만 잡아먹고 숫자를 아래로 밀어냅니다.
    *
-   * 숫자는 흰색입니다. 바탕은 값이 움직이는 동안에만 파랑과 붉음으로 밝으므로, 숫자까지
-   * 그 색이면 밝은 동안 색만 남고 수가 흐려집니다.
+   * **숫자가 그 뜻의 색입니다** — 칩은 파랑, 배수는 붉음. 흰색으로 두었던 동안 두 상자는
+   * 바탕의 색으로만 갈렸고, 값이 오를 때 글자마다 지나가는 흰빛(`Digits.advance`)도 흰
+   * 글자 위에서는 아무것도 아니었습니다. 제 색에서 흰색으로 갔다가 제 색으로 돌아오는
+   * 것이 그 물결이므로, 제 색이 있어야 물결이 보입니다.
    */
   readonly chips =
-    new Slot('', (PANEL_W - CHIPS_GAP) / 2, CHIPS_H, UI.ink, 34, 1, true, true)
+    new Slot('', (IN_W - CHIPS_GAP) / 2, CHIPS_H, UI.chips, 36, 1, true, true)
 
   readonly mult =
-    new Slot('', (PANEL_W - CHIPS_GAP) / 2, CHIPS_H, UI.ink, 34, 0, true, true)
+    new Slot('', (IN_W - CHIPS_GAP) / 2, CHIPS_H, UI.mult, 36, 0, true, true)
 
   /**
    * 왼쪽 판의 칸들이 마지막으로 보여 준 수.
@@ -126,15 +138,16 @@ export class ChromePart {
    *
    * `-1` 은 아직 아무것도 보여 주지 않았다는 뜻이고, 그때는 차이를 적지 않습니다.
    */
-  panelShown = { hands: -1, discards: -1, ante: -1 }
+  panelShown: { hands: number; discards: number; ante: number; phase: string } =
+    { hands: -1, discards: -1, ante: -1, phase: '' }
 
-  readonly hands = new Slot(t('ui.slot.hands'), 124, 52, UI.good)
+  readonly hands = new Slot(t('ui.slot.hands'), CELL_SLOT_W, CELL_SLOT_H, UI.good)
 
-  readonly discards = new Slot(t('ui.slot.discards'), 124, 52, UI.discard)
+  readonly discards = new Slot(t('ui.slot.discards'), CELL_SLOT_W, CELL_SLOT_H, UI.discard)
 
-  readonly money = new Slot(t('ui.slot.money'), 124, 52, UI.money)
+  readonly money = new Slot(t('ui.slot.money'), CELL_SLOT_W, CELL_SLOT_H, UI.money)
 
-  readonly anteSlot = new Slot(t('ui.slot.ante'), 124, 52, UI.ink)
+  readonly anteSlot = new Slot(t('ui.slot.ante'), CELL_SLOT_W, CELL_SLOT_H, UI.ink)
 
   /**
    * 왼쪽 판의 값 칸 전부.
@@ -256,15 +269,21 @@ export class ChromePart {
     this.scoreWave.ink(UI.chips, UI.mult)
     const g = this.scoreBox
     g.clear()
+    g.removeChildren().forEach(child => child.destroy())
     const style = slotStyle(UI.ink)
     for (const area of [chipsBox, multBox]) {
-      // **판의 다른 칸과 같은 채움과 같은 테입니다.** `plate()` 가 그리는 것과 같은 것을
-      // 절대 좌표에 그립니다 — 그 함수는 원점에서 그리고, 이 둘은 한 `Graphics` 안의 서로
-      // 다른 자리에 있습니다.
-      g.roundRect(area.x, area.y, area.width, area.height, CHIPS_R)
+      // **칩은 파랑의 어두운 것, 배수는 붉음의 어두운 것입니다.** 값이 움직이지 않을 때도
+      // 어느 쪽이 무엇인지가 바탕으로 읽힙니다.
+      const tone = area === chipsBox ? UI.chips : UI.mult
+      const skin = piece('well', area.width, area.height, mix(tone, UI.ground, 0.72))
+      if (skin !== undefined) {
+        skin.position.set(area.x, area.y)
+        g.addChild(skin)
+        continue
+      }
+      g.rect(area.x, area.y, area.width, area.height)
         .fill(style.top)
-      g.roundRect(area.x + 0.5, area.y + 0.5, area.width - 1, area.height - 1,
-        insetRadius(CHIPS_R, 0.5))
+      g.rect(area.x + 0.5, area.y + 0.5, area.width - 1, area.height - 1)
         .stroke({ color: style.border, width: 1 })
     }
     this.flashChips = -1
@@ -299,7 +318,7 @@ export class ChromePart {
     ] as const) {
       if (lit <= 0) continue
       // 짙게 눌러 씁니다. **원색 그대로는 흰 숫자가 눌러앉지 못합니다.**
-      g.roundRect(area.x, area.y, area.width, area.height, CHIPS_R)
+      g.rect(area.x, area.y, area.width, area.height)
         .fill({ color: boxInk(tint), alpha: lit })
       // **테는 건드리지 않습니다.** 색을 얹으면 밝은 동안 그 상자만 다른 문법으로 그려진
       // 것이 되고, 값이 굴러가는 내내 테 하나가 색을 바꾸며 굵어졌다 가늘어집니다 —
@@ -324,9 +343,19 @@ export class ChromePart {
     // **바탕만 깔고 테는 두지 않습니다.** 이 자리에 서는 것은 카드이고 카드마다 자기 테가
     // 있으므로, 자리에도 테를 두르면 테가 두 겹으로 겹칩니다 — 비어 있는 자리를 알리는 데는
     // 한 단 밝은 바탕으로 족합니다.
+    g.removeChildren().forEach(child => child.destroy())
     for (const tray of [JOKER_TRAY, CONSUMABLE_TRAY]) {
-      g.roundRect(tray.x, tray.y, tray.width, tray.height, 6)
-        .fill({ color: UI.panel, alpha: 0.5 })
+      // **칸을 하나씩 그리지 않습니다. 고정된 영역 하나입니다** — 칸 수를 덱·바우처·
+      // 챌린지가 바꾸므로, 칸마다 그리면 줄의 너비가 규칙을 따라 달라집니다.
+      // **반투명입니다.** 자리는 바탕이고, 그 뒤의 무늬가 비쳐야 판 위에 파인 자리로 읽힙니다.
+      const skin = piece('tray', tray.width, tray.height, UI.ground)
+      if (skin !== undefined) {
+        skin.position.set(tray.x, tray.y)
+        skin.alpha = 0.62
+        g.addChild(skin)
+        continue
+      }
+      g.rect(tray.x, tray.y, tray.width, tray.height).fill({ color: UI.panel, alpha: 0.5 })
     }
   }
 
@@ -393,7 +422,9 @@ export class ChromePart {
     // `advanceHandControls` 가 매 프레임 정합니다.
     this.playButton.visible = this.game.session.scene === 'run'
     this.discardButton.visible = this.game.session.scene === 'run'
-    this.clearButton.visible = this.game.session.scene === 'run'
+    // **취소 단추는 두지 않습니다.** 고른 카드를 다시 누르면 놓이고, 낸다와 버린다 사이에
+    // 세 번째 단추가 서면 나아가는 줄이 셋으로 갈립니다.
+    this.clearButton.visible = false
     this.clearButton.enabled = inRound && this.game.cards.selected.size > 0
     this.playButton.enabled = inRound && this.game.cards.selected.size > 0 && state.handsLeft > 0
     this.discardButton.enabled = inRound && this.game.cards.selected.size > 0
@@ -442,7 +473,10 @@ export class ChromePart {
     this.playButton.y = BUTTON_Y + off
     this.clearButton.y = BUTTON_Y + off
     this.discardButton.y = BUTTON_Y + off
-    this.game.input.hint.y = BUTTON_Y - 30 + off
+    // **지시문은 손패 위, 족보 이름이 서던 그 자리입니다.** 손패와 단추 줄 사이에 두었던
+    // 동안 그 줄은 카드 밑의 점들과 겹쳤습니다 — 그 사이는 43픽셀이고 점이 그 한가운데에
+    // 있습니다. 단추 줄이 물러나면 함께 물러납니다.
+    this.game.input.hint.y = HAND_Y - SIZE.cardHeight / 2 - 40 + off
   }
 
   /**

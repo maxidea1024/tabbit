@@ -61,6 +61,8 @@ export type QualityLevel = 'high' | 'medium' | 'low'
 export type TransitionId =
   'title_run' | 'run_title' | 'run_lost' | 'run_won' | 'run_restart'
   | 'login_title' | 'title_login' | 'boot_first'
+  // 타이틀과 전면 화면(시작 · 콜렉션 · 리더보드) 사이. 표에 줄이 없으면 짧은 잦아듦입니다.
+  | 'title_screen' | 'screen_title'
 
 export interface TransitionSpec {
   kind: TransitionKind

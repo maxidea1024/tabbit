@@ -7,6 +7,7 @@
 // 하나와 밝기 하나이고, 나머지는 `palette.ts` 의 표가 만듭니다 — 그 이유와 배수는 그쪽에
 // 적혀 있습니다.
 
+import { CanvasTextMetrics, TextStyle } from 'pixi.js'
 import { buildSurface, type Surface, type SurfaceSeed } from './palette'
 
 /**
@@ -28,10 +29,17 @@ import { buildSurface, type Surface, type SurfaceSeed } from './palette'
  * `level` 은 판의 상대휘도입니다. **겉면 하나의 밝기가 이 숫자 하나입니다** — 칸도 단추도
  * 선도 이 값에서 배수로 나오므로, 밝기를 바꾸려면 여기만 고칩니다.
  */
+// **판의 밝기는 씨앗이 정하고 부품은 그 색 그대로 물듭니다.** 구운 부품은 꼭대기가 흰색이라
+// 넘기는 색이 곧 판의 윗변입니다 — 검은 겉면은 검고, 밝은 겉면은 밝습니다.
 const SEEDS: Record<string, SurfaceSeed> = {
-  /** 기본. 남흑에 따뜻한 갈색 테 — 참고한 카드룸의 것입니다. */
+  /**
+   * 기본. **검정 바닥에 청회색 판입니다.**
+   *
+   * 디자인 언어의 판(`#212A35 → #0D1219`)이 이 색상각입니다. 바닥은 `ground` 가 판의
+   * 1/4 로 내려 거의 검정입니다.
+   */
   slate: {
-    hue: 274, chroma: 0.018, level: 0.0165, alpha: 0.96,
+    hue: 255, chroma: 0.020, level: 0.0230, alpha: 0.96,
     accent: { hue: 62, chroma: 0.075 },
   },
   /**
@@ -46,9 +54,6 @@ const SEEDS: Record<string, SurfaceSeed> = {
     accent: { hue: 238, chroma: 0.045 },
     tune: {
       panelEdge: 4.6, rule: 3.4, groove: 2.5, hairline: 1.9,
-      btn: 1.45, btnHover: 2.05, btnPress: 1.25, btnEdge: 2.70, btnEdgeHover: 3.70,
-      quiet: 1.28, quietHover: 1.70, quietPress: 1.14, quietEdge: 2.05,
-      locked: 1.14, lockedEdge: 1.75,
       track: 1.55, grip: 3.3, tipEdge: 2.4,
     },
   },
@@ -66,10 +71,6 @@ const SEEDS: Record<string, SurfaceSeed> = {
   bright: {
     hue: 261, chroma: 0.030, level: 0.0470, alpha: 0.98,
     accent: { hue: 210, chroma: 0.095 },
-    tune: {
-      panelEdge: 3.8, yellow: 6.4, money: 6.8, green: 6.4, good: 5.8,
-      accentTerm: 7.6, bar: 5.4, mark: 5.0,
-    },
   },
   /** 초록. 카드를 늘어놓는 상의 색입니다 — 이 갈래의 게임에서 가장 오래된 색입니다. */
   green: {
@@ -146,32 +147,51 @@ export function setUiTheme(key: string): void {
  */
 export const TEXT = {
   /** 곁들이는 수 · 칸 아래의 개수. */
-  micro: 10,
+  micro: 12,
   /** 칩 · 딱지. */
-  mini: 11,
+  mini: 12,
   /** 이름표 · 흐린 설명. */
   small: 12,
   /** 본문. **가장 많이 쓰는 크기입니다.** */
-  body: 13,
+  body: 12,
   /** 조금 큰 본문. 줄이 그 자리의 주인공일 때입니다. */
-  copy: 14,
+  copy: 12,
   /** 단추의 글. */
-  base: 15,
+  base: 24,
   /** 판의 제목 줄 · 핸드의 이름. */
-  big: 17,
+  big: 24,
   /** 판의 큰 제목. */
-  lead: 20,
+  lead: 24,
   /** 점수 · 끝난 판의 머리. */
-  head: 23,
+  head: 24,
   /** 값 하나가 그 판의 주인공일 때. */
-  display: 26,
+  display: 36,
   /** 굴러가는 점수. */
-  banner: 30,
+  banner: 36,
   /** 뒤에 옅게 깔리는 큰 글자. */
-  hero: 34,
+  hero: 36,
   /** 정산의 합계. */
-  giant: 40,
+  giant: 48,
 } as const
+
+/**
+ * 글자 계단의 다섯 칸. **이 밖의 크기를 쓰지 않습니다.**
+ *
+ * 물마루는 픽셀 서체입니다. 1em 이 192유닛이고 1픽셀이 16유닛이라 **12의 배수에서만 획이
+ * 격자에 맞습니다** — 그 사이 값(11 · 13 · 17 · 23 · 34)에서는 획의 굵기가 자리마다
+ * 달라집니다.
+ *
+ * 위의 `TEXT` 는 이 다섯 칸으로 접힌 이름들입니다. 이름을 남겨 둔 까닭은 부르는 자리가
+ * 「어느 자리의 글인가」를 계속 말하기 때문입니다 — 크기가 같아도 뜻이 다릅니다.
+ */
+export const STEP = [12, 24, 36, 48, 72] as const
+
+/** 그 크기에 가장 가까운 계단. 계단 밖의 값이 들어오면 여기서 접힙니다. */
+export function step(size: number): number {
+  let best = STEP[0] as number
+  for (const one of STEP) if (Math.abs(one - size) < Math.abs(best - size)) best = one
+  return best
+}
 
 /**
  * 줄 사이.
@@ -181,7 +201,62 @@ export const TEXT = {
  * 가장 좁은 값입니다.
  */
 export function leading(size: number): number {
-  return Math.round(size * 1.45)
+  // **글꼴에서 잽니다.** 상수로 적어 두면 글꼴을 바꾼 날 앞 줄 위에 다음 줄이 얹힙니다 —
+  // 지금 걸린 글꼴의 올림과 내림을 재서 그 위에 글자 크기의 4분의 1을 더합니다. 정수로
+  // 올리므로 획은 격자에 그대로 맞습니다.
+  const family = TextStyle.defaultTextStyle.fontFamily
+  const name = Array.isArray(family) ? family.join(', ') : String(family)
+  const key = `${name}|${size}`
+  const found = LEADING.get(key)
+  if (found !== undefined) return found
+  let line = Math.round(size * 1.5)
+  try {
+    const metrics = CanvasTextMetrics.measureFont(`${size}px ${name}`)
+    if (metrics.fontSize > 0) line = Math.ceil(metrics.fontSize + size * 0.25)
+  } catch {
+    // 글꼴을 잴 수 없는 곳(헤드리스)에서는 1.5배로 갑니다.
+  }
+  LEADING.set(key, line)
+  return line
+}
+
+/**
+ * 글을 가운데에 놓을 때 더 내려야 하는 만큼.
+ *
+ * **가운데를 맞추는 것은 상자가 아니라 획입니다.** `anchor.y = 0.5` 는 글자 상자의
+ * 한가운데를 잡는데, 그 상자에는 내림(descent)이 들어 있고 한글과 숫자의 획은 그 위에만
+ * 있습니다 — 그래서 단추의 글이 늘 얼굴의 위쪽에 붙었습니다. 내림의 절반만큼 내리면
+ * 획이 한가운데에 옵니다.
+ *
+ * **글꼴에서 잽니다.** 상수로 적으면 글꼴을 바꾼 날 다시 어긋납니다.
+ */
+export function inkDrop(size: number): number {
+  const family = TextStyle.defaultTextStyle.fontFamily
+  const name = Array.isArray(family) ? family.join(', ') : String(family)
+  const key = `${name}|${size}`
+  const found = DROP.get(key)
+  if (found !== undefined) return found
+  let drop = 0
+  try {
+    const metrics = CanvasTextMetrics.measureFont(`${size}px ${name}`)
+    if (metrics.fontSize > 0) drop = Math.round(Math.min(size * 0.2, metrics.descent / 2))
+  } catch {
+    // 글꼴을 잴 수 없는 곳(헤드리스)에서는 옮기지 않습니다.
+  }
+  DROP.set(key, drop)
+  return drop
+}
+
+/** 재어 둔 줄 사이. 글꼴이 바뀌면(`useFont`) 비워야 합니다. */
+const LEADING = new Map<string, number>()
+
+/** 재어 둔 내림의 절반. `LEADING` 과 같은 규칙입니다. */
+const DROP = new Map<string, number>()
+
+/** 글꼴이 바뀌었으니 재어 둔 줄 사이를 비웁니다. */
+export function forgetLeading(): void {
+  LEADING.clear()
+  DROP.clear()
 }
 
 /** 글자의 굵기. **셋뿐입니다** — 넷째를 더하면 어느 것이 더 무거운지가 보이지 않습니다. */
@@ -197,18 +272,17 @@ export const WEIGHT = {
 /**
  * 모서리.
  *
- * **네 단계입니다.** 4·6·8·12 이고, 그 사이의 값(5·7·9·10)은 들여 그린 테가 계산해
- * 내는 것이지 고르는 것이 아닙니다 — `insetRadius()` 가 그 일을 합니다.
+ * **전부 0 입니다.** 화면에 둥근 모서리가 하나도 없습니다 — 둥근 상자는 웹의 문법이고,
+ * 이 화면의 표시는 마주 보는 두 귀를 사선으로 자른 것입니다.
+ *
+ * 이름을 남겨 둔 까닭은 부르는 자리가 300곳이 넘기 때문입니다. 값이 한 자리에 있으면
+ * 어긴 자리가 생기지 않습니다.
  */
 export const RADIUS = {
-  /** 칩 · 작은 딱지. */
-  tight: 4,
-  /** 칸 · 단추. */
-  small: 6,
-  /** 판. */
-  base: 8,
-  /** 크게 뜨는 판 · 알림. */
-  large: 12,
+  tight: 0,
+  small: 0,
+  base: 0,
+  large: 0,
 } as const
 
 /**
@@ -247,7 +321,7 @@ export const SIZE = {
 
   cardWidth: 88,
   cardHeight: 124,
-  cardRadius: 9,
+  cardRadius: 0,
 
   /**
    * 조커 딱지의 크기. **플레잉 카드와 같습니다.**

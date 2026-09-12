@@ -3,23 +3,29 @@ import { BlindKind } from '../generated/enums/blind-kind'
 import { describe } from '../core/describe'
 import { rewardOf, tagFor, targetOf } from '../core/run'
 import { nameOf, t, tf } from '../core/strings'
-import { cornerPiece, frameTint } from '../ui/chrome'
+import { piece } from '../ui/chrome'
 import { BlindBadge } from '../render/hud'
 import { Motion } from '../render/motion'
 import { artFor } from '../render/art'
 import { blindFace, packInk, packName, shopLabel, tagFace } from '../render/faces'
-import { groove } from '../render/skin'
+import { mix, plateTint, wellTint } from '../render/skin'
 import { popupLeft, SIZE, TEXT, UI, WEIGHT } from '../render/theme'
 import { Button } from '../ui/widgets'
 import { PANEL_BOTTOM } from '../ui/modal'
 import { richBlock, richLeading, richStyle } from '../ui/rich'
 import {
-  BLIND_RISE, BOARD_X, PANEL_W, PLAY_Y, RULE_H, TAG_FIRE, TAG_FIRE_WAIT, TAG_FLASH, TAG_POP,
+  BLIND_RISE, BOARD_X, PANEL_W, PLAY_Y, TAG_FIRE, TAG_FIRE_WAIT, TAG_FLASH, TAG_POP,
 } from './metrics'
 import { blindName } from './tables'
 import { glare, NEWLINE } from './helpers'
 import { type BlindGroup, type TagCell } from './types'
 import { type Game } from './game'
+/** 고르기 판의 머리 판 높이. 이름(24)이 앉는 띠입니다. */
+const BAND_H = 40
+
+/** 고르기 판 아래에 쌓이는 것들의 사이. 단추의 턱과 그림자가 들어갑니다. */
+const STACK_GAP = 12
+
 export class BlindPart {
   constructor(private readonly game: Game) {}
 
@@ -345,10 +351,13 @@ export class BlindPart {
       //
       // 지금 차례인 칸에는 **하는 일 둘이 들어갑니다** — 이 블라인드로 가는 것과 건너뛰는
       // 것이고, 그 사이에 구분선 하나가 놓입니다.
+      // **가르는 줄은 없습니다.** 무리는 사이의 넓이가 가릅니다.
       const stack: number[] = now
-        ? [RULE_H, ...(skippable ? [36, tag?.height ?? 0, RULE_H] : []), 44]
+        ? [...(skippable ? [36, tag?.height ?? 0] : []), 48]
         : [20, ...(tag ? [tag.height] : [])]
-      const stackH = stack.reduce((sum, one) => sum + one + 8, 0)
+      // **사이는 12 입니다.** 단추의 턱(3)과 그림자가 아래로 내려오므로 8 이면 그 아래의
+      // 것이 단추에 붙어 보입니다.
+      const stackH = stack.reduce((sum, one) => sum + one + STACK_GAP, 0)
 
       const group = new Container()
       // 지금 차례인 것만 앞으로 나옵니다. **아랫변을 맞춥니다** — 위로 자라면 줄이
@@ -365,31 +374,26 @@ export class BlindPart {
       // 되고, 어느 것을 지금 고르는지는 색이 아니라 자리와 밝기가 말합니다 — 고를 것은
       // 위로 서고 다음 차례는 옅습니다. 색은 이름 앞의 문양 하나에만 듭니다.
       const plate = new Graphics()
-      const radius = 8
-      plate.roundRect(0, 0, cardW, height, radius)
-        .fill({ color: UI.panel, alpha: UI.panelAlpha })
 
-      // 머리 띠. 어느 블라인드인지가 색으로 먼저 읽힙니다.
-      //
-      // **길 하나로 그립니다.** 둥근 사각형에 네모를 겹쳐 아랫단을 메우면 그 겹친 자리가
-      // 두 번 칠해지고, 반투명일 때 그 띠가 그대로 보입니다.
-      //
-      // 그리고 **테두리보다 먼저입니다.** 나중에 그리면 띠의 모서리가 테두리 바깥으로
-      // 넘칩니다 — 테두리는 반 칸 안쪽에 있어서 두 모서리의 호가 어긋납니다.
-      // 이름이 앉는 줄. 띠가 아니라 아래에 선 하나입니다.
-      plate.rect(1, 46, cardW - 2, 1.5).fill(UI.rule)
-
-      plate.roundRect(0.75, 0.75, cardW - 1.5, height - 1.5, radius)
-        .stroke({ color: now ? UI.panelEdge : UI.hairline, width: 1.5 })
       group.addChild(plate)
 
-      // **네 귀의 꺾쇠.** 얇은 테 위에 얹힙니다.
-      const rim = cornerPiece(cardW, height, frameTint())
+      // **구워 둔 판 한 장입니다.** 채움과 잘린 귀가 그 안에 있습니다.
+      const rim = piece('plate', cardW, height, plateTint(UI.panel))
       if (rim !== undefined) {
-        // **고를 차례가 아닌 판은 꺾쇠도 옅습니다.** 판만 옅고 꺾쇠가 또렷하면 그 판이
-        // 앞으로 나온 것으로 보입니다.
+        // **고를 차례가 아닌 판은 옅습니다.** 판만 옅고 테가 또렷하면 그 판이 앞으로 나온
+        // 것으로 보입니다.
         rim.alpha = now ? 1 : 0.55
-        group.addChild(rim)
+        group.addChildAt(rim, 0)
+      } else {
+        plate.rect(0, 0, cardW, height).fill({ color: UI.panel, alpha: UI.panelAlpha })
+      }
+      // **머리 판.** 판의 폭을 다 쓰고 색은 채움과 글자에 듭니다 — 스몰은 파랑, 빅은
+      // 보라, 보스는 붉음. 어느 블라인드인지가 이름을 읽기 전에 색으로 읽힙니다.
+      const tone = boss ? UI.red : blind === BlindKind.Big ? UI.legendary : UI.bar
+      const band = piece('head', cardW, BAND_H, mix(tone, UI.panel, 0.62))
+      if (band !== undefined) {
+        band.alpha = now ? 1 : 0.55
+        group.addChildAt(band, rim !== undefined ? 1 : 0)
       }
 
       const label = (text: string, size: number, fill: number, weight = '700') =>
@@ -397,7 +401,7 @@ export class BlindPart {
 
       const name = label(bossRow
         ? nameOf(this.game.data, 'boss', state.bossId, bossRow.name)
-        : tf('ui.blind.named', { name: blindName(blind) }), 17, UI.ink, '800')
+        : tf('ui.blind.named', { name: blindName(blind) }), TEXT.base, mix(tone, UI.ink, 0.35), '800')
       // **이름은 칸의 가운데입니다.** 셋이 나란히 서는 판이고, 이름이 왼쪽에 붙으면
       // 보스의 긴 이름과 「스몰 블라인드」가 저마다 다른 자리에서 끝납니다 — 문양은 띠의
       // 왼쪽 끝에 얹히는 것이지 이름과 한 줄로 서는 것이 아닙니다.
@@ -405,7 +409,7 @@ export class BlindPart {
       // 문양을 밀지 않는 만큼 줄입니다. 보스의 이름은 말에 따라 두 배로 길어집니다.
       const nameRoom = cardW - 46 * 2
       if (name.width > nameRoom) name.scale.set(nameRoom / name.width)
-      name.position.set(cardW / 2, 23)
+      name.position.set(cardW / 2, BAND_H / 2)
       group.addChild(name)
 
       // **보스에는 인장이 붙습니다.** 스물여덟이 이름 하나로만 갈리면 어느 것이 나왔는지가
@@ -414,26 +418,26 @@ export class BlindPart {
       // 그러면 셋이 나란히 섰을 때 보스의 이름만 다른 자리에 있습니다 — 인장은 띠의 왼쪽
       // 끝에 얹히는 것이지 이름과 한 줄로 서는 것이 아닙니다.
       const seal = blindFace(blind, 24, this.game.state.bossId)
-      seal.position.set(28, 23)
+      seal.position.set(28, BAND_H / 2)
       group.addChild(seal)
 
       // **세 자리마다 쉼표를 찍습니다.** 요구 점수는 안테가 오르면 네 자리 다섯 자리가
       // 되고, 쉼표가 없으면 30000 과 300000 을 한눈에 가릴 수 없습니다.
       const need = label(
-        targetOf(this.game.data, state, blind).toLocaleString('en-US'), 34, UI.bar, '800')
+        targetOf(this.game.data, state, blind).toLocaleString('en-US'), TEXT.display, UI.bar, '800')
       need.anchor.set(0.5, 0)
-      need.position.set(cardW / 2, 72)
+      need.position.set(cardW / 2, BAND_H + 30)
       group.addChild(need)
 
-      const needCaption = label(t('ui.label.target'), 11, UI.inkDim)
+      const needCaption = label(t('ui.label.target'), TEXT.small, UI.inkDim)
       needCaption.anchor.set(0.5, 0)
-      needCaption.position.set(cardW / 2, 114)
+      needCaption.position.set(cardW / 2, BAND_H + 14)
       group.addChild(needCaption)
 
       const reward = label(tf('ui.blind.reward',
-        { n: rewardOf(this.game.data, this.game.state, row.blind) }), 13, UI.money, '800')
+        { n: rewardOf(this.game.data, this.game.state, row.blind) }), TEXT.body, UI.money, '800')
       reward.anchor.set(0.5, 0)
-      reward.position.set(cardW / 2, 138)
+      reward.position.set(cardW / 2, BAND_H + 76)
       group.addChild(reward)
 
       // 보스의 효과. **건너뛸지를 정하는 것이 대부분 이 한 줄입니다.**
@@ -452,7 +456,7 @@ export class BlindPart {
       const noteText = richBlock(note.split(NEWLINE),
                                  richStyle('note', boss ? { fill: UI.red } : undefined),
                                  richLeading('note'), noteWidth, 'center')
-      noteText.position.set((cardW - noteWidth) / 2, 172)
+      noteText.position.set((cardW - noteWidth) / 2, BAND_H + 104)
       group.addChild(noteText)
 
       // 아래에서 위로 쌓습니다. **아랫변이 맞아야 셋이 한 줄로 보입니다.**
@@ -460,25 +464,17 @@ export class BlindPart {
       const place = (node: Container, h: number): void => {
         at -= h
         node.position.set(18, at)
-        at -= 8
+        at -= STACK_GAP
         group.addChild(node)
       }
 
-      // 하는 일 둘을 가르는 줄. **왼쪽 판의 구분선과 같은 것입니다** — 화면에서 무리를
-      // 가르는 표시가 자리마다 다르면 그것은 표시가 아니라 장식입니다.
-      const rule = (): Container => {
-        const line = new Graphics()
-        groove(line, 0, RULE_H / 2, cardW - 36)
-        return line
-      }
-
       if (done) {
-        const mark = label(t('ui.label.cleared'), 14, UI.green, '800')
+        const mark = label(t('ui.label.cleared'), TEXT.body, UI.green, '800')
         mark.anchor.set(0.5, 0)
         mark.position.set(cardW / 2, height - 40)
         group.addChild(mark)
       } else if (!now) {
-        const mark = label(t('ui.label.next_up'), 13, UI.inkDim, '700')
+        const mark = label(t('ui.label.next_up'), TEXT.body, UI.inkDim, '700')
         mark.anchor.set(0.5, 0)
         mark.position.set(cardW / 2, height - 32)
         group.addChild(mark)
@@ -487,15 +483,13 @@ export class BlindPart {
       } else {
         // **이 블라인드로 가는 것이 맨 아래입니다.** 셋 중 지금 차례인 칸에서만 뜨는
         // 단추이고, 밑단에 붙어 있어야 다음 안테에서도 같은 자리입니다.
-        const pick = new Button(t('ui.button.select_blind'), cardW - 36, 44, 'primary',
+        const pick = new Button(t('ui.button.select_blind'), cardW - 36, 48, 'primary',
           () => this.game.act({ t: 'select_blind' }))
-        place(pick, 44)
-        entry.pickY = pick.y + 22
+        place(pick, 48)
+        entry.pickY = pick.y + 24
         this.game.spots.pick = { x: group.x + cardW / 2, y: group.y + entry.pickY }
 
         if (skippable) {
-          place(rule(), RULE_H)
-
           // **받는 것이 건너뛰기 단추 아래입니다.** 위에 두었더니 그 태그가 「이
           // 블라인드로 간다」의 딸린 글로 읽혔습니다 — 태그는 건너뛰었을 때 받는 것이고,
           // 무엇을 하면 무엇을 받는가는 그 차례로 읽혀야 합니다.
@@ -518,10 +512,6 @@ export class BlindPart {
           this.game.spots.skip = { x: group.x + cardW / 2, y: group.y + entry.skipY }
         }
 
-        // 적힌 것과 하는 것을 가르는 줄. **위쪽은 이 블라인드가 무엇인가이고 아래쪽은
-        // 그래서 무엇을 하는가입니다** — 그 둘이 이어져 있으면 보스의 규칙 한 줄과 단추가
-        // 한 덩어리로 보입니다.
-        place(rule(), RULE_H)
       }
 
       this.blindPick.addChild(group)
@@ -569,16 +559,18 @@ export class BlindPart {
       style: {
         fontSize: TEXT.micro, fill: UI.inkDim,
         wordWrap: true, wordWrapWidth: width - textLeft - 8, breakWords: true,
-        lineHeight: 12,
       },
     })
     const height = Math.max(FACE + 12, 20 + note.height + 8)
 
     const node = new Container()
+    // **눌린 칸입니다.** 구운 그림에 테 하나 — 태그의 색은 테에 듭니다.
     const plate = new Graphics()
-    plate.roundRect(0, 0, width, height, 8).fill({ color: UI.cell, alpha: 0.95 })
-    plate.roundRect(0.5, 0.5, width - 1, height - 1, 8)
-      .stroke({ color: UI.accentTerm, width: 1.5, alpha: 0.7 })
+    const skin = piece('well', width, height, wellTint(UI.cell))
+    if (skin !== undefined) node.addChild(skin)
+    else plate.rect(0, 0, width, height).fill({ color: UI.cell, alpha: 0.95 })
+    plate.rect(0.5, 0.5, width - 1, height - 1)
+      .stroke({ color: UI.accentTerm, width: 1, alpha: 0.7 })
     node.addChild(plate)
 
     const face = tagFace(tagId, FACE)
@@ -671,12 +663,8 @@ export class BlindPart {
       // 보스를 넘긴 뒤의 다음은 다음 안테의 스몰 블라인드입니다.
       const ahead = next === BlindKind.Small ? { ...state, ante: state.ante + 1 } : state
       const name = tf('ui.blind.named', { name: blindName(next) })
-      this.badge.setInfo(t('ui.guide.shop.head'),
-        tf('ui.badge.next', { name }),
-        [tf('ui.badge.next_target', { n: targetOf(this.game.data, ahead,
-          next).toLocaleString('en-US') })
-          + '   ' + tf('ui.blind.reward', { n: rewardOf(this.game.data, ahead, next) }),
-          t('ui.shop.note')],
+      this.badge.setNext(t('ui.guide.shop.head'), tf('ui.badge.next', { name }),
+        targetOf(this.game.data, ahead, next), rewardOf(this.game.data, ahead, next),
         UI.bar, undefined, chips)
       return
     }
@@ -685,9 +673,12 @@ export class BlindPart {
     const bossRow = boss ? this.game.data.tables.bossBlind.findByBossId(state.bossId) : undefined
 
     // 고르는 중이면 무엇을 하라는 것인지가 여기에도 적힙니다. 보스의 규칙이 있으면 그것이 먼저입니다.
+    // **고르는 판의 안내는 적지 않습니다.** 그 화면에 이미 딱지 셋과 「이 블라인드로 ·
+    // 건너뛴다」가 놓여 있어서 같은 말이 두 번이고, 딱지 안에서는 그 줄이 넷째 줄이라
+    // 수를 한 계단 내려앉혀 판의 주인공을 지웁니다.
     const note = bossRow
       ? describe(this.game.data, this.game.data.bossEffects.get(state.bossId) ?? []).join(' · ')
-      : state.phase === 'blind-select' ? t('ui.badge.pick_note') : ''
+      : ''
 
     this.badge.set(
       bossRow
@@ -740,8 +731,8 @@ export class BlindPart {
       const texture = artFor('tag', tagId)
       if (!texture) {
         const plate = new Graphics()
-        plate.roundRect(0, 0, size, size, 8).fill({ color: UI.cell, alpha: 0.95 })
-        plate.roundRect(0.5, 0.5, size - 1, size - 1, 8)
+        plate.rect(0, 0, size, size).fill({ color: UI.cell, alpha: 0.95 })
+        plate.rect(0.5, 0.5, size - 1, size - 1)
           .stroke({ color: UI.accentTerm, width: 1.5, alpha: 0.7 })
         cell.addChild(plate)
       }

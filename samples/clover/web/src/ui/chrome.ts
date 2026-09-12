@@ -1,56 +1,42 @@
-// 판의 테두리 그림.
+// 화면의 부품 그림.
 //
-// **테는 하나의 조각입니다.** 얇은 헤어라인 테에 장식을 따로 얹어 보았고 — 9분할 액자 ·
-// ㄱ자 꺾쇠 · 둥근 볼트 · 네모 리벳판 — 넷 다 붙여 놓은 것으로 보였습니다. 띠와 귀의
-// 장식이 같은 두께와 같은 조명으로 함께 그려져 있어야 한 물건이 됩니다.
+// **런타임에 도형을 그리지 않습니다.** 판·단추·칸·자리·키캡·게이지는 모양이 고정이므로
+// 9분할 그림으로 굽고 스프라이트로 놓습니다. 실행 중에 남는 비용이 0 입니다.
 //
-// **9분할입니다.** 그림 하나를 네 귀 · 네 변 · 가운데로 갈라, 귀는 그대로 두고 변만
-// 늘립니다. 자를 자리는 띠의 두께가 아니라 **귀의 리벳판이 차지하는 크기**입니다 — 띠로
-// 잡으면 리벳판이 귀 밖으로 나가 늘어나며 뭉개집니다.
+// **9분할입니다.** 그림 하나를 네 귀·네 변·가운데로 갈라, 귀는 그대로 두고 변만 늘립니다.
+// 판의 잘린 귀가 귀 조각 안에 구워져 있으므로 판이 아무리 커져도 컷이 같습니다.
 //
-// **흰 금속으로 구워 두고 겉면 색을 물들입니다.** 물들이기는 색을 곱하는 것이므로 원본에
+// **흰 금속으로 구워 두고 겉면 색을 물들입니다.** 물들이기가 색을 곱하는 것이므로 원본에
 // 색이 있으면 그 색이 섞여 겉면을 따라가지 못합니다. 가장 밝은 곳이 흰색에 가까워야
-// 밝은 겉면에서도 밝은 테가 나옵니다.
+// 밝은 겉면에서도 밝은 부품이 나옵니다.
 //
 // **두 배로 굽고 절반으로 그립니다.** 1대1로 그리면 2배 밀도 화면에서 늘려 쓰게 되어
-// 테가 흐려집니다.
+// 가장자리가 흐려집니다.
+//
+// 규격은 `design-data/tools/ui.py` 가 굽고 `atlas.ts` 에 적습니다. 여기서 다시 적지
+// 않습니다.
 
-import { Assets, NineSliceSprite, Texture } from 'pixi.js'
+import { Assets, NineSliceSprite, Sprite, Texture } from 'pixi.js'
 
-import { UI } from '../render/theme'
+import { ATLAS, BAKE_SCALE, RUNG, TORN_COUNT, type RungName, type Slice } from './atlas'
 
 /** 쓰는 그림들. 파일 이름 그대로입니다. */
-export type ChromeName = 'panel-frame'
+export type ChromeName = keyof typeof ATLAS
 
-const NAMES: ChromeName[] = ['panel-frame']
-
-/**
- * 그림을 화면에 얼마로 줄여 그리는가.
- *
- * **두 배 해상도로 굽고 절반으로 그립니다.** 1대1로 그리면 화면이 2배 밀도일 때 그림을
- * 늘려 쓰게 되어 테가 흐려집니다.
- */
-/** 자를 자리. **귀의 리벳판 크기입니다** — 띠는 26px 이고 판은 39px 입니다. */
-const SLICE = 39
-
-const SCALE: Record<ChromeName, number> = {
-  'panel-frame': 0.5,
-}
-
-const ready = new Map<ChromeName, Texture>()
+const ready = new Map<string, Texture>()
 
 /**
- * 테두리 그림을 미리 읽습니다.
+ * 부품 그림을 미리 읽습니다.
  *
- * **화면을 세우기 전에 읽습니다.** 그리는 자리에서 읽기 시작하면 첫 프레임에 테가 없는
+ * **화면을 세우기 전에 읽습니다.** 그리는 자리에서 읽기 시작하면 첫 프레임에 부품이 없는
  * 판이 한 번 보입니다.
  */
 export async function loadChrome(base = './ui'): Promise<void> {
-  await Promise.all(NAMES.map(async name => {
+  await Promise.all(Object.keys(ATLAS).map(async name => {
     try {
       ready.set(name, await Assets.load<Texture>(`${base}/${name}.png`))
     } catch {
-      // 없으면 그림 없이 갑니다. 판은 지금까지의 테로 그려집니다.
+      // 없으면 그림 없이 갑니다. 부르는 쪽이 `undefined` 를 받고 지금까지의 길로 갑니다.
     }
   }))
 }
@@ -60,52 +46,111 @@ export function chromeReady(name: ChromeName): boolean {
 }
 
 /**
- * 판의 테 하나. 없으면 `undefined` 입니다.
+ * 부품 하나를 그 크기로 놓습니다. 없으면 `undefined` 입니다.
  *
- * **판 경계에 걸쳐 놓습니다.** 판 안의 자리를 빼앗지 않는 것이 `skin.ts` 의 조건이므로
- * 바깥으로 `FRAME_OUT` 만큼 나가고, 안쪽은 판이 이미 가진 여백에서 끝납니다.
+ * **크기는 만들 때 넘깁니다.** 뒤에서 `width` 로 넣으면 배율과 어느 쪽이 적용되는지가
+ * 분명하지 않습니다 — 만들 때의 것은 격자이고 배율은 그 위에 걸립니다.
+ *
+ * 겉면 밖으로 나가는 그림자가 있는 부품은 그만큼 크게 놓고 그만큼 물러앉습니다. 그래야
+ * 부르는 쪽이 적은 자리가 곧 겉면의 자리입니다.
  */
-export function cornerPiece(width: number, height: number, tint: number):
+export function piece(name: ChromeName, width: number, height: number, tint?: number):
     NineSliceSprite | undefined {
-  const texture = ready.get('panel-frame')
+  const texture = ready.get(name)
   if (texture === undefined) return undefined
 
-  const scale = SCALE['panel-frame']
-  const w = width + FRAME_OUT * 2
-  const h = height + FRAME_OUT * 2
-  // **크기는 만들 때 넘깁니다.** 뒤에서 `width` 로 넣으면 배율과 어느 쪽이 적용되는지가
-  // 분명하지 않습니다 — 만들 때의 것은 격자이고 배율은 그 위에 걸립니다.
+  const cut: Slice = ATLAS[name]
+  const pad = cut.pad
+  const w = (width + pad * 2) / BAKE_SCALE
+  const h = (height + pad * 2) / BAKE_SCALE
+  // **귀 조각에는 여백까지 들어갑니다.** 여백을 빼고 자르면 귀 조각이 여백만 담고 얼굴의
+  // 사선이 늘어나는 가운데 칸에 들어갑니다 — 단추의 잘린 귀가 가로로 늘어나 보였습니다.
+  // 좁은 단추에서는 두 귀가 겹치지 않을 만큼만 잡습니다.
+  const side = Math.min(cut.left + pad, (width + pad * 2) / 2)
   const sprite = new NineSliceSprite({
     texture,
-    leftWidth: SLICE, topHeight: SLICE, rightWidth: SLICE, bottomHeight: SLICE,
-    width: w / scale, height: h / scale,
+    leftWidth: side / BAKE_SCALE,
+    rightWidth: Math.min(cut.right + pad, (width + pad * 2) / 2) / BAKE_SCALE,
+    topHeight: (cut.top + pad) / BAKE_SCALE,
+    bottomHeight: (cut.bottom + pad) / BAKE_SCALE,
+    width: w, height: h,
   })
-  sprite.scale.set(scale)
-  sprite.position.set(-FRAME_OUT, -FRAME_OUT)
-  sprite.tint = tint
+  sprite.scale.set(BAKE_SCALE)
+  sprite.position.set(-pad, -pad)
+  if (tint !== undefined) sprite.tint = tint
   return sprite
 }
 
 /**
- * 판때기의 테가 판 밖으로 나가는 양.
+ * 있는 부품의 크기를 고칩니다.
  *
- * **테의 두께(38픽셀)보다 훨씬 작습니다.** 왼쪽 판이 화면의 x=4 에 서므로 13픽셀을 다 밖으로
- * 내면 9픽셀이 화면 밖으로 잘립니다. 경계에 걸쳐 놓으면 바깥 4픽셀로 화면에 들어오고,
- * 안쪽 9픽셀은 판이 이미 가진 12픽셀 여백 안에서 끝납니다 — 글자리는 그대로입니다.
+ * **부품은 한 번 만들고 고쳐 씁니다.** 상태가 바뀔 때마다 새로 만들면 새 그림의 자리가
+ * 다음 프레임까지 정해지지 않아, 그 사이에 들어온 누름이 그 단추를 맞히지 못합니다 —
+ * 가리키는 순간 단추가 새로 만들어지고 곧바로 누른 것이 빈자리 누름으로 처리되어 고른
+ * 것을 놓았습니다.
  */
-export const FRAME_OUT = 6
+export function refit(sprite: NineSliceSprite, name: ChromeName, width: number, height: number): void {
+  const cut: Slice = ATLAS[name]
+  const pad = cut.pad
+  sprite.width = (width + pad * 2) / BAKE_SCALE
+  sprite.height = (height + pad * 2) / BAKE_SCALE
+  sprite.position.set(-pad, -pad)
+}
 
 /**
- * 테를 물들이는 색. **판에서 뽑습니다.**
+ * 그 높이에 해당하는 단추의 칸.
  *
- * 강조색(`panelEdge`)으로 물들여 보았고 겉면이 바뀌어도 테가 주황이었습니다 — 뜻이 있는
- * 색은 색상각이 고정이고 밝기만 판을 따라가기 때문입니다(`doc/ui.md` 의 겉면 절).
- *
- * **판을 밝히면 그 겉면의 금속이 됩니다.** 겉면 8개가 판의 색상각으로 갈리므로 테도 함께
- * 갈립니다. 그림이 흰 금속이므로 곱하기 하나로 끝납니다.
+ * **계단 넷뿐입니다** — 36 · 48 · 60 · 72. 그 사이 값이 들어오면 가장 가까운 칸으로
+ * 접힙니다. 높이를 부르는 자리에서 정하면 화면마다 갈라집니다.
  */
-export function frameTint(): number {
-  // **테와 같은 색입니다.** 판 색에서 뽑아 보았고 회색 덩어리가 네 귀에 붙은 것으로
-  // 보였습니다 — 꺾쇠는 테를 두껍게 하는 것이므로 테와 딴 색이면 딴 물건이 됩니다.
-  return UI.panelEdge
+export function rungFor(height: number): RungName {
+  let best: RungName = 'button'
+  for (const name of Object.keys(RUNG) as RungName[]) {
+    if (Math.abs(RUNG[name].height - height) < Math.abs(RUNG[best].height - height)) best = name
+  }
+  return best
+}
+
+/** 그 칸의 높이와 글자 크기. */
+export function rungOf(name: RungName): { height: number; font: number; cut: number } {
+  return RUNG[name]
+}
+
+/**
+ * 테두리의 빛.
+ *
+ * **「무엇의 경계인가」를 알리는 변에만 둡니다.** 판이 시작되는 윗변 · 머리 판이 끝나는
+ * 밑줄 · 물건 자리의 윗변 · 전면 화면의 제목 줄 · 큰 판의 머리띠 다섯입니다. 아무 변에나
+ * 두면 화면이 번들거립니다.
+ */
+export function glowEdge(width: number, tint: number): NineSliceSprite | undefined {
+  const sprite = piece('glow-edge', width, ATLAS['glow-edge'].h, tint)
+  if (sprite !== undefined) sprite.blendMode = 'add'
+  return sprite
+}
+
+/**
+ * 카드의 뜯긴 가장자리 마스크 한 장. 없으면 `undefined` 입니다.
+ *
+ * **둥근 모서리 대신 뜯긴 변입니다.** 넷을 돌려 쓰므로 카드가 몇 장이든 비용이 같습니다 —
+ * 어느 것을 쓸지는 그 카드를 가리키는 수에서 고릅니다. 같은 카드는 늘 같은 변입니다.
+ */
+export function tornTexture(pick: number): Texture | undefined {
+  const index = ((Math.abs(Math.floor(pick)) % TORN_COUNT) + 1)
+  return ready.get(`card-torn-${index}`)
+}
+
+/**
+ * 그 크기로 늘린 마스크 스프라이트.
+ *
+ * 마스크로 걸거나(`node.mask`), 어둡게 물들여 그림자로 놓습니다 — 그림자도 뜯긴 변을
+ * 따라가야 카드가 종이로 보입니다.
+ */
+export function tornSprite(pick: number, width: number, height: number): Sprite | undefined {
+  const texture = tornTexture(pick)
+  if (texture === undefined) return undefined
+  const sprite = new Sprite(texture)
+  sprite.width = width
+  sprite.height = height
+  return sprite
 }

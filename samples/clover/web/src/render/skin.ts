@@ -16,6 +16,7 @@
 import { FillGradient, Graphics } from 'pixi.js'
 
 import { shade } from './color'
+
 import { UI, RADIUS, STROKE } from './theme'
 
 /** `border` 에 이 값을 넘기면 테를 그리지 않습니다. 금속 테 그림이 그 일을 합니다. */
@@ -76,7 +77,6 @@ function gradient(width: number, height: number, top: number, bottom: number): F
  * `gloss` 는 부르는 쪽이 아직 넘기므로 받되 쓰지 않습니다.
  */
 export function plate(g: Graphics, width: number, height: number, style: PlateStyle): void {
-  const radius = style.radius ?? RADIUS.base
   const weight = style.weight ?? STROKE.base
   const alpha = style.alpha ?? 1
   const half = weight / 2
@@ -87,11 +87,11 @@ export function plate(g: Graphics, width: number, height: number, style: PlateSt
   const fill = style.top === style.bottom
     ? { color: style.top, alpha }
     : { fill: faceFill(height, style.top, style.bottom), alpha }
-  g.roundRect(0, 0, width, height, radius).fill(fill)
+  g.rect(0, 0, width, height).fill(fill)
   // **테를 그리지 않는 경우가 있습니다.** 금속 테 그림이 판 경계에 걸쳐 놓이면 이 선이 그
   // 안쪽에 한 줄 더 그려지고, 강조색의 얇은 선이 곧 웹 화면의 인상입니다.
   if (style.border !== NO_BORDER) {
-    g.roundRect(half, half, width - weight, height - weight, insetRadius(radius, half))
+    g.rect(half, half, width - weight, height - weight)
       .stroke({ color: style.border, width: weight })
   }
 }
@@ -256,6 +256,32 @@ export function groove(g: Graphics, x: number, y: number, width: number,
  * **상수가 아니라 함수입니다.** 상수로 두면 불러올 때의 색을 베껴 두므로, 옵션에서 겉면을
  * 갈아 끼워도 판때기만 옛 색으로 남습니다 — 그릴 때 읽어야 합니다.
  */
+/**
+ * 구워 둔 판을 물들이는 색.
+ *
+ * **그림의 가장 밝은 곳이 흰색입니다.** 물들이기가 색을 곱하는 것이므로 넘기는 색이 곧
+ * 판의 꼭대기입니다 — 판의 색을 그대로 넘기면 그 색이 꼭대기가 되고 아래로 내려가며
+ * 어두워져, 판 전체가 바닥보다 어두워집니다.
+ *
+ * 그림의 세로 채움이 1.0 에서 0.35 로 내려가므로 가운데가 0.67 입니다. 판의 색이 그
+ * 가운데에 오도록 올려 둡니다.
+ */
+export function plateTint(base: number): number {
+  // **그대로입니다.** 그림의 꼭대기가 흰색이므로 넘기는 색이 곧 판의 윗변이고, 검은 겉면이면
+  // 판이 검습니다. 흰 쪽으로 섞던 것을 걷었습니다 — 검은 겉면에서 판이 회색이 되었습니다.
+  return base
+}
+
+/**
+ * 구워 둔 칸과 자리를 물들이는 색.
+ *
+ * 칸의 그림은 눌린 자리라 회색 0.24 안팎으로 구워져 있습니다. 칸의 색이 그 자리에 오도록
+ * 절반 남짓 올려 둡니다.
+ */
+export function wellTint(base: number): number {
+  return base
+}
+
 export function floatingStyle(): PlateStyle {
   return {
     top: UI.panel, bottom: UI.panel, border: UI.panelEdge, alpha: UI.panelAlpha, radius: RADIUS.base,
@@ -324,8 +350,8 @@ export function pressable(g: Graphics, width: number, height: number,
   // 층이 넷입니다 — 아래의 턱 · 얼굴 · 얼굴 위의 밝은 줄 · 테.
   const faceH = height - LIP
   const top = pushed ? LIP : 0
-  g.roundRect(0, 0, width, height, radius).fill(shade(look.face, -0.13))
-  g.roundRect(0, top, width, faceH, radius)
+  g.rect(0, 0, width, height).fill(shade(look.face, -0.13))
+  g.rect(0, top, width, faceH)
     .fill(faceFill(faceH, shade(look.face, 0.05), look.face))
   g.moveTo(radius, top + 1.5).lineTo(width - radius, top + 1.5)
     .stroke({ color: shade(look.face, 0.13), width: STROKE.hair, alpha: 0.7 })

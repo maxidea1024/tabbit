@@ -325,7 +325,7 @@ function place(runs: Run[], style: RichStyle, into: Container,
     // 칩은 글보다 먼저 놓입니다. **뒤에 놓으면 글을 덮습니다.**
     if (mark.code) {
       const chip = new Graphics()
-      chip.roundRect(x - 3, y - 1, node.width + 6, lineHeight - 2, 4)
+      chip.rect(x - 3, y - 1, node.width + 6, lineHeight - 2)
         .fill({ color: UI.cell, alpha: 0.9 })
         .stroke({ color: UI.hairline, width: 1 })
       into.addChild(chip)

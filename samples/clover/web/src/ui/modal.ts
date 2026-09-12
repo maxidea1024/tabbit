@@ -11,11 +11,11 @@
 import { Container, Graphics, Rectangle, Text } from 'pixi.js'
 import { t } from '../core/strings'
 
-import { plate, floatingStyle } from '../render/skin'
+import { plate, plateTint, floatingStyle } from '../render/skin'
 import { UI, SIZE, popupLeft, TEXT, WEIGHT } from '../render/theme'
-import { fraction } from '../render/motion'
+import { SETTLE_SECONDS, settle } from '../render/motion'
 import { Button } from './widgets'
-import { cornerPiece, frameTint } from './chrome'
+import { glowEdge, piece } from './chrome'
 
 /** 쌓을 수 있는 판 하나. */
 export interface ModalPanel {
@@ -44,6 +44,21 @@ export interface ModalPanel {
   /** 닫힌 뒤에 부릅니다. 판이 자기 상태를 되돌릴 자리입니다. */
   onClosed?(): void
   /**
+   * 화면 전체를 쓰는 판인가.
+   *
+   * **전면 화면은 떠 있는 판이 아닙니다.** 배경 위에 막 하나를 깔고 내용이 화면의 변까지
+   * 갑니다 — 시작 계열과 읽는 화면(도감 · 리더보드 · 도움말 · 옵션)이 이것입니다. 자리는
+   * 화면의 원점이고 들어올 때 아래에서 조금 올라옵니다.
+   */
+  readonly fullscreen?: boolean
+  /**
+   * ESC 나 바깥 누르기가 왔을 때 판이 먼저 받습니다. `true` 를 돌려주면 닫지 않습니다.
+   *
+   * **단계가 있는 화면은 한 단계만 물러납니다.** 세부 화면에서 ESC 는 큰 메뉴로 돌아가는
+   * 것이고, 큰 메뉴에서 ESC 가 판을 닫습니다.
+   */
+  onBack?(): boolean
+  /**
    * 프레임마다 부릅니다. 판 안에 움직이는 것이 있으면 여기서 흘립니다.
    *
    * **`advance` 가 아닙니다.** 판 스스로 프레임을 받는 것들이 이미 그 이름을 다른 인자로
@@ -60,6 +75,8 @@ interface Entry {
   leaving: boolean
   /** 들어올 때의 떨림. 0 으로 잦아듭니다. */
   rumble: number
+  /** 든 정도. 0 에서 1 로 고르게 가고, `t` 는 그것을 곡선에 얹은 값입니다. */
+  u: number
   /** 지금 그려지는 깊이. 위에 몇 장이 얹혀 있는가입니다. */
   depth: number
 }
@@ -171,7 +188,7 @@ export class Modals extends Container {
     }
 
     this.addChild(panel.view)
-    this.entries.push({ panel, t: 0, leaving: false, rumble: 1, depth: 0 })
+    this.entries.push({ panel, t: 0, u: 0, leaving: false, rumble: 0, depth: 0 })
     this.onOpened?.()
     this.sync()
   }
@@ -181,6 +198,7 @@ export class Modals extends Container {
     const top = this.topEntry()
     if (!top) return
     if (top.panel.dismissable === false) return
+    if (top.panel.onBack?.() === true) return
     this.close(top.panel)
   }
 
@@ -229,12 +247,15 @@ export class Modals extends Container {
   advance(seconds: number): void {
     if (this.entries.length === 0) return
 
-    const step = fraction(seconds, 9)
+    // **곡선 하나, 0.56초.** 판은 아래에서 들어와 제자리에 앉습니다 — 커지면서 튀는 것을
+    // 걷었습니다. 그것은 알림 창의 문법입니다.
+    const step = seconds / SETTLE_SECONDS
 
     for (let i = this.entries.length - 1; i >= 0; i--) {
       const entry = this.entries[i]
       entry.panel.tick?.(seconds)
-      entry.t += ((entry.leaving ? 0 : 1) - entry.t) * step
+      entry.u = Math.max(0, Math.min(1, entry.u + (entry.leaving ? -step * 2 : step)))
+      entry.t = settle(entry.u)
       entry.rumble = Math.max(0, entry.rumble - seconds * 5.5)
 
       if (entry.leaving && entry.t < 0.02) {
@@ -268,10 +289,19 @@ export class Modals extends Container {
   private place(entry: Entry): void {
     const { view, size } = entry.panel
 
+    // **전면 화면은 화면의 원점에 놓입니다.** 아래에서 24픽셀 올라오며 짙어집니다.
+    if (entry.panel.fullscreen) {
+      view.scale.set(1)
+      view.position.set(0, (1 - entry.t) * 24)
+      view.alpha = entry.t * (1 - BACK_FADE * entry.depth)
+      view.visible = entry.t > 0.01
+      return
+    }
+
     // 넘쳤다가 자리에 앉습니다. `t` 가 1에 가까워질수록 넘침이 잦아듭니다.
-    const overshoot = Math.sin(Math.min(1, entry.t) * Math.PI) * 0.06
+    const overshoot = 0
     const back = entry.depth
-    const scale = 0.9 + 0.1 * entry.t + overshoot
+    const scale = 1 + overshoot
 
     // 들어올 때의 떨림. **짧게, 그리고 잦아듭니다** — 오래 떨면 흔들리는 판이 됩니다.
     const shake = entry.rumble * entry.rumble * 5
@@ -314,9 +344,46 @@ export class Modals extends Container {
 export const PANEL_BOTTOM = SIZE.height - 14
 
 /** 판 머리의 높이. **모든 판이 같습니다** — 제목이 판마다 다른 자리에 있으면 한 벌로 보이지 않습니다. */
-export const TITLE_BAR = 46
-/** 판 밑단의 높이. 머리와 같은 띠이고, 닫기가 여기 있습니다. */
-export const FOOTER_BAR = 56
+export const TITLE_BAR = 56
+/** 판 밑단의 높이. 나아가는 줄(`lg`, 60)이 여기 앉습니다. */
+export const FOOTER_BAR = 84
+
+/** ESC 키캡의 크기. 구운 그림과 같습니다. */
+const KEY_W = 64
+const KEY_H = 36
+/** 키캡에 적히는 글. 어느 말에서나 같은 키 이름이므로 고정입니다. */
+const ESC_KEY = 'ESC'
+
+/**
+ * ESC 키캡.
+ *
+ * **닫기 단추를 따로 두지 않습니다.** 오른쪽 위의 키캡이 그것이고, 무엇을 누르면 닫히는지를
+ * 글자가 직접 알립니다.
+ */
+export function escKey(onClose: () => void): Container {
+  const node = new Container()
+  const cap = piece('keycap', KEY_W, KEY_H, plateTint(UI.btn))
+  if (cap !== undefined) node.addChild(cap)
+  else {
+    const g = new Graphics()
+    g.rect(0, 0, KEY_W, KEY_H).fill(UI.btn)
+    node.addChild(g)
+  }
+  const label = new Text({
+    text: ESC_KEY,
+    style: { fontSize: TEXT.small, fill: UI.ink, fontWeight: WEIGHT.bold, letterSpacing: 1 },
+  })
+  label.anchor.set(0.5)
+  label.position.set(KEY_W / 2, KEY_H / 2)
+  node.addChild(label)
+  node.eventMode = 'static'
+  node.hitArea = new Rectangle(-8, -8, KEY_W + 16, KEY_H + 16)
+  node.cursor = 'pointer'
+  node.on('pointerover', () => { if (cap !== undefined) cap.tint = plateTint(UI.btnHover) })
+  node.on('pointerout', () => { if (cap !== undefined) cap.tint = plateTint(UI.btn) })
+  node.on('pointertap', () => onClose())
+  return node
+}
 
 /**
  * 판 하나의 껍데기.
@@ -332,21 +399,22 @@ export function panelFrame(width: number, height: number, title: string,
   const node = new Container()
 
   const board = new Graphics()
-  // **금속 테 그림이 있으면 강조색 테를 그리지 않습니다.** 둘이 겹치면 금속 안쪽에 주황
-  // 선이 한 줄 더 놓입니다.
+  // **구워 둔 판 한 장입니다.** 채움과 위 변의 빛과 오른쪽 아래의 잘린 귀가 그 안에 다
+  // 있습니다. 그림이 아직 오지 않았으면 지금까지의 길로 그립니다.
   const style = floatingStyle()
-  plate(board, width, height, style)
-  // **네 귀의 꺾쇠.** 얇은 테 위에 얹힙니다.
-  const frame = cornerPiece(width, height, frameTint())
+  const frame = piece('plate', width, height, plateTint(style.top))
+  if (frame === undefined) plate(board, width, height, style)
 
-  // 머리. **띠가 아니라 선 하나입니다.** 제목 아래의 선이 머리와 몸통을 가르고, 밑단은
-  // 단추가 있을 때만 그 위에 선 하나가 놓입니다 — 띠 둘로 위아래를 물리던 것을 걷었습니다.
+  // 머리. **제목은 왼쪽 위이고 그 아래가 테두리의 빛입니다** — 왼쪽에서 밝게 시작해
+  // 오른쪽으로 사라집니다. 밑단은 단추가 있을 때만 그 위에 선 하나가 놓입니다.
   const bars = new Graphics()
-  bars.rect(1.5, TITLE_BAR, width - 3, 1.5).fill(UI.rule)
+  const headGlow = glowEdge(width - 48, UI.rule)
+  if (headGlow !== undefined) headGlow.position.set(24, TITLE_BAR - 2)
+  else bars.rect(24, TITLE_BAR - 2, width - 48, 1).fill(UI.rule)
 
   // **밑단이 없는 판도 있습니다.** 누를 것이 그 판의 내용뿐이면 밑단은 빈 띠일 뿐입니다 —
-  // 머리의 `✕` 와 바깥 누르기와 `Esc` 로 닫히므로 닫기를 또 둘 이유가 없습니다.
-  const footTop = height - FOOTER_BAR - 1.5
+  // 오른쪽 위의 ESC 와 바깥 누르기로 닫히므로 닫기를 또 둘 이유가 없습니다.
+  const footTop = height - FOOTER_BAR
   if (foot) {
     bars.rect(24, footTop, width - 48, 1).fill(UI.hairline)
   }
@@ -355,48 +423,29 @@ export function panelFrame(width: number, height: number, title: string,
     text: title,
     style: { fontSize: TEXT.big, fill: UI.ink, fontWeight: WEIGHT.bold, letterSpacing: 1 },
   })
-  heading.anchor.set(0.5, 0.5)
-  heading.position.set(width / 2, TITLE_BAR / 2)
+  heading.anchor.set(0, 0.5)
+  heading.position.set(24, TITLE_BAR / 2 - 2)
 
   node.addChild(board)
   if (frame !== undefined) node.addChild(frame)
+  if (headGlow !== undefined) node.addChild(headGlow)
   node.addChild(bars, heading)
 
   // **닫을 수 없는 판도 있습니다.** 상점이 그렇습니다 — 닫으면 갈 곳이 없으므로 닫기가
   // 없고, 밑단에는 그 판이 할 일이 대신 놓입니다.
   if (onClose === undefined) {
     if (extra) {
-      extra.position.set((width - extra.width) / 2, footTop + (FOOTER_BAR - 40) / 2)
+      extra.position.set((width - extra.width) / 2, footTop + (FOOTER_BAR - 60) / 2)
       node.addChild(extra)
     }
     node.eventMode = 'static'
     return node
   }
 
-  // 머리의 `✕`. **밑단에 닫기가 있으면 둘 다 둡니다** — 창을 닫는 두 손버릇이 다르고,
-  // 둘 다 같은 자리에 있으면 어느 쪽으로도 닫힙니다.
-  const shutMark = new Container()
-  const mark = new Graphics()
-  const paint = (lit: boolean) => {
-    mark.clear()
-    mark.roundRect(0, 0, 28, 28, 6)
-      .fill({ color: lit ? UI.btn : UI.cell })
-    mark.roundRect(0.75, 0.75, 26.5, 26.5, 6)
-      .stroke({ color: UI.rule, width: 1.5 })
-    const ink = lit ? UI.ink : UI.inkDim
-    mark.moveTo(9.5, 9.5).lineTo(18.5, 18.5).stroke({ color: ink, width: 2 })
-    mark.moveTo(18.5, 9.5).lineTo(9.5, 18.5).stroke({ color: ink, width: 2 })
-  }
-  paint(false)
-  shutMark.addChild(mark)
-  shutMark.position.set(width - 40, TITLE_BAR / 2 - 14)
-  shutMark.eventMode = 'static'
-  shutMark.hitArea = new Rectangle(0, 0, 28, 28)
-  shutMark.cursor = 'pointer'
-  shutMark.on('pointerover', () => paint(true))
-  shutMark.on('pointerout', () => paint(false))
-  shutMark.on('pointertap', () => onClose())
-
+  // 오른쪽 위의 ESC 키캡. **밑단에 닫기가 있으면 둘 다 둡니다** — 창을 닫는 두 손버릇이
+  // 다르고, 둘 다 같은 자리에 있으면 어느 쪽으로도 닫힙니다.
+  const shutMark = escKey(onClose)
+  shutMark.position.set(width - 24 - KEY_W, (TITLE_BAR - KEY_H) / 2 - 2)
   node.addChild(shutMark)
 
   if (!foot) {
@@ -408,18 +457,117 @@ export function panelFrame(width: number, height: number, title: string,
   //
   // 부르는 쪽은 닫기를 만들지 않습니다 — 여기서 답니다. `extra` 는 그 판이 할 일이고,
   // 닫는 것이 아닙니다.
-  const shut = new Button(t('ui.button.close'), 132, 34, 'neutral', onClose)
+  // **나아가는 줄입니다 — 전부 `lg`.** 갈래가 달라도 그 줄의 높이는 하나입니다.
+  const shut = new Button(t('ui.button.close'), 144, 60, 'neutral', onClose)
   const extraWidth = extra ? extra.width + 12 : 0
-  const row = 132 + extraWidth
+  const row = 144 + extraWidth
   // **판보다 넓어지지 않게 잡습니다.** 넘치면 버튼이 판의 좌우로 삐져나가고, 그것은
   // 판이 아니라 부서진 것으로 보입니다.
   const left = Math.max(14, (width - row) / 2)
   if (extra) {
-    extra.position.set(left, footTop + (FOOTER_BAR - 34) / 2)
+    extra.position.set(left, footTop + (FOOTER_BAR - 60) / 2)
     node.addChild(extra)
   }
-  shut.position.set(left + extraWidth, footTop + (FOOTER_BAR - 34) / 2)
+  shut.position.set(left + extraWidth, footTop + (FOOTER_BAR - 60) / 2)
   node.addChild(shut)
+
+  node.eventMode = 'static'
+  return node
+}
+
+/** 전면 화면의 여백. 내용은 이 안쪽에서 화면의 변까지 갑니다. */
+export const FULL_EDGE = 64
+/** 전면 화면에서 몸통이 시작하는 자리. 제목 줄 아래입니다. */
+export const FULL_BODY_TOP = 176
+/** 전면 화면 아래 띠의 윗변. 왼쪽에 한 줄 설명, 오른쪽에 나아가는 단추입니다. */
+export const FULL_FOOT_Y = 696
+
+/**
+ * 전면 화면의 껍데기.
+ *
+ * |자리|무엇|
+ * |--|--|
+ * |왼쪽 위|걸어온 자리(`< 런 시작 / 새 런`)와 제목|
+ * |오른쪽 위|ESC 키캡과 지금 고른 것|
+ * |가르는 줄|왼쪽에서 밝게 시작해 오른쪽으로 사라집니다|
+ * |아래|띠 하나. 왼쪽에 한 줄 설명, 오른쪽에 나아가는 단추|
+ *
+ * **막은 여기서 깝니다.** 뒤의 화면이 어둡게 남되 사라지지는 않습니다.
+ *
+ * @param crumbs 걸어온 자리. 마지막이 지금 화면입니다. 비어 있으면 제목 앞에 `<` 만 섭니다.
+ * @param right 오른쪽 위에 놓이는 것. 오른쪽 끝(`FULL_EDGE`)에 맞춰 부르는 쪽이 앵커를 둡니다.
+ * @param foot 아래 띠에 놓이는 것. 띠의 왼쪽 위에서 시작합니다.
+ * @param note 아래 띠의 왼쪽 한 줄 설명.
+ */
+export function fullFrame(title: string, crumbs: string[], onClose: () => void,
+                          right?: Container, foot?: Container, note?: string): Container {
+  const node = new Container()
+
+  const scrim = new Graphics()
+  // **거의 덮습니다.** 전면 화면은 그 화면 하나를 읽는 자리이므로, 뒤의 타이틀이 비쳐
+  // 보이면 글 위에 다른 화면의 글과 단추가 겹칩니다 — 0.72 였던 동안 도움말의 본문 뒤로
+  // 타이틀의 딱지 셋이 그대로 읽혔습니다.
+  scrim.rect(0, 0, SIZE.width, SIZE.height).fill({ color: UI.scrim, alpha: 0.99 })
+  node.addChild(scrim)
+
+  // 걸어온 자리.
+  const trail = new Container()
+  let x = 0
+  const back = new Text({ text: '<', style: { fontSize: TEXT.base, fill: UI.inkDim } })
+  back.position.set(0, -6)
+  trail.addChild(back)
+  x += back.width + 14
+  crumbs.forEach((part, index) => {
+    if (index > 0) {
+      const slash = new Text({ text: '/', style: { fontSize: TEXT.small, fill: UI.inkFaint } })
+      slash.position.set(x, 0)
+      trail.addChild(slash)
+      x += slash.width + 10
+    }
+    const last = index === crumbs.length - 1
+    const step = new Text({
+      text: part,
+      style: { fontSize: TEXT.small, fill: last ? UI.ink : UI.inkDim, fontWeight: WEIGHT.normal },
+    })
+    step.position.set(x, 0)
+    trail.addChild(step)
+    x += step.width + 10
+  })
+  trail.position.set(FULL_EDGE, 44)
+  node.addChild(trail)
+
+  const heading = new Text({
+    text: title,
+    style: { fontSize: TEXT.giant, fill: UI.ink, fontWeight: WEIGHT.bold },
+  })
+  heading.position.set(FULL_EDGE, 74)
+  node.addChild(heading)
+
+  const esc = escKey(onClose)
+  esc.position.set(SIZE.width - FULL_EDGE - KEY_W, 34)
+  node.addChild(esc)
+
+  if (right) {
+    right.position.set(SIZE.width - FULL_EDGE, 84)
+    node.addChild(right)
+  }
+
+  const rule = glowEdge(SIZE.width - FULL_EDGE * 2, UI.rule)
+  if (rule) {
+    rule.position.set(FULL_EDGE, 142)
+    node.addChild(rule)
+  }
+
+  // 아래 띠.
+  const foot_ = new Graphics()
+  foot_.rect(FULL_EDGE, FULL_FOOT_Y, SIZE.width - FULL_EDGE * 2, 1).fill({ color: UI.hairline, alpha: 0.6 })
+  node.addChild(foot_)
+  // **아래 띠에 글을 두지 않습니다.** 선 하나와 나아가는 단추뿐입니다.
+  void note
+  if (foot) {
+    foot.position.set(FULL_EDGE, FULL_FOOT_Y)
+    node.addChild(foot)
+  }
 
   node.eventMode = 'static'
   return node

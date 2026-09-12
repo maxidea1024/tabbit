@@ -1,85 +1,99 @@
 // 판 안의 부품들.
 //
-// **모든 판이 같은 부품으로 나뉩니다.** 구획 머리 · 값 칸 · 진행 바 · 물건 칸 넷이고,
+// **모든 판이 같은 부품으로 나뉩니다.** 구획 머리 · 값 칸 · 게이지 · 물건 칸 넷이고,
 // 정산 · 상점 · 게임오버 · 왼쪽 판이 이것으로 그려집니다. 판마다 따로 그리면 선의 굵기와
 // 여백이 저마다 달라져 한 벌로 보이지 않습니다.
 //
-// 그리는 것은 단색 채우기와 테와 글뿐입니다 — 그라디언트 · 그림자 · 두께가 없습니다.
+// **런타임에 도형을 그리지 않습니다.** 칸과 게이지는 `design-data/tools/ui.py` 가 구운
+// 9분할 그림이고, 여기는 그것을 놓고 물들이는 자리입니다. 그림이 아직 오지 않았을 때만
+// 지금까지의 길로 그립니다.
 
-import { shade } from '../render/color'
 import { Container, Graphics, Text } from 'pixi.js'
 
 import { NUMERALS } from './font'
-import { carve, insetRadius } from '../render/skin'
-import { RADIUS, SPACE, STROKE, TEXT, UI, WEIGHT } from '../render/theme'
+import { glowEdge, piece } from './chrome'
+import { wellTint } from '../render/skin'
+import { SPACE, TEXT, UI, WEIGHT } from '../render/theme'
 
-/** 구획 머리의 높이. 마름모 · 이름 · 아래 선 하나입니다. */
+/** 구획 머리의 높이. 이름과 그 아래 빛 한 줄입니다. */
 export const SECTION_H = 28
-/** 마름모 다음에 이름이 앉는 자리. */
-const SECTION_INDENT = 20
 
 /**
- * 구획 머리. 「◈ 이름」 과 그 아래 선 하나.
+ * 구획 머리. 이름 한 줄과 그 아래의 빛 한 줄.
  *
- * **마름모는 그린 것입니다.** 글자로 두면 글꼴마다 크기와 자리가 달라집니다 — 작은
- * 정사각형을 45도 돌린 테 하나입니다.
+ * **라벨은 12픽셀의 흐린 글입니다.** 자간을 벌려 본문과 갈립니다 — 마름모 같은 표시를
+ * 앞에 두지 않습니다. 표시가 자리마다 다르면 그것은 표시가 아니라 장식입니다.
+ *
+ * **아래 줄은 테두리의 빛입니다.** 머리 판이 끝나는 밑줄은 빛을 두는 다섯 자리 중
+ * 하나입니다 — 왼쪽에서 밝게 시작해 오른쪽으로 사라집니다.
  *
  * @param note 이름 옆에 흐리게 붙는 짧은 글. 개수 따위입니다.
- * @param rule 아래에 선을 그을 것인가. **줄이 곧바로 이어지는 곳에서는 뺍니다** — 그 줄들이
- *   저마다 칸을 두르고 있으면 선과 첫 칸의 테가 두 줄로 겹칩니다.
+ * @param rule 아래에 줄을 둘 것인가. **줄이 곧바로 이어지는 곳에서는 뺍니다.**
  */
 export function sectionHead(width: number, title: string, note?: string,
                             rule = true): Container {
   const node = new Container()
-  const mark = new Graphics()
-  mark.rect(-4.5, -4.5, 9, 9).stroke({ color: UI.mark, width: STROKE.base })
-  mark.rotation = Math.PI / 4
-  mark.position.set(SPACE.small, SECTION_H / 2 - 1)
 
   const name = new Text({
     text: title,
-    style: { fontSize: TEXT.body, fill: UI.ink, fontWeight: WEIGHT.bold },
+    style: { fontSize: TEXT.small, fill: UI.inkDim, fontWeight: WEIGHT.normal, letterSpacing: 1 },
   })
   name.anchor.set(0, 0.5)
-  name.position.set(SECTION_INDENT, SECTION_H / 2 - 1)
+  name.position.set(SPACE.tight, SECTION_H / 2 - 1)
+  node.addChild(name)
 
-  node.addChild(mark, name)
   if (rule) {
-    // **새깁니다.** 밝은 줄 아래에 어두운 줄 하나이고, 그 둘이 판에 파인 홈으로 보입니다 —
-    // 한 줄이면 판 위에 얹힌 띠입니다.
-    const line = new Graphics()
-    line.rect(0, SECTION_H - STROKE.base * 2, width, STROKE.base).fill(UI.rule)
-    line.rect(0, SECTION_H - STROKE.base, width, STROKE.hair)
-      .fill({ color: UI.outline, alpha: 0.65 })
-    node.addChild(line)
+    const glow = glowEdge(width, UI.rule)
+    if (glow !== undefined) {
+      glow.position.set(0, SECTION_H - 2)
+      node.addChild(glow)
+    } else {
+      const line = new Graphics()
+      line.rect(0, SECTION_H - 2, width, 1).fill(UI.rule)
+      node.addChild(line)
+    }
   }
 
   if (note) {
     const side = new Text({
       text: note,
-      style: { fontSize: TEXT.small, fill: UI.inkDim, fontWeight: WEIGHT.normal },
+      style: { fontSize: TEXT.small, fill: UI.inkFaint, fontWeight: WEIGHT.normal },
     })
     side.anchor.set(0, 0.5)
-    side.position.set(SECTION_INDENT + name.width + SPACE.base, SECTION_H / 2 - 1)
+    side.position.set(SPACE.tight + name.width + SPACE.base, SECTION_H / 2 - 1)
     node.addChild(side)
   }
   return node
 }
 
 /**
- * 값 칸. 이름은 왼쪽, 값은 오른쪽.
+ * 판 안으로 눌린 칸의 바탕. 없으면 `undefined` 입니다.
+ *
+ * **위 안쪽의 그늘과 아래의 밝은 줄이 그림 안에 있습니다.** 빛이 위에서 오므로 파인
+ * 것은 위가 어둡습니다.
+ */
+function well(width: number, height: number, alpha = 1): Container {
+  const skin = piece('well', width, height, wellTint(UI.cell))
+  if (skin !== undefined) {
+    skin.alpha = alpha
+    return skin
+  }
+  const g = new Graphics()
+  g.rect(0, 0, width, height).fill({ color: UI.cell, alpha })
+  return g
+}
+
+/**
+ * 값 칸. 이름은 왼쪽, 값은 오른쪽 — **한 줄입니다.** 두 단으로 쌓으면 세로를 두 배
+ * 차지합니다.
  *
  * **테의 색은 하나입니다.** 칸마다 다른 색 테를 두르면 화면에 색이 여덟 가지가 됩니다 —
  * 무엇의 값인지는 값의 색이 말합니다.
  */
 export function valueCell(width: number, height: number, label: string,
-                          value: string, ink: number = UI.ink, valueSize = 16): Container {
+                          value: string, ink: number = UI.ink, valueSize = TEXT.base): Container {
   const node = new Container()
-  const box = new Graphics()
-  box.roundRect(0, 0, width, height, RADIUS.small).fill(UI.cell)
-  carve(box, width, height, UI.cell)
-  box.roundRect(0.5, 0.5, width - 1, height - 1, insetRadius(RADIUS.small, 0.5))
-    .stroke({ color: UI.hairline, width: STROKE.hair })
+  node.addChild(well(width, height))
 
   const name = new Text({
     text: label,
@@ -94,70 +108,104 @@ export function valueCell(width: number, height: number, label: string,
   })
   amount.anchor.set(1, 0.5)
   amount.position.set(width - SPACE.wide, height / 2)
-  node.addChild(box, name, amount)
+  node.addChild(name, amount)
   return node
 }
 
+/** 게이지의 높이. 구운 홈의 높이와 같습니다. */
+export const GAUGE_H = 12
+
 /**
- * 진행 바.
+ * 게이지.
  *
- * `set(ratio)` 로 채움을 바꿉니다. **바탕은 한 번 그리고 채움만 다시 그립니다** —
- * 프레임마다 불리는 자리에 두 도형을 다 다시 만들 이유가 없습니다.
+ * **눈금의 끝은 요구 점수가 아닙니다.** 요구 점수를 100% 로 두면 넘긴 만큼이 보이지
+ * 않습니다 — 눈금의 끝은 요구의 1.28배와 점수의 1.06배 중 큰 쪽이고, 요구 점수는 그 안의
+ * 붉은 눈금 하나입니다. 요구까지는 파랑으로 차고 넘긴 만큼은 금색입니다.
+ *
+ * `set(score, target)` 으로 채움을 바꿉니다. **홈은 한 번 놓고 채움만 다시 놓습니다.**
+ * 비율 하나로 부르던 자리는 `ratio(r)` 로 부릅니다 — 요구가 1 인 눈금입니다.
  */
 export class ProgressBar extends Container {
-  private readonly fill = new Graphics()
-  private shown = -1
+  private readonly fill = new Container()
+  private readonly over = new Container()
+  private readonly mark = new Graphics()
+  private shown = ''
 
-  constructor(private readonly boxWidth: number, private readonly boxHeight: number,
+  constructor(private readonly boxWidth: number, boxHeight: number = GAUGE_H,
               private readonly color: number = UI.bar) {
     super()
-    const back = new Graphics()
-    back.roundRect(0, 0, boxWidth, boxHeight, boxHeight / 2).fill(UI.well)
-    carve(back, boxWidth, boxHeight, UI.well, boxHeight / 2)
-    back.roundRect(0.5, 0.5, boxWidth - 1, boxHeight - 1, insetRadius(boxHeight / 2, 0.5))
-      .stroke({ color: UI.hairline, width: STROKE.hair })
-    this.addChild(back, this.fill)
-    this.set(0)
+    const back = piece('gauge', boxWidth, GAUGE_H, wellTint(UI.well))
+    if (back !== undefined) this.addChild(back)
+    else {
+      const g = new Graphics()
+      g.rect(0, 0, boxWidth, GAUGE_H).fill(UI.well)
+      this.addChild(g)
+    }
+    void boxHeight
+    this.addChild(this.fill, this.over, this.mark)
+    this.set(0, 1)
   }
 
-  set(ratio: number): void {
-    const clamped = Math.max(0, Math.min(1, ratio))
+  /** 비율 하나로 부르는 자리. 요구가 1 인 눈금입니다. */
+  ratio(value: number): void {
+    this.set(Math.max(0, value), 1)
+  }
+
+  set(score: number, target: number): void {
+    const top = Math.max(target * 1.28, score * 1.06, 1e-9)
+    const markAt = target / top
+    const filled = Math.min(score, target) / top
+    const overBy = Math.max(0, score - target) / top
     // 1/200 아래의 차이는 같은 그림입니다.
-    const step = Math.round(clamped * 200) / 200
-    if (step === this.shown) return
-    this.shown = step
-    this.fill.clear()
-    const w = (this.boxWidth - 2) * step
-    if (w < 1) return
-    this.fill.roundRect(1, 1, w, this.boxHeight - 2, (this.boxHeight - 2) / 2)
-      .fill(this.color)
+    const key = `${Math.round(markAt * 200)}|${Math.round(filled * 200)}|${Math.round(overBy * 200)}`
+    if (key === this.shown) return
+    this.shown = key
+
+    this.fill.removeChildren().forEach(child => child.destroy())
+    this.over.removeChildren().forEach(child => child.destroy())
+    this.mark.clear()
+
+    const inner = this.boxWidth - 4
+    const fillW = Math.round(inner * filled)
+    if (fillW >= 1) this.fill.addChild(this.bar(fillW, this.color, 2))
+    const overW = Math.round(inner * overBy)
+    if (overW >= 1) this.over.addChild(this.bar(overW, UI.money, 2 + Math.round(inner * markAt)))
+    // 요구 점수의 눈금. **붉음입니다** — 넘어야 하는 선이고, 넘긴 뒤에도 남습니다.
+    const x = 2 + Math.round(inner * markAt)
+    this.mark.rect(x - 1, -2, 2, GAUGE_H + 4).fill(UI.red)
+  }
+
+  private bar(width: number, tint: number, x: number): Container {
+    const skin = piece('gauge-fill', width, GAUGE_H - 4, tint)
+    if (skin !== undefined) {
+      skin.position.set(x, 2)
+      return skin
+    }
+    const g = new Graphics()
+    g.rect(x, 2, width, GAUGE_H - 4).fill(tint)
+    return g
   }
 }
 
 /**
- * 물건 칸의 바탕. 어두운 채우기에 테 하나.
+ * 물건 칸의 바탕. 눌린 자리에 테 하나.
  *
- * 테의 색이 그 물건의 희귀도이고, 고른 것은 파랑, 빈 것은 옅은 테입니다.
+ * 테의 색이 그 물건의 희귀도이고, 고른 것은 파랑, 빈 것은 옅은 테입니다. **테는 실루엣을
+ * 두르는 1픽셀입니다** — 자리는 판을 파낸 것이므로 비어 있을 때 그 파임이 보입니다.
  */
 export function cellPlate(width: number, height: number, border: number,
-                          empty = false): Graphics {
-  const g = new Graphics()
-  g.roundRect(0, 0, width, height, RADIUS.small)
-    .fill({ color: UI.cell, alpha: empty ? 0.6 : 1 })
-  // **빈 칸도 파입니다.** 채워진 것에만 파인 줄을 두었더니 빈 자리가 얇은 사각형 하나로
-  // 남아, 판 위에 놓인 물건의 자리가 아니라 그려 둔 선으로 보였습니다 — 자리는 판을 파낸
-  // 것이므로 비어 있을 때 오히려 그 파임이 보여야 합니다.
-  carve(g, width, height, UI.cell)
-  // 파인 자리의 그늘. **위 안쪽에만 둡니다** — 빛이 위에서 오므로 파인 것은 위가 어둡습니다.
-  g.roundRect(1.5, 1.5, width - 3, height - 3, insetRadius(RADIUS.small, 1.5))
-    .stroke({ color: shade(UI.cell, -0.06), width: STROKE.base, alpha: 0.75 })
-  g.roundRect(0.75, 0.75, width - 1.5, height - 1.5, insetRadius(RADIUS.small, 0.75))
-    .stroke({ color: border, width: STROKE.base, alpha: empty ? 0.45 : 1 })
-  return g
+                          empty = false): Container {
+  const node = new Container()
+  node.addChild(well(width, height, empty ? 0.6 : 1))
+  const edge = new Graphics()
+  edge.rect(0.5, 0.5, width - 1, height - 1)
+    .stroke({ color: border, width: 1, alpha: empty ? 0.45 : 1 })
+  node.addChild(edge)
+  return node
 }
 
 /** 값 글자 하나. 살 수 있으면 노랑, 없으면 붉음. */
-export function priceText(cost: number, afford: boolean, size = 15): Text {
+export function priceText(cost: number, afford: boolean, size = TEXT.base): Text {
   const text = new Text({
     text: `$${cost}`,
     style: {
@@ -169,7 +217,7 @@ export function priceText(cost: number, afford: boolean, size = 15): Text {
   return text
 }
 
-/** 얇은 가로선 하나. 줄과 줄을 가릅니다. */
+/** 얇은 줄 하나. 판 안에서 위아래를 가릅니다. */
 export function hairline(width: number, color = UI.hairline): Graphics {
   const g = new Graphics()
   g.rect(0, 0, width, 1).fill(color)

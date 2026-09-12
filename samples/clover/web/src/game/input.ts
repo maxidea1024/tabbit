@@ -459,8 +459,8 @@ export class InputPart {
     // **배경 위에 그대로 놓이는 글입니다.** 판때기가 없으므로 배경의 무늬가 밝은 자리에서
     // 회색 글이 반투명한 것처럼 보였습니다 — 테를 두르고 밝기를 한 칸 올립니다. 작은
     // 화면에서 특히 그랬으므로 크기도 두 칸 키웁니다.
-    const line = richLine(text, richStyle('title', {
-      ...outlined(TEXT.base, UI.outline), fontWeight: WEIGHT.normal,
+    const line = richLine(text, richStyle('body', {
+      ...outlined(TEXT.body, UI.outline), fontWeight: WEIGHT.normal,
     }))
     line.position.set(-line.width / 2, 0)
     this.hint.addChild(line)

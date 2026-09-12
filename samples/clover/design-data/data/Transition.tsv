@@ -11,3 +11,5 @@
 	title_login	Slide	390	50	360	#05070d	false	-	타이틀에서 로그인 화면으로
 	boot_first	Fade	0	0	624	#05070d	true	-	로딩에서 첫 화면으로. **지울 앞 화면이 없으므로 되돌리기만 합니다**
 	quiet	Fade	120	0	120	#05070d	true	-	전환을 줄였을 때. **0이 아닙니다** — 갈아 끼우는 프레임은 어느 설정에서도 보이면 안 됩니다
+	title_screen	Slide	390	50	360	#05070d	true	-	타이틀에서 전면 화면(시작 · 콜렉션 · 리더보드)으로
+	screen_title	Slide	390	50	360	#05070d	false	-	전면 화면에서 타이틀로

@@ -10,13 +10,20 @@ import { NUMERALS, outline, outlined, outlineOf, outlineWidth } from '../ui/font
 import { type Anchor, type Box, box, BOTTOM, inset, pointOf, putText, splitY }
   from '../ui/layout'
 import { richLeading, richStyle, richBlock, rowsOf, type RichStyle } from '../ui/rich'
-import { mix, plate, slotStyle } from './skin'
+import { mix, plate, slotStyle, wellTint } from './skin'
+import { PAINT } from './ink'
+import { piece } from '../ui/chrome'
 import { Spring } from './motion'
-import { UI, TEXT, WEIGHT } from './theme'
+import { UI, TEXT, WEIGHT, STEP } from './theme'
 
 /** 값 하나가 들어가는 칸. */
 /** 이름이 앉는 띠의 높이. 숫자는 그 아래의 남은 자리를 씁니다. */
 const CAPTION_H = 22
+
+/** 딱지의 머리 판 높이. 이름(24)이 앉는 띠입니다. */
+const HEAD_H = 48
+/** 딱지의 높이. 머리 판과 요구 점수 자리입니다 — 자라지 않습니다. */
+const BADGE_H = 212
 /**
  * 한 줄 칸의 좌우 여백. 이름은 왼쪽 끝, 값은 오른쪽 끝에서 이만큼 들어옵니다.
  */
@@ -170,6 +177,13 @@ class Digits extends Container {
 
   get text(): string { return this.shown }
 
+  /** 글자 하나의 모습. **채움만 흰색이고 나머지는 나눠 쓰는 모습 그대로입니다.** */
+  private glyphStyle(): TextStyle {
+    const own = this.style.clone()
+    own.fill = PAINT.sheen
+    return own
+  }
+
   set text(value: string) {
     if (value === this.shown) return
     this.shown = value
@@ -210,12 +224,32 @@ class Digits extends Container {
         glyph.scale.set(1)
         continue
       }
-      // 올라갔다 내려옵니다. 한가운데가 가장 높습니다.
+      // 올라갔다 내려옵니다. 한가운데가 가장 높습니다. **그 글자에 흰빛이 지나갑니다** —
+      // 제 색에서 흰색으로 갔다가 제 색으로 돌아옵니다. 글자의 채움은 흰색이고 색은
+      // `tint` 로 얹으므로 글자마다 다른 색을 줄 수 있습니다.
       const bounce = Math.sin(at * Math.PI)
       glyph.y = -WAVE_LIFT * bounce
       glyph.scale.set(1 + WAVE_SWELL * bounce)
+      glyph.tint = mix(this.ink, PAINT.sheen, bounce)
     }
-    if (done) this.life = -1
+    if (done) {
+      this.life = -1
+      for (const glyph of this.glyphs) glyph.tint = this.ink
+    }
+  }
+
+  /**
+   * 글자의 색.
+   *
+   * **채움은 흰색이고 색은 `tint` 입니다.** 물결이 지나가는 동안 글자마다 다른 색이어야
+   * 하는데, 채움은 글자 전부가 나눠 쓰는 모습 하나에 있습니다.
+   */
+  private ink: number = PAINT.sheen
+
+  /** 글자들의 색을 바꿉니다. 물결이 돌고 있지 않으면 곧바로 듭니다. */
+  recolor(ink: number): void {
+    this.ink = ink
+    if (this.life < 0) for (const glyph of this.glyphs) glyph.tint = ink
   }
 
   /**
@@ -232,10 +266,13 @@ class Digits extends Container {
       const ch = this.shown[i]
       let glyph = this.glyphs[i]
       if (!glyph) {
-        glyph = new Text({ text: ch, style: this.style })
+        glyph = new Text({ text: ch, style: this.glyphStyle() })
         glyph.anchor.set(0.5, 0.5)
+        glyph.tint = this.ink
         this.glyphs.push(glyph)
         this.addChild(glyph)
+      } else if (glyph.style.fontSize !== this.style.fontSize) {
+        glyph.style.fontSize = this.style.fontSize
       }
       glyph.visible = true
       if (glyph.text !== ch) glyph.text = ch
@@ -279,6 +316,8 @@ class Digits extends Container {
 
 export class Slot extends Container {
   private readonly plate = new Graphics()
+  /** 구워 둔 칸. 없으면 `plate` 가 그립니다. */
+  private skin?: Container
   private readonly caption_ = new Text({
     text: '', style: { fontSize: TEXT.small, fill: UI.inkDim, fontWeight: WEIGHT.normal },
   })
@@ -369,7 +408,7 @@ export class Slot extends Container {
 
   constructor(caption: string, private readonly boxWidth: number,
               private readonly boxHeight: number, private readonly ink: number,
-              valueSize = 23, pull = 0.5, bare = false, wave = false) {
+              valueSize = 24, pull = 0.5, bare = false, wave = false) {
     super()
     this.pull = pull
     this.bare = bare
@@ -386,6 +425,12 @@ export class Slot extends Container {
       ? new Digits(this.valueStyle, pull)
       : new Text({ text: '0', style: this.valueStyle })
     this.addChild(this.plate, this.caption_, this.value)
+    // **칸은 구워 둔 그림입니다.** 판 안으로 눌린 자리 — 위 안쪽의 그늘과 아래의 밝은
+    // 줄이 그 안에 있습니다. 그림이 없으면 지금까지의 길로 그립니다.
+    if (!bare) {
+      this.skin = piece('well', boxWidth, boxHeight, wellTint(UI.cell))
+      if (this.skin !== undefined) this.addChildAt(this.skin, 0)
+    }
     this.caption_.text = caption
     // 이름은 위 가운데, 숫자는 그 아래의 남은 자리에. **기울기는 `pull` 이 정합니다** —
     // 칩은 오른쪽으로, 배수는 왼쪽으로 붙습니다.
@@ -423,6 +468,7 @@ export class Slot extends Container {
     }
     this.baseY = this.value.y
     this.valueStyle.fill = ink
+    if (this.value instanceof Digits) this.value.recolor(ink)
     this.draw()
   }
 
@@ -526,6 +572,14 @@ export class Slot extends Container {
     this.plateInk = this.glowInk
     const style = slotStyle(this.ink)
     this.plate.clear()
+    if (this.skin !== undefined) {
+      // 빛나는 것은 바탕뿐입니다. 그림을 물들이는 색에 그 빛을 섞습니다.
+      const top = step > 0
+        ? mix(style.top, this.glowInk, step * (this.signed ? 0.42 : 0.22))
+        : style.top
+      ;(this.skin as { tint: number }).tint = wellTint(top)
+      return
+    }
     // **빛나는 것은 바탕뿐입니다.** 테를 굵히면 그 칸만 다른 문법으로 그려진 것이 되고,
     // 값이 굴러가는 동안 판 왼쪽에서 테 하나가 자랐다 줄어듭니다.
     plate(this.plate, this.boxWidth, this.boxHeight, {
@@ -782,11 +836,14 @@ export class Slot extends Container {
     this.lifted = Math.max(this.lifted, scale - 1)
   }
 
+  /** 수 앞에 붙는 글. 소지금의 `$` 입니다 — 값이 굴러가는 동안에도 붙어 있습니다. */
+  prefix = ''
+
   private redraw(): void {
     const shown = Math.round(this.shown)
-    this.value.text = shown >= 1_000_000
+    this.value.text = this.prefix + (shown >= 1_000_000
       ? shown.toExponential(2).replace('e+', 'e')
-      : COMMAS.format(shown)
+      : COMMAS.format(shown))
     // **자릿수가 바뀌면 조용한 모습을 다시 앉힙니다.** 칸에 들어가려 줄인 배율은 글자 수가
     // 정하는 값이고, 조용한 모습은 「이미 앉혔다」로 한 번만 적용됩니다 — 다시 적지 않으면
     // 여섯 자리가 된 수가 앞의 배율로 그려집니다.
@@ -838,7 +895,10 @@ export class BlindBadge extends Container {
   })
   private readonly need = new Text({
     text: '',
-    style: { fontSize: TEXT.banner, fill: UI.bar, fontWeight: WEIGHT.bold, fontFamily: NUMERALS },
+    // **그 화면의 주인공 하나입니다** — 계단의 맨 위 칸(72)입니다. 규칙 한 줄이 함께
+    // 놓이는 판(보스)에서는 한 계단 내려갑니다(`fitNeed`) — 72로 두면 그 줄이 딱지
+    // 밖으로 밀려 판의 변을 넘어갑니다.
+    style: { fontSize: STEP[4], fill: UI.bad, fontWeight: WEIGHT.bold, fontFamily: NUMERALS },
   })
   /** 요구 점수라는 것을 적는 작은 글. */
   private readonly caption = new Text({
@@ -847,8 +907,16 @@ export class BlindBadge extends Container {
   })
   /** 보스의 규칙 한 줄. 수가 그 규칙의 요점이라 여기도 강조가 붙습니다. */
   private readonly note = new Container()
-  private readonly reward = new Text({
-    text: '', style: { fontSize: TEXT.body, fill: UI.money, fontWeight: WEIGHT.normal },
+  /**
+   * 격파 보상. **이름은 작고 값은 큽니다** — 사람이 찾는 것은 값이고, 이름과 값이 같은
+   * 크기면 문장을 처음부터 읽어야 찾습니다. 글 표의 한 줄을 마지막 빈칸에서 가릅니다.
+   */
+  private readonly rewardLabel = new Text({
+    text: '', style: { fontSize: TEXT.small, fill: UI.inkDim, fontWeight: WEIGHT.normal },
+  })
+  private readonly rewardValue = new Text({
+    text: '',
+    style: { fontSize: TEXT.base, fill: UI.money, fontWeight: WEIGHT.bold, fontFamily: NUMERALS },
   })
 
   /**
@@ -880,16 +948,16 @@ export class BlindBadge extends Container {
                lineHeight: number, top: number): number {
     into.removeChildren().forEach(child => child.destroy({ children: true }))
     if (lines.length === 0 || lines.every(one => one === '')) return 0
-    const block = richBlock(lines, style, lineHeight, this.boxWidth - 22, 'center')
+    const block = richBlock(lines, style, lineHeight, this.boxWidth - 10, 'center')
     into.addChild(block)
-    into.position.set(11, top)
+    into.position.set(5, top)
     return rowsOf(block)
   }
 
   constructor(private readonly boxWidth: number) {
     super()
-    this.body.addChild(this.title, this.caption, this.need, this.reward, this.note,
-      this.lead, this.info)
+    this.body.addChild(this.title, this.caption, this.need, this.rewardLabel, this.rewardValue,
+      this.note, this.lead, this.info)
     this.addChild(this.plate, this.body)
   }
 
@@ -935,28 +1003,43 @@ export class BlindBadge extends Container {
    * **안쪽 칸에는 따로 그린 테가 필요합니다.** 볼트가 없고 더 얇은 것입니다. 그것이
    * 생기기 전까지는 파인 줄과 얇은 테로 둡니다.
    */
-  private dressPlate(height: number): void {
-    plate(this.plate, this.boxWidth, height, {
-      top: UI.cell, bottom: UI.cell, border: UI.hairline, radius: 6, weight: 1,
-    })
+  private dressPlate(height: number, mark = UI.mark): void {
+    this.skin?.destroy()
+    this.band?.destroy()
+    this.skin = piece('well', this.boxWidth, height, wellTint(UI.cell))
+    if (this.skin === undefined) {
+      plate(this.plate, this.boxWidth, height, {
+        top: UI.cell, bottom: UI.cell, border: UI.hairline, radius: 0, weight: 1,
+      })
+      return
+    }
+    const home = this.plate.parent ?? this
+    home.addChildAt(this.skin, 0)
+    // **머리 판.** 판의 폭을 다 쓰고, 색은 채움과 글자에 듭니다 — 스몰은 파랑, 빅은
+    // 보라, 보스는 붉음. 밑줄의 번짐까지 그림 한 장에 있습니다.
+    this.band = piece('head', this.boxWidth, HEAD_H, mix(mark, UI.cell, 0.62))
+    if (this.band !== undefined) home.addChildAt(this.band, 1)
+    this.title.style.fill = mix(mark, UI.ink, 0.35)
   }
+
+  /** 구워 둔 몸통과 머리 판. 없으면 `plate` 가 그립니다. */
+  private skin?: Container
+  private band?: Container
 
   setInfo(name: string, lead: string, lines: string[], mark: number, seal?: Container,
           tags: Container[] = []): void {
     this.settle(`info|${name}|${lead}|${lines.join('|')}`)
-    const height = 156
+    const height = BADGE_H
     this.boxHeight = height
 
     this.plate.clear()
-    this.dressPlate(height)
-    this.plate.rect(1, 38, this.boxWidth - 2, 1).fill(UI.hairline)
-    if (!seal) this.plate.circle(20, 19, 5).stroke({ color: mark, width: 2 })
+    this.dressPlate(height, mark)
 
     this.seal?.destroy()
     this.seal = undefined
     if (seal) {
       this.seal = seal
-      seal.position.set(20, 19)
+      seal.position.set(20, HEAD_H / 2)
       this.body.addChild(seal)
     }
 
@@ -965,17 +1048,19 @@ export class BlindBadge extends Container {
     this.title.scale.set(1)
     const room = this.boxWidth - 40 * 2
     if (this.title.width > room) this.title.scale.set(room / this.title.width)
-    this.title.position.set(this.boxWidth / 2, 19)
+    this.title.position.set(this.boxWidth / 2, HEAD_H / 2)
 
     // 요구 점수 쪽은 비웁니다. 자리는 그대로이고 글만 없습니다.
     this.caption.text = ''
     this.need.text = ''
-    this.reward.text = ''
+    this.rewardLabel.text = ''
+    this.rewardValue.text = ''
     this.fill(this.note, [], BlindBadge.infoRich(), richLeading('note'), 0)
 
-    const rows = this.fill(this.lead, [lead], BlindBadge.leadRich(), richLeading('body'), 50)
+    const rows = this.fill(this.lead, [lead], BlindBadge.leadRich(), richLeading('body'), HEAD_H + 24)
     // 굵은 줄 바로 아래입니다. 굵은 줄이 두 줄이면 그만큼 내려섭니다.
-    this.fill(this.info, lines, BlindBadge.infoRich(), richLeading('note'), 50 + rows * richLeading('body') + 10)
+    this.fill(this.info, lines, BlindBadge.infoRich(), richLeading('note'),
+              HEAD_H + 24 + rows * richLeading('body') + 10)
 
     this.setTags(tags)
   }
@@ -986,7 +1071,7 @@ export class BlindBadge extends Container {
    * 아래에 무엇을 둘 자리를 세는 쪽이 알아야 합니다 — 화면이 같은 계산을 베껴 적으면
    * 여기를 고칠 때 그쪽만 남습니다.
    */
-  boxHeight = 138
+  boxHeight = BADGE_H
 
   set(name: string, target: number, reward: number, note: string,
       boss: boolean, big = false, seal?: Container, tags: Container[] = []): void {
@@ -1002,7 +1087,7 @@ export class BlindBadge extends Container {
     // **비워 두는 자리가 아까운 것보다 흔들리는 것이 나쁩니다.** 이 딱지는 왼쪽 판의 맨
     // 위이고, 높이가 바뀌면 그 아래가 전부 따라 움직입니다 — 블라인드를 넘길 때마다 판이
     // 한 번씩 출렁이던 것이 그것입니다.
-    const height = 156
+    const height = BADGE_H
     this.boxHeight = height
     // **판을 물들이지 않습니다.** 셋이 저마다의 바탕색이면 판 셋이 서로 다른 물건이 되고,
     // 어느 블라인드인지는 이름과 문양이 이미 말합니다 — 색은 이름 앞의 문양 하나에만
@@ -1010,13 +1095,10 @@ export class BlindBadge extends Container {
     const mark = boss ? UI.red : big ? UI.legendary : UI.bar
 
     this.plate.clear()
-    this.dressPlate(height)
-    // 이름이 앉는 줄. 띠가 아니라 아래에 선 하나입니다.
-    this.plate.rect(1, 38, this.boxWidth - 2, 1).fill(UI.hairline)
-    // **문양은 하나입니다.** 화면이 넘겨주는 딱지가 그 문양이므로 여기서 또 그리면 같은
-    // 것이 둘이고, 그중 하나는 색만 같은 다른 그림입니다. 넘겨주지 않는 판(상점)은
-    // 문양이 없습니다 — `mark` 는 그 딱지가 없을 때의 자리 표시입니다.
-    if (!seal) this.plate.circle(20, 19, 5).stroke({ color: mark, width: 2 })
+    this.dressPlate(height, mark)
+    // **문양은 하나입니다.** 화면이 넘겨주는 딱지가 그 문양이므로 여기서 또 그리지 않습니다.
+    // 넘겨주지 않는 판(상점)은 문양이 없고, 자리 표시도 두지 않습니다 — 머리 판에는 이름
+    // 하나만 놓입니다.
 
     // 앞의 표시를 걷고 새것을 답니다. **그대로 두면 보스가 바뀌어도 앞의 것이 남습니다.**
     this.seal?.destroy()
@@ -1033,29 +1115,93 @@ export class BlindBadge extends Container {
     // 따라 이름의 길이가 배로 달라집니다.
     const room = this.boxWidth - 40 * 2
     if (this.title.width > room) this.title.scale.set(room / this.title.width)
-    this.title.position.set(this.boxWidth / 2, 19)
+    this.title.position.set(this.boxWidth / 2, HEAD_H / 2)
 
     if (seal) {
       this.seal = seal
-      seal.position.set(20, 19)
+      seal.position.set(20, HEAD_H / 2)
       this.body.addChild(seal)
     }
 
-    // 요구 점수. **바와 같은 색입니다** — 채워야 하는 것으로 읽힙니다.
-    this.caption.text = t('ui.label.target')
+    this.layoutValue(t('ui.label.target'), target.toLocaleString('en-US'), reward, note)
+
+    this.setTags(tags)
+  }
+
+  /**
+   * 이름 밑의 세 줄 — 무엇의 수인가 · 그 수 · 격파 보상. 규칙 한 줄이 있으면 그 밑입니다.
+   *
+   * **줄의 자리가 규칙 한 줄의 있고 없음으로 갈립니다.** 딱지의 높이는 어느 판에서나
+   * 같으므로(`BADGE_H`), 넷째 줄이 들어오는 판에서는 위의 셋이 함께 올라가고 수가 한
+   * 계단 내려갑니다 — 자리를 고정해 두었더니 보스의 규칙과 고르는 판의 안내가 딱지
+   * 밖으로 밀려 판의 변을 넘었습니다.
+   */
+  private layoutValue(caption: string, value: string, reward: number, note: string): void {
+    const dense = note !== ''
+    this.caption.text = caption
     this.caption.anchor.set(0.5, 0)
-    this.caption.position.set(this.boxWidth / 2, 52)
+    this.caption.position.set(this.boxWidth / 2, HEAD_H + 22)
 
-    this.need.text = target.toLocaleString('en-US')
+    this.need.style.fontSize = dense ? STEP[3] : STEP[4]
+    this.need.text = value
     this.need.anchor.set(0.5, 0)
-    this.need.position.set(this.boxWidth / 2, 66)
+    this.need.position.set(this.boxWidth / 2, HEAD_H + (dense ? 36 : 40))
 
-    this.reward.text = tf('ui.blind.reward', { n: reward })
-    this.reward.anchor.set(0.5, 0)
-    this.reward.position.set(this.boxWidth / 2, 104)
+    // **한 줄을 마지막 빈칸에서 가릅니다.** 앞은 이름이고 뒤는 값입니다 — 값만 크고 금색입니다.
+    const rewardText = tf('ui.blind.reward', { n: reward })
+    const cut = rewardText.lastIndexOf(' ')
+    this.rewardLabel.text = cut > 0 ? rewardText.slice(0, cut).trim() : ''
+    this.rewardValue.text = cut > 0 ? rewardText.slice(cut + 1) : rewardText
+    const between = this.rewardLabel.text === '' ? 0 : 8
+    const span = this.rewardLabel.width + between + this.rewardValue.width
+    const start = (this.boxWidth - span) / 2
+    const rewardY = HEAD_H + (dense ? 100 : 148)
+    this.rewardLabel.anchor.set(0, 0.5)
+    this.rewardLabel.position.set(start, rewardY)
+    this.rewardValue.anchor.set(0, 0.5)
+    this.rewardValue.position.set(start + this.rewardLabel.width + between, rewardY)
 
-    this.fill(this.note, [note], BlindBadge.infoRich(), richLeading('note'), 126)
+    // **딱지 안에 들어오는 만큼만 적습니다.** 넘치는 줄은 딱지 밖으로 나가 판의 변을
+    // 넘어가므로, 들어갈 줄 수를 남은 높이에서 셉니다.
+    const top = HEAD_H + 118
+    const room = Math.max(0, BADGE_H - top - 8)
+    const rows = Math.floor(room / richLeading('note'))
+    this.fill(this.note, dense && rows > 0 ? [note] : [], BlindBadge.infoRich(),
+              richLeading('note'), top)
+  }
 
+  /**
+   * 다음에 붙을 판을 적습니다 — 상점입니다.
+   *
+   * **블라인드 딱지와 같은 세 줄입니다.** 상점에서만 문단으로 적어 두었더니 그 문단이
+   * 딱지의 폭을 넘어 낱말 가운데에서 접혔고, 왼쪽 판이 판 안에서 두 가지 물건이 되었습니다.
+   */
+  setNext(name: string, caption: string, target: number, reward: number, mark: number,
+          seal?: Container, tags: Container[] = []): void {
+    this.settle(`next|${name}|${caption}|${target}|${reward}`)
+    this.fill(this.lead, [], BlindBadge.leadRich(), richLeading('body'), 0)
+    this.fill(this.info, [], BlindBadge.infoRich(), richLeading('note'), 0)
+    this.boxHeight = BADGE_H
+
+    this.plate.clear()
+    this.dressPlate(BADGE_H, mark)
+
+    this.seal?.destroy()
+    this.seal = undefined
+    if (seal) {
+      this.seal = seal
+      seal.position.set(20, HEAD_H / 2)
+      this.body.addChild(seal)
+    }
+
+    this.title.text = name
+    this.title.anchor.set(0.5, 0.5)
+    this.title.scale.set(1)
+    const room = this.boxWidth - 40 * 2
+    if (this.title.width > room) this.title.scale.set(room / this.title.width)
+    this.title.position.set(this.boxWidth / 2, HEAD_H / 2)
+
+    this.layoutValue(caption, target.toLocaleString('en-US'), reward, '')
     this.setTags(tags)
   }
 

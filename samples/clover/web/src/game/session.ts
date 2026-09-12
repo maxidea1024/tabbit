@@ -14,7 +14,7 @@ import { ladder } from '../feedback/audio'
 import { type JokerLook, JokerView } from '../render/joker-view'
 import { fraction } from '../render/motion'
 import { setCardSet, setLookOf } from '../render/card-set'
-import { groove } from '../render/skin'
+import { groove, plateTint } from '../render/skin'
 import { popupCenter, setUiTheme, SIZE, TEXT, UI, WEIGHT } from '../render/theme'
 import { Button, restyleButtons } from '../ui/widgets'
 import { type ChallengeProgress, loadProgress, saveProgress } from '../ui/challenge'
@@ -30,10 +30,12 @@ import { clearRun, loadRun, type SavedRun, saveRun } from '../core/save-run'
 import { type Scene } from '../render/scene'
 import { type TransitionId } from '../render/transition'
 import { PANEL_BOTTOM } from '../ui/modal'
+import { glowEdge, piece } from '../ui/chrome'
 import { cellPlate, hairline, ProgressBar, SECTION_H, sectionHead, valueCell } from '../ui/parts'
 import {
   chosen, graphicsLevel, loadOptions, type Options, saveOptions, transitionWanted,
 } from '../ui/options'
+import { sceneArt } from '../ui/scene-art'
 import { Toasts } from '../ui/toast'
 import { LEFT, PANEL_GROOVES, PANEL_W, POPUP_X, RANK_TICK, SAVE_GAP, SORT_HIDE } from './metrics'
 import { blindName } from './tables'
@@ -59,6 +61,16 @@ export class SessionPart {
 
   /** 타이틀. **시작을 누르기 전에는 판이 없습니다.** */
   title!: Title
+  /**
+   * 전면 화면들이 서는 자리. 시작 · 콜렉션 · 리더보드가 여기서 한 장씩 뜹니다.
+   *
+   * **판이 아니라 씬입니다.** 타이틀 위에 띄우지 않고 씬을 바꾼 뒤에 보입니다 — 뒤에는
+   * 타이틀과 같은 배경 그림이 어둡게 깔립니다.
+   */
+  readonly screens = new Container()
+  private readonly screenSlot = new Container()
+  /** 지금 뜬 전면 화면이 ESC 를 먼저 받는 자리. `true` 를 돌려주면 물러나지 않습니다. */
+  private screenBack?: () => boolean
 
   /**
    * 지금 어느 씬인가.
@@ -98,7 +110,7 @@ export class SessionPart {
   bootSeed?: string
 
   /** 게임오버 판의 득점 바. */
-  private overBar?: { bar: ProgressBar; begin: number; ratio: number }
+  private overBar?: { bar: ProgressBar; begin: number; score: number; target: number }
 
   gameOverShown = false
 
@@ -372,12 +384,50 @@ export class SessionPart {
    * 맞추지 않으면 처음 열 때의 자리에 표시가 남습니다. 저장된 판도 그때 다시 읽습니다.
    */
   openRunPanel(): void {
-    this.game.panels.runPanel.relabel()
-    this.game.panels.runPanel.setSetup(this.setup())
-    this.game.panels.runPanel.setSignedIn(this.hub.signedIn)
-    this.game.panels.runPanel.setSaved(loadRun())
-    this.game.panels.runPanel.open()
-    this.game.panels.modals.open(this.game.panels.runPanel)
+    const panel = this.game.panels.runPanel
+    panel.relabel()
+    panel.setSetup(this.setup())
+    panel.setSignedIn(this.hub.signedIn)
+    panel.setSaved(loadRun())
+    panel.open()
+    this.openScreen(panel.view, () => panel.onBack())
+  }
+
+  /**
+   * 전면 화면 하나를 씬으로 엽니다. **타이틀에서 갈라져 나갑니다.**
+   *
+   * @param back ESC 와 뒤로 가기를 먼저 받는 자리. `true` 면 화면이 스스로 처리한 것입니다.
+   */
+  openScreen(view: Container, back?: () => boolean): void {
+    this.cross('title_screen', () => this.enterScreen(view, back))
+  }
+
+  private enterScreen(view: Container, back?: () => boolean): void {
+    this.scene = 'screen'
+    this.screenBack = back
+    this.game.show.syncBackdrop()
+    keepAwake(false)
+    this.game.input.toasts.setCenter(Toasts.OUT_RUN)
+    this.login.visible = false
+    this.title.visible = false
+    this.game.board.visible = false
+    this.game.overlay.visible = false
+    if (this.screens.children.length === 0) {
+      const art = sceneArt(0.42)
+      if (art !== undefined) this.screens.addChild(art)
+      this.screens.addChild(this.screenSlot)
+    }
+    this.screenSlot.removeChildren()
+    this.screenSlot.addChild(view)
+    view.visible = true
+    view.position.set(0, 0)
+    this.screens.visible = true
+  }
+
+  /** 전면 화면에서 타이틀로 돌아갑니다. */
+  leaveScreen(): void {
+    if (this.scene !== 'screen') return
+    this.cross('screen_title', () => this.enterTitle())
   }
 
   /**
@@ -439,6 +489,12 @@ export class SessionPart {
   back(): void {
     if (this.game.panels.modals.busy) {
       this.game.panels.modals.closeTop()
+      return
+    }
+    // **전면 화면은 한 단계씩 물러납니다.** 세부 화면이면 큰 메뉴로, 큰 메뉴면 타이틀로.
+    if (this.scene === 'screen') {
+      if (this.screenBack?.() === true) return
+      this.leaveScreen()
       return
     }
     // 자리를 비우던 것을 그만둡니다. **고른 것이 있으면 그것을 먼저 놓습니다.**
@@ -819,6 +875,7 @@ export class SessionPart {
     this.game.input.toasts.setCenter(Toasts.OUT_RUN)
     this.login.visible = true
     this.title.visible = false
+    this.screens.visible = false
     this.game.board.visible = false
     this.game.overlay.visible = false
   }
@@ -833,6 +890,7 @@ export class SessionPart {
     this.game.input.toasts.setCenter(Toasts.IN_RUN)
     this.login.visible = false
     this.title.visible = false
+    this.screens.visible = false
     this.game.board.visible = true
     this.game.overlay.visible = true
     this.game.audio.unlock()
@@ -894,6 +952,8 @@ export class SessionPart {
     this.game.input.toasts.setCenter(Toasts.OUT_RUN)
     this.login.visible = false
     this.title.visible = true
+    this.screens.visible = false
+    this.screenBack = undefined
     this.game.board.visible = false
     this.game.overlay.visible = false
 
@@ -970,7 +1030,7 @@ export class SessionPart {
     this.game.cards.fadeUntil = 0
     // 떠오르던 차이 글. **글은 두고 상태만 되돌립니다** — 풀이므로 다시 쓰입니다.
     for (const one of this.game.show.deltas) one.node.visible = false
-    this.game.chrome.panelShown = { hands: -1, discards: -1, ante: -1 }
+    this.game.chrome.panelShown = { hands: -1, discards: -1, ante: -1, phase: '' }
     this.game.blind.tagFlashId = ''
     this.game.blind.tagFlashLife = 1
     this.game.blind.tagSpent = []
@@ -1185,7 +1245,7 @@ export class SessionPart {
     this.gameOver.addChild(veil)
 
     const board = new Container()
-    const width = 520
+    const width = 640
     const pad = 24
     const inner = width - pad * 2
     const state = this.game.state
@@ -1200,17 +1260,13 @@ export class SessionPart {
     const statBlock = SECTION_H + 10 + 40 * 2 + 8
     const jokerBlock = SECTION_H + 10 + 84
     const rankBlock = ranked ? SECTION_H + 40 + 14 : 0
-    const height = headH + 14 + barBlock + 6 + statBlock + 14 + jokerBlock + rankBlock
-      + 16 + 1 + 14 + 40 + 20
-    const top = -height / 2
+    // **높이는 내용을 다 놓은 뒤에 잽니다.** 블록의 높이를 미리 더해 두었더니 실제로 놓인
+    // 것과 어긋나 단추가 판 밖으로 나갔습니다 — 판은 맨 마지막에 그 자리에 맞춰 놓습니다.
+    const guess = headH + 14 + barBlock + 6 + statBlock + 14 + jokerBlock + rankBlock
+      + 16 + 1 + 14 + 60 + 20
+    const top = -guess / 2
     const left = -width / 2 + pad
-
     const plate = new Graphics()
-    plate.roundRect(-width / 2, top, width, height, 8).fill({ color: UI.panel,
-      alpha: UI.panelAlpha })
-    plate.roundRect(-width / 2 + 0.75, top + 0.75, width - 1.5, height - 1.5, 8)
-      .stroke({ color: UI.panelEdge, width: 1.5 })
-    plate.rect(-width / 2 + 1.5, top + headH, width - 3, 1.5).fill(UI.rule)
     board.addChild(plate)
 
     // 결과 한 낱말. **색은 여기와 바에만 듭니다** — 판 전체를 붉게 물들이지 않습니다.
@@ -1246,10 +1302,9 @@ export class SessionPart {
     })
     wanted.anchor.set(1, 0.5)
     wanted.position.set(left + inner, barY)
-    const bar = new ProgressBar(220, 8, won ? UI.green : UI.bar)
-    bar.position.set(-110, barY - 4)
-    this.overBar = { bar, begin: this.game.clock + 0.3, ratio: target > 0 ? Math.min(1,
-      score / target) : 1 }
+    const bar = new ProgressBar(220, 12, won ? UI.green : UI.bar)
+    bar.position.set(-110, barY - 6)
+    this.overBar = { bar, begin: this.game.clock + 0.3, score, target: Math.max(1, target) }
     yy += 46
     const lead = new Text({
       text: this.endLine(won),
@@ -1338,24 +1393,42 @@ export class SessionPart {
     seed.anchor.set(0, 0.5)
     seed.position.set(left + seedLabel.width + 8, yy + 20)
     // **시드는 다시 돌리려고 적는 것입니다.** 손으로 옮겨 적게 두지 않습니다.
-    const copy = new Button(t('ui.over.copy'), 52, 24, 'quiet', () => {
+    const copy = new Button(t('ui.over.copy'), 64, 36, 'quiet', () => {
       const clip = globalThis.navigator?.clipboard
       if (!clip) return
       void clip.writeText(state.seed).then(() => { copy.text = t('ui.over.copied') })
-    }, 11)
-    copy.position.set(seed.x + seed.width + 8, yy + 8)
+    })
+    copy.position.set(seed.x + seed.width + 8, yy + 12)
     board.addChild(seedLabel, seed, copy)
 
     // **둘 다 페이지를 다시 읽지 않습니다.** 판을 접는 것은 화면이 하는 일입니다.
-    const again = new Button(t('ui.button.restart'), 140, 40, 'primary', () => this.restartRun())
-    again.position.set(width / 2 - pad - 140, yy)
-    const home = new Button(t('ui.button.to_title'), 96, 40, 'neutral',
+    // **나아가는 줄입니다 — 둘 다 `lg`.** 갈래가 달라도 그 줄의 높이는 하나이고 금색은
+    // 하나입니다.
+    const again = new Button(t('ui.button.restart'), 160, 60, 'primary', () => this.restartRun())
+    again.position.set(width / 2 - pad - 160, yy)
+    const home = new Button(t('ui.button.to_title'), 120, 60, 'neutral',
       () => this.cross(won ? 'run_won' : 'run_lost', () => this.enterTitle()))
-    home.position.set(again.x - 8 - 96, yy)
+    home.position.set(again.x - 12 - 120, yy)
     board.addChild(home, again)
 
+    // **구워 둔 판 한 장입니다.** 머리 아래의 줄은 테두리의 빛입니다. 높이는 마지막 단추의
+    // 아랫변에서 20 아래까지입니다.
+    const height = yy + 60 + 20 - top
+    const skin = piece('plate', width, height, plateTint(UI.panel))
+    if (skin !== undefined) {
+      skin.position.set(-width / 2, top)
+      board.addChildAt(skin, 0)
+    } else {
+      plate.rect(-width / 2, top, width, height).fill({ color: UI.panel, alpha: UI.panelAlpha })
+    }
+    const headGlow = glowEdge(width - 3, UI.rule)
+    if (headGlow !== undefined) {
+      headGlow.position.set(-width / 2 + 1.5, top + headH)
+      board.addChildAt(headGlow, 1)
+    } else plate.rect(-width / 2 + 1.5, top + headH, width - 3, 1.5).fill(UI.rule)
+
     this.gameOverX = popupCenter(width)
-    this.gameOverY = PANEL_BOTTOM - height / 2
+    this.gameOverY = PANEL_BOTTOM - height / 2 - (height - guess) / 2
     // **아래에서 시작합니다.** 제자리에 놓고 다음 프레임에 내리면 그 한 프레임 동안 판이
     // 다 선 자리에 있습니다 — 상점 판에서 같은 것이 한 번 튀는 것으로 보였습니다.
     board.position.set(this.gameOverX, this.gameOverY + 58)
@@ -1415,7 +1488,7 @@ export class SessionPart {
     const one = this.overBar
     if (!one || one.bar.destroyed) return
     const step = Math.max(0, Math.min(1, (this.game.clock - one.begin) / 0.6))
-    one.bar.set(one.ratio * (1 - (1 - step) * (1 - step)))
+    one.bar.set(one.score * (1 - (1 - step) * (1 - step)), one.target)
   }
 
   /**

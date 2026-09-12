@@ -156,19 +156,30 @@ export class LeaderboardHub {
     }
 
     const panel = new LeaderboardPanel(this.data, () => {
-      this.modals.close(panel)
+      this.closeBoard()
       this.panel = undefined
     })
     panel.onProfile = handle => this.openProfile(handle)
     // 「내 자리」 줄에서 계정을 연결하겠다고 하면 로그인 화면으로 갑니다.
     panel.onNeedAccount = () => {
-      this.modals.close(panel)
       this.panel = undefined
       this.onNeedLogin?.()
     }
     this.panel = panel
-    this.modals.open(panel)
+    // **판이 아니라 씬입니다.** 여는 것은 화면의 몫이고, 허브는 그것을 부탁합니다.
+    if (this.onOpenBoard) this.onOpenBoard(panel.view)
+    else this.modals.open(panel)
   }
+
+  private closeBoard(): void {
+    if (this.onCloseBoard) this.onCloseBoard()
+    else if (this.panel) this.modals.close(this.panel)
+  }
+
+  /** 리더보드 화면을 씬으로 열어 달라고 합니다. 없으면 판으로 뜹니다. */
+  onOpenBoard?: (view: Container) => void
+  /** 리더보드 화면을 닫아 달라고 합니다. */
+  onCloseBoard?: () => void
 
   /** 프로필 판에서 로그아웃을 눌렀습니다. **묻는 것은 화면이 합니다.** */
   onSignOut?: () => void
@@ -440,7 +451,7 @@ export class MyCard extends Container {
     if (!profile) return
 
     const plate = new Graphics()
-    plate.roundRect(0, 0, CARD_W, CARD_H, 10)
+    plate.rect(0, 0, CARD_W, CARD_H)
       .fill({ color: UI.cell, alpha: 0.9 })
       .stroke({ color: UI.hairline, width: 1.5 })
     this.body.addChild(plate)
@@ -477,7 +488,7 @@ export class MyCard extends Container {
       label.anchor.set(1, 0.5)
       label.position.set(CARD_W - 14, 20)
       const dot = new Graphics()
-      dot.roundRect(0, 0, 9, 9, 2).fill(providerTint(first))
+      dot.rect(0, 0, 9, 9).fill(providerTint(first))
       dot.position.set(CARD_W - 14 - label.width - 12, 20 - 4.5)
       this.body.addChild(dot, label)
     }

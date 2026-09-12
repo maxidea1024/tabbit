@@ -12,8 +12,14 @@
 import { TextStyle, type StrokeStyle, type Text } from 'pixi.js'
 
 import { language, type Language } from '../core/strings'
+import { forgetLeading } from '../render/theme'
 
-/** 말마다 쓰는 글꼴 이름. 라틴은 한 벌로 족합니다. */
+/**
+ * 말마다 쓰는 글꼴 이름.
+ *
+ * **한글과 라틴은 물마루입니다.** 픽셀 서체이고, 한글 11,172자와 라틴 전부와 가나를
+ * 덮습니다 — 한자는 없으므로 일본어와 중국어만 노토로 남습니다.
+ */
 const FAMILY: Record<Language, string> = {
   ko: 'clover-kr',
   ja: 'clover-jp',
@@ -23,18 +29,28 @@ const FAMILY: Record<Language, string> = {
   de: 'clover-latin',
 }
 
-/** 어느 파일이 어느 이름인가. 굵기 둘씩입니다. */
+/**
+ * 물마루를 쓰는 이름들.
+ *
+ * **픽셀 서체에는 굵기가 하나뿐입니다.** 400 만 등록해 두면 화면이 700 을 부를 때
+ * 브라우저가 굵게 흉내 내고, 그러면 획이 격자를 벗어나 뭉갭니다. 같은 파일을 네 굵기에
+ * 걸어 두면 흉내 낼 일이 없어집니다 — 받는 것은 한 번뿐입니다.
+ */
+const PIXEL = new Set(['clover-kr', 'clover-latin'])
+
+/** 화면이 부르는 굵기 전부입니다. `theme.ts` 의 `WEIGHT` 와 같아야 합니다. */
+const FACES = ['400', '700', '800', '900']
+
+/** 어느 파일이 어느 이름인가. 한자를 쓰는 말만 굵기 둘씩입니다. */
 const FILES: { family: string; file: string; weight: number }[] = [
-  { family: 'clover-kr', file: 'noto-sans-kr', weight: 400 },
-  { family: 'clover-kr', file: 'noto-sans-kr', weight: 700 },
+  { family: 'clover-kr', file: 'mulmaru', weight: 400 },
+  { family: 'clover-latin', file: 'mulmaru', weight: 400 },
   { family: 'clover-jp', file: 'noto-sans-jp', weight: 400 },
   { family: 'clover-jp', file: 'noto-sans-jp', weight: 700 },
   { family: 'clover-sc', file: 'noto-sans-sc', weight: 400 },
   { family: 'clover-sc', file: 'noto-sans-sc', weight: 700 },
   { family: 'clover-tc', file: 'noto-sans-tc', weight: 400 },
   { family: 'clover-tc', file: 'noto-sans-tc', weight: 700 },
-  { family: 'clover-latin', file: 'noto-sans', weight: 400 },
-  { family: 'clover-latin', file: 'noto-sans', weight: 700 },
 ]
 
 /**
@@ -47,10 +63,16 @@ const FILES: { family: string; file: string; weight: number }[] = [
 export async function loadFonts(base = './font'): Promise<void> {
   if (typeof document === 'undefined' || document.fonts === undefined) return
 
-  await Promise.all(FILES.map(async one => {
+  const wants: { family: string; file: string; weight: string }[] = []
+  for (const one of FILES) {
+    const weights = PIXEL.has(one.family) ? FACES : [String(one.weight)]
+    for (const weight of weights) wants.push({ family: one.family, file: one.file, weight })
+  }
+
+  await Promise.all(wants.map(async one => {
     const face = new FontFace(one.family,
-      `url(${base}/${one.file}-${one.weight}.woff2) format('woff2')`,
-      { weight: String(one.weight), display: 'block' })
+      `url(${base}/${one.file}-${PIXEL.has(one.family) ? 400 : one.weight}.woff2) format('woff2')`,
+      { weight: one.weight, display: 'block' })
     try {
       document.fonts.add(await face.load())
     } catch {
@@ -72,14 +94,23 @@ export async function loadFonts(base = './font'): Promise<void> {
 export const NUMERALS = ['clover-num', 'clover-latin', 'system-ui', 'sans-serif']
 
 /**
+ * 글자에 테두리를 두르는가.
+ *
+ * **픽셀 서체에는 두르지 않습니다.** 테두리는 윤곽선에 가운데를 맞춰 그려지므로 획이
+ * 반 픽셀씩 번지고, 격자에 맞춰 그린 획이 흐려집니다. 그림 위에 놓이는 글은 그림자로
+ * 띄웁니다 — 그림자는 격자를 그대로 옮긴 것이라 획이 남습니다.
+ */
+export function strokesText(): boolean {
+  return !PIXEL.has(FAMILY[language()])
+}
+
+/**
  * 숫자 글꼴의 파일 이름.
  *
- * **Bungee 입니다.** 간판용 글꼴이라 획이 굵고 각져서, 작은 칸에서도 각이 살아 범용 글꼴
- * 느낌이 빠집니다 — Archivo Black 과 Titan One 도 놓고 봤는데, 앞의 것은 Noto 의 굵은
- * 숫자와 실루엣이 비슷해 바꾼 표가 덜 나고 뒤의 것은 `0` 이 좁아 「점수 0」 이 작게
- * 보였습니다.
+ * **물마루의 고정폭 벌입니다.** 본문과 같은 서체이므로 획이 같고, 폭이 고정이라 값이
+ * 오를 때 줄이 좌우로 떨리지 않습니다 — 칩과 배수와 점수는 한 자리씩 바뀝니다.
  */
-const NUMERAL_FILE = 'bungee-700'
+const NUMERAL_FILE = 'mulmaru-mono-400'
 
 /**
  * 숫자 글꼴을 읽습니다.
@@ -89,14 +120,16 @@ const NUMERAL_FILE = 'bungee-700'
  */
 export async function loadNumerals(base = './font'): Promise<void> {
   if (typeof document === 'undefined' || document.fonts === undefined) return
-  const face = new FontFace('clover-num',
-    `url(${base}/${NUMERAL_FILE}.woff2) format('woff2')`,
-    { weight: '700', display: 'block' })
-  try {
-    document.fonts.add(await face.load())
-  } catch {
-    // 없으면 본문 글꼴의 숫자로 갑니다.
-  }
+  await Promise.all(FACES.map(async weight => {
+    const face = new FontFace('clover-num',
+      `url(${base}/${NUMERAL_FILE}.woff2) format('woff2')`,
+      { weight, display: 'block' })
+    try {
+      document.fonts.add(await face.load())
+    } catch {
+      // 없으면 본문 글꼴의 숫자로 갑니다.
+    }
+  }))
 }
 
 /**
@@ -109,6 +142,8 @@ export function useFont(language: Language): void {
   TextStyle.defaultTextStyle.fontFamily = [
     FAMILY[language], 'clover-latin', 'system-ui', 'sans-serif',
   ]
+  // **줄 사이는 글꼴에서 재는 값입니다.** 글꼴이 바뀌었으니 재어 둔 것을 비웁니다.
+  forgetLeading()
 }
 
 /**
@@ -146,6 +181,14 @@ const OUTLINE_RATIO: Record<Language, number> = {
 }
 
 /**
+ * 픽셀 서체에서는 0 입니다.
+ *
+ * 위의 배수는 노토의 획 사이 틈을 재서 고른 것이고, 물마루는 획이 1픽셀 격자에 맞춰
+ * 그려져 있어 반 픽셀의 테두리가 그 격자를 무너뜨립니다.
+ */
+const NO_OUTLINE = 0
+
+/**
  * 숫자 글꼴의 배수. 어느 말에서나 라틴이므로 말을 보지 않습니다.
  *
  * Bungee 는 본문 글꼴보다 굵어 속이 좁습니다. 숫자 12자의 틈을 재니 크기 대비 0.075 ~
@@ -160,6 +203,7 @@ const LATIN_RATIO = 0.075
  * 그렇습니다.
  */
 export function outlineWidth(fontSize: number, latin = false): number {
+  if (!strokesText()) return NO_OUTLINE
   return fontSize * (latin ? LATIN_RATIO : OUTLINE_RATIO[language()])
 }
 

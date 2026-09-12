@@ -19,18 +19,22 @@ import { Container, Graphics, Text } from 'pixi.js'
 import type { Data } from '../core/data'
 import { describe } from '../core/describe'
 import { nameOf, t, tf } from '../core/strings'
-import { UI, TEXT, WEIGHT } from '../render/theme'
+import { UI, SIZE, TEXT, WEIGHT } from '../render/theme'
+import { FULL_BODY_TOP, FULL_EDGE, FULL_FOOT_Y } from './modal'
 import type { ToolSpot } from './layout'
 import type { TipRequest } from './run-panel'
 import { Button } from './widgets'
+import { piece } from './chrome'
+import { wellTint } from '../render/skin'
 
-const WIDTH = 760
+/** 전면 화면의 몸통 폭. */
+const WIDTH = SIZE.width - FULL_EDGE * 2
 
-/** 격자. 20칸이므로 5 × 4 입니다. */
+/** 격자. 20칸이므로 5 × 4 이고 화면의 폭을 씁니다. */
 const COLUMNS = 5
-const CELL_W = 118
-const CELL_H = 92
-const GRID_X = Math.round((WIDTH - COLUMNS * CELL_W) / 2)
+const CELL_W = WIDTH / COLUMNS
+const CELL_H = 112
+const GRID_X = 0
 const GRID_Y = 0
 
 /**
@@ -39,10 +43,10 @@ const GRID_Y = 0
  * **새 런 탭의 단추와 같은 줄입니다.** 탭을 바꿀 때 누를 것이 위아래로 움직이면 두 탭이
  * 다른 판으로 보입니다 — 판의 높이는 가장 높은 몸통이 정하므로 그 밑변에 맞춥니다.
  */
-const BTN_W = 300
-const BTN_H = 48
-const BTN_X = Math.round((WIDTH - BTN_W) / 2)
-const BTN_Y = 500
+const BTN_W = 320
+const BTN_H = 60
+const BTN_X = WIDTH - BTN_W
+const BTN_Y = FULL_FOOT_Y - FULL_BODY_TOP + 12
 
 const HEIGHT = BTN_Y + BTN_H
 
@@ -134,7 +138,7 @@ export class ChallengeBody {
     this.body.addChild(this.grid)
 
     this.start = new Button(t('ui.challenge.start'), BTN_W, BTN_H, 'primary',
-                            () => this.fire(), 19)
+                            () => this.fire())
     this.start.position.set(BTN_X, BTN_Y)
     this.body.addChild(this.start)
   }
@@ -184,13 +188,18 @@ export class ChallengeBody {
       const cy = GRID_Y + Math.floor(i / COLUMNS) * CELL_H
       cell.position.set(cx, cy)
 
+      // **눌린 칸입니다.** 고른 것은 금색 테, 깬 것은 파랑 테입니다.
+      const skin = piece('well', CELL_W - 10, CELL_H - 10, wellTint(UI.cell))
+      if (skin) {
+        skin.alpha = open ? 1 : 0.5
+        cell.addChild(skin)
+      }
       const board = new Graphics()
-      board.roundRect(0, 0, CELL_W - 10, CELL_H - 10, 8)
-        .fill({ color: UI.cell })
-        .stroke({
-          color: here ? UI.pick : beaten ? UI.green : UI.hairline,
-          width: here ? 2 : 1.5,
-        })
+      if (!skin) board.rect(0, 0, CELL_W - 10, CELL_H - 10).fill({ color: UI.cell })
+      if (here || beaten) {
+        board.rect(0.5, 0.5, CELL_W - 11, CELL_H - 11)
+          .stroke({ color: here ? UI.yellow : UI.bar, width: 1 })
+      }
       cell.addChild(board)
 
       const order = new Text({
@@ -204,9 +213,8 @@ export class ChallengeBody {
       const name = new Text({
         text: row.name,
         style: {
-          fontSize: TEXT.body, fill: open ? UI.ink : UI.locked, fontWeight: WEIGHT.bold,
-          wordWrap: true, wordWrapWidth: CELL_W - 26, align: 'center',
-          lineHeight: 16,
+          fontSize: TEXT.base, fill: open ? UI.ink : UI.locked, fontWeight: WEIGHT.bold,
+          wordWrap: true, wordWrapWidth: CELL_W - 40, align: 'center',
         },
       })
       name.anchor.set(0.5, 0.5)

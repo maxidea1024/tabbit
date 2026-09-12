@@ -122,7 +122,7 @@ export class PayoutPart {
 
   /** 정산 판의 득점 바와 합계. 줄이 설 때마다 합계가 그만큼 셉니다. */
   private payoutBar?: {
-    bar: ProgressBar; begin: number; ratio: number
+    bar: ProgressBar; begin: number; score: number; target: number
     sum: Text; shown: number; poppedAt: number; rowAt: number[]; amounts: number[]
     /**
      * 합계의 `$` 낱개들.
@@ -268,8 +268,8 @@ export class PayoutPart {
       const alpha = fade * wave
       const y = wait.top + i * wait.rowH + 8
       // 왼쪽이 이유, 오른쪽이 금액. 실제 줄과 같은 자리입니다.
-      wait.bones.roundRect(24, y, 132, 15, 7).fill({ color: UI.inkFaint, alpha })
-      wait.bones.roundRect(wait.width - 24 - 62, y, 62, 15, 7)
+      wait.bones.rect(24, y, 132, 15).fill({ color: UI.inkFaint, alpha })
+      wait.bones.rect(wait.width - 24 - 62, y, 62, 15)
         .fill({ color: UI.inkFaint, alpha: alpha * 0.86 })
     }
 
@@ -304,14 +304,15 @@ export class PayoutPart {
     const rowsTop = listTop + SECTION_H + 4
     const sumTop = rowsTop + rows * rowH + 6
     const buttonTop = sumTop + 56 + 14
-    const height = buttonTop + 48 + 22
+    // 나아가는 단추는 `lg` 입니다 — 60.
+    const height = buttonTop + 60 + 22
     ;(this.panel.size as { width: number; height: number }).height = height
     // **「받는다」 의 자리를 도구에 알립니다.** 판은 화면 가운데에 서고 높이는 줄 수를
     // 따르므로, 도구가 줄 수를 짐작해 셈하면 줄이 하나 늘 때마다 빈자리를 누릅니다.
     //
     // **눌릴 수 있게 된 뒤에 알립니다.** 줄이 다 서기 전에는 잠겨 있고, 그때 알리면 도구는
     // 잠긴 단추를 한 번 누르고 눌렀다고 넘어갑니다 — 그 뒤로 아무것도 진행되지 않습니다.
-    this.takeSpot = { x: popupCenter(width), y: PANEL_BOTTOM - height + buttonTop + 24 }
+    this.takeSpot = { x: popupCenter(width), y: PANEL_BOTTOM - height + buttonTop + 30 }
     delete this.game.spots.take
 
     const sum = this.payoutRows.reduce((total, row) => total + row.amount, 0)
@@ -341,8 +342,9 @@ export class PayoutPart {
     })
     wanted.anchor.set(1, 0.5)
     wanted.position.set(width - pad, barY)
-    const bar = new ProgressBar(180, 8)
-    bar.position.set(width / 2 - 90, barY - 4)
+    // **눈금의 끝은 요구 점수가 아닙니다.** 넘긴 만큼이 금색으로 보입니다.
+    const bar = new ProgressBar(180)
+    bar.position.set(width / 2 - 90, barY - 6)
     layer.addChild(head, scored, wanted, bar)
 
     // 받는 돈. 줄마다 어디서 얼마가 왔는가이고, 아래에 합계 하나입니다.
@@ -462,7 +464,7 @@ export class PayoutPart {
 
     // **닫기 단추가 없습니다.** 받는 것이 이 판의 전부이고, 그것을 누르는 것이 닫는 것입니다.
     const label = empty ? t('ui.payout.next') : tf('ui.payout.take', { n: sum })
-    const take = new Button(label, 240, 48, empty ? 'neutral' : 'primary', () => {
+    const take = new Button(label, 240, 60, empty ? 'neutral' : 'primary', () => {
       // **누른 그 자리에서 차례를 지웁니다.** 닫히는 것을 기다리면 그 사이에 다시 뜹니다.
       this.payoutWanted = false
       delete this.game.spots.take
@@ -491,13 +493,12 @@ export class PayoutPart {
         this.game.panels.modals.close(this.panel)
         this.game.refresh()
       }
-    }, 16)
+    })
     take.position.set((width - 240) / 2, buttonTop)
     take.enabled = this.game.clock >= readyAt
     layer.addChild(take)
     this.payoutBar = {
-      bar, begin: this.game.clock + PAYOUT_WAIT * 0.5, ratio: target > 0 ? Math.min(1,
-        score / target) : 1,
+      bar, begin: this.game.clock + PAYOUT_WAIT * 0.5, score, target: Math.max(1, target),
       sum: sumText, shown: 0, poppedAt: -1, rowAt, amounts, take, readyAt,
       coins, coinRest, coinTo: coinRight, mergeAt, merged: many === 0,
     }
@@ -557,7 +558,7 @@ export class PayoutPart {
     }
 
     const step = Math.max(0, Math.min(1, (this.game.clock - one.begin) / 0.42))
-    one.bar.set(one.ratio * (1 - (1 - step) * (1 - step)))
+    one.bar.set(one.score * (1 - (1 - step) * (1 - step)), one.target)
 
     let total = 0
     for (let i = 0; i < one.amounts.length; i++) {

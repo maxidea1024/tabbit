@@ -696,6 +696,9 @@
 	ui.tab.video	화면	Video	画面	画面	畫面	Bild
 	ui.tab.cards	카드	Cards	カード	卡牌	卡牌	Karten
 	ui.tab.input	입력	Input	入力	输入	輸入	Eingabe
+	ui.tab.controls	조작	Controls	操作	操作	操作	Steuerung
+	ui.tab.words	언어	Language	言語	语言	語言	Sprache
+	ui.tab.info	정보	Info	情報	信息	資訊	Info
 	ui.option.cardSet	카드 한 벌	Card set	カードセット	卡牌样式	卡牌樣式	Kartenset
 	ui.option.note.cardSet	겉모습만 바뀝니다. 규칙과 순위에는 닿지 않습니다.	Looks only. Rules and rankings are untouched.	見た目だけが変わります。規則と順位には影響しません。	只改变外观。不影响规则与排名。	只改變外觀。不影響規則與排名。	Nur die Optik. Regeln und Rangliste bleiben unberührt.
 	ui.button.guide	게임 방법	How to Play	遊び方	玩法	玩法	Anleitung
@@ -723,6 +726,27 @@
 	ui.tab.blinds	블라인드	Blinds	ブラインド	盲注	盲注	Blinds
 	ui.tab.stakes	스테이크	Stakes	ステーク	难度	難度	Einsätze
 	ui.tab.insight	인사이트	Insight	インサイト	洞察	洞察	Analyse
+	ui.tab.log	기록	Log	記録	记录	記錄	Verlauf
+	ui.col.level	레벨	Level	レベル	等级	等級	Stufe
+	ui.col.chips_mult	칩 × 배수	Chips × Mult	チップ × 倍率	筹码 × 倍率	籌碼 × 倍率	Chips × Mult
+	ui.col.played	친 횟수	Played	回数	次数	次數	Gespielt
+	ui.col.cards	카드	Cards	カード	卡牌	卡牌	Karten
+	ui.col.score	점수	Score	得点	分数	分數	Punkte
+	ui.run_info.ante_targets	안테별 요구 점수	Target by Ante	アンティ別の要求点	各底注目标分	各底注目標分	Ziel je Ante
+	ui.run_info.locked	잠김	Locked	ロック	未解锁	未解鎖	Gesperrt
+	ui.run_info.read	읽은 것	Read	読んだもの	已读	已讀	Gelesen
+	ui.blind.done	격파함	Cleared	撃破	已通关	已通關	Geschafft
+	ui.blind.next	다음	Next	次	下一个	下一個	Nächste
+	ui.stake.order	위로 갈수록 더합니다. 아래의 제약은 그대로 남습니다	Each stake adds to the ones below it.	上に行くほど重なります。下の制約はそのまま残ります	越往上越叠加，下面的限制依然保留	越往上越疊加，下面的限制依然保留	Jeder Einsatz kommt zu den darunter hinzu.
+	ui.insight.lead	지금 판을 읽어 다음 한 수에 필요한 것만 적습니다	Reads the board and lists only what the next move needs.	今の盤を読み、次の一手に必要なものだけを記します	读取当前局面，只列出下一步所需的内容	讀取當前局面，只列出下一步所需的內容	Liest das Spielfeld und nennt nur, was der nächste Zug braucht.
+	ui.insight.level.warn	살핌	Watch	注意	注意	注意	Achtung
+	ui.insight.level.advise	권함	Advice	推奨	建议	建議	Rat
+	ui.insight.level.info	알림	Info	情報	信息	資訊	Info
+	ui.log.soon	아직 붙지 않은 기능입니다	Not built yet	まだ実装されていません	尚未实现的功能	尚未實作的功能	Noch nicht gebaut
+	ui.log.note	화면과 문법을 먼저 정해 둡니다	The screen and its grammar are settled first.	画面と文法を先に決めておきます	先确定画面与规则	先確定畫面與規則	Bildschirm und Grammatik stehen zuerst fest.
+	ui.log.played	낸 핸드	Hands Played	出した手	出牌次数	出牌次數	Gespielte Blätter
+	ui.log.moves	이런	So far	ここまで	目前	目前	Bisher
+	ui.log.moves_unit	{n} 수	{n} moves	{n} 手	{n} 步	{n} 步	{n} Züge
 	ui.insight.none	지금 알릴 것이 없습니다	Nothing to report right now	今お知らせすることはありません	暂无可提示的内容	暫無可提示的內容	Derzeit nichts zu melden
 	ui.insight.group.round	라운드	Round	ラウンド	回合	回合	Runde
 	ui.insight.group.pick	고른 카드	Selection	選んだカード	已选卡牌	已選卡牌	Auswahl
@@ -840,9 +864,10 @@
 	ui.quality.high	높음	High	高	高	高	Hoch
 	ui.quality.medium	보통	Medium	中	中	中	Mittel
 	ui.quality.low	낮음	Low	低	低	低	Niedrig
-	ui.option.volume	음량	Volume	音量	音量	音量	Lautstärke
+	ui.option.sfx	효과음	Sound Effects	効果音	音效	音效	Effekte
+	ui.option.volume	효과음 크기	Effects Volume	効果音の音量	音效音量	音效音量	Effektlautstärke
 	ui.option.music	배경음	Music	BGM	背景音乐	背景音樂	Musik
-	ui.option.music_volume	배경음 크기	Music volume	BGM 音量	背景音乐音量	背景音樂音量	Musiklautstärke
+	ui.option.music_volume	배경음 크기	Music Volume	BGMの音量	背景音乐音量	背景音樂音量	Musiklautstärke
 	ui.option.shake	화면 흔들림	Screen Shake	画面の揺れ	画面震动	畫面震動	Bildschirmwackeln
 	ui.option.particles	파티클	Particles	パーティクル	粒子	粒子	Partikel
 	ui.option.chromatic	색수차	Chromatic	色収差	色差	色差	Farbsaum
@@ -908,16 +933,26 @@
 	ui.guide.lead	포커 족보로 점수를 내고, 조커로 그 점수를 불립니다.	Score with poker hands, then grow that score with Jokers.	ポーカーの役で得点し、ジョーカーでその点を膨らませます。	用扑克牌型得分，再用小丑把分数放大。	用撲克牌型得分，再用小丑把分數放大。	Punkte mit Pokerblättern, dann mit Jokern vervielfachen.
 	ui.label.hands_left	남은 핸드	Hands left	残りハンド	剩余出牌	剩餘出牌	Hände übrig
 	ui.label.discards_left	남은 버리기	Discards left	残り捨て札	剩余弃牌	剩餘棄牌	Ablagen übrig
-	ui.guide.goal.head	목표	Goal	目標	目标	目標	Ziel
+	ui.guide.goal.head	블라인드	Blinds	ブラインド	盲注	盲注	Blinds
 	ui.guide.goal.body	안테 8까지 블라인드를 차례로 격파합니다. 블라인드마다 요구 점수가 있고, 정해진 핸드 수 안에 그 점수를 넘겨야 합니다. 넘기지 못하면 그 자리에서 런이 끝납니다.	Beat the blinds one after another up to Ante 8. Each blind has a target score, and you must pass it within a fixed number of hands. Fail and the run ends there.	アンティ8までブラインドを順に撃破します。ブラインドごとに目標点があり、決められたハンド数以内にその点を超えなければなりません。超えられなければそこでランが終わります。	依次击破盲注，直到底注 8。每个盲注都有目标分，必须在规定的出牌次数内超过它。做不到，本次运行就此结束。	依次擊破盲注，直到底注 8。每個盲注都有目標分，必須在規定的出牌次數內超過它。做不到，本次運行就此結束。	Schlage die Blinds nacheinander bis Ante 8. Jeder Blind hat eine Zielpunktzahl, die du in einer festen Zahl von Händen überschreiten musst. Schaffst du es nicht, endet der Lauf.
-	ui.guide.score.head	점수	Score	得点	得分	得分	Punkte
+	ui.guide.score.head	족보와 점수	Hands & Score	役と得点	牌型与分数	牌型與分數	Blätter & Punkte
 	ui.guide.score.body	점수 = 칩 × 배수 입니다. 낸 카드가 만드는 족보가 기본 칩과 배수를 정하고, 득점한 카드의 숫자가 칩에 더해집니다 (A 는 11, 그림은 10).	Score = Chips × Mult. The poker hand you play sets the base chips and mult, and each scoring card adds its rank to the chips (Ace is 11, face cards are 10).	得点 = チップ × 倍率です。出したカードが作る役が基本のチップと倍率を決め、得点したカードの数字がチップに加わります（A は 11、絵札は 10）。	得分 = 筹码 × 倍率。打出的牌型决定基础筹码与倍率，参与得分的牌把点数加到筹码上（A 为 11，人头牌为 10）。	得分 = 籌碼 × 倍率。打出的牌型決定基礎籌碼與倍率，參與得分的牌把點數加到籌碼上（A 為 11，人頭牌為 10）。	Punkte = Chips × Mult. Das gespielte Pokerblatt setzt Grundchips und Mult, und jede wertende Karte addiert ihren Wert zu den Chips (Ass 11, Bildkarten 10).
 	ui.guide.round.head	한 라운드	A Round	1 ラウンド	一轮	一輪	Eine Runde
 	ui.guide.round.body	1. 패에서 최대 5장을 눌러 고릅니다.  2. 「낸다」 로 점수를 냅니다.  3. 패가 시원찮으면 「버린다」 — 버린 만큼 다시 뽑습니다. 버리기도 횟수가 있습니다.	1. Pick up to five cards from your hand.  2. Press Play to score them.  3. If the hand is poor, press Discard — you draw as many as you threw away. Discards are limited too.	1. 手札から最大5枚を選びます。 2.「出す」で得点します。 3. 手札が弱ければ「捨てる」— 捨てた分だけ引き直します。捨て札にも回数があります。	1. 从手牌中最多选五张。 2. 按「出牌」得分。 3. 手牌不好就按「弃牌」——弃掉几张就补几张。弃牌次数也有限。	1. 從手牌中最多選五張。 2. 按「出牌」得分。 3. 手牌不好就按「棄牌」——棄掉幾張就補幾張。棄牌次數也有限。	1. Wähle bis zu fünf Karten aus der Hand.  2. Drücke Ausspielen, um zu werten.  3. Ist das Blatt schwach, drücke Ablegen — du ziehst so viele nach, wie du abgelegt hast. Auch Ablagen sind begrenzt.
 	ui.guide.joker.body	이 게임의 알맹이입니다. 상점에서 사고, 위쪽 줄에 최대 5개까지 세웁니다. 왼쪽부터 차례로 발동하므로 순서가 점수를 바꿉니다. 마우스를 올리면 무엇을 하는지 보입니다.	These are the heart of the game. Buy them in the shop and line up to five along the top. They trigger left to right, so their order changes your score. Hover one to see what it does.	このゲームの核です。ショップで買い、上の列に最大5枚まで並べます。左から順に発動するので、並び順が得点を変えます。カーソルを乗せると何をするか分かります。	它们是这个游戏的核心。在商店购买，最多在上排摆五个。它们从左到右依次触发，所以顺序会改变得分。把鼠标移上去可以看到效果。	它們是這個遊戲的核心。在商店購買，最多在上排擺五個。它們從左到右依次觸發，所以順序會改變得分。把滑鼠移上去可以看到效果。	Sie sind das Herz des Spiels. Kaufe sie im Laden und stelle bis zu fünf in die obere Reihe. Sie lösen von links nach rechts aus, die Reihenfolge ändert also deine Punkte. Fahre über einen, um zu sehen, was er tut.
 	ui.guide.shop.body	블라인드를 격파하면 열립니다. 조커·소모품·바우처를 삽니다. 「리롤」 로 물건을 바꿀 수 있습니다. 돈은 격파 보상 + 남은 핸드 + 이자로 들어옵니다.	It opens after you beat a blind. Buy Jokers, consumables and vouchers; press Reroll to swap the wares. Money comes from the blind reward, unused hands and interest.	ブラインドを撃破すると開きます。ジョーカー・消耗品・バウチャーを買い、「リロール」で品を入れ替えられます。お金は報酬と残りハンドと利息で入ります。	击破盲注后开启。可以买小丑、消耗品与优惠券，按「刷新」更换商品。金钱来自击破奖励、剩余出牌次数与利息。	擊破盲注後開啟。可以買小丑、消耗品與優惠券，按「刷新」更換商品。金錢來自擊破獎勵、剩餘出牌次數與利息。	Er öffnet, wenn du einen Blind schlägst. Kaufe Joker, Verbrauchsgegenstände und Gutscheine; mit Neu mischen tauschst du die Waren. Geld kommt aus Belohnung, ungenutzten Händen und Zinsen.
-	ui.guide.controls.head	조작	Controls	操作	操作	操作	Steuerung
+	ui.guide.controls.head	정보	Info	情報	信息	資訊	Info
 	ui.guide.controls.body	카드를 누르면 고르고, 다시 누르면 풉니다. 은은하게 물든 카드는 그것도 고르면 더 높은 족보가 되는 카드입니다. 「족보 목록」 은 어느 족보가 몇 점인지 보여줍니다.	Tap a card to pick it, tap again to let it go. A faintly tinted card is one that would make a better hand if you picked it too. Hands shows what each poker hand is worth.	カードを押すと選び、もう一度押すと外れます。ほのかに色づいたカードは、それも選べばより高い役になるカードです。「役一覧」でどの役が何点かを見られます。	点击一张牌选中，再点一次取消。淡淡着色的牌表示把它也选上会凑成更好的牌型。「牌型」里可以看到每种牌型值多少分。	點擊一張牌選中，再點一次取消。淡淡著色的牌表示把它也選上會湊成更好的牌型。「牌型」裡可以看到每種牌型值多少分。	Tippe eine Karte an, um sie zu wählen, nochmal zum Abwählen. Eine leicht getönte Karte würde das Blatt verbessern, wenn du sie mitnimmst. Blätter zeigt, was jedes Pokerblatt wert ist.
+	ui.guide.item.head	소모품	Consumables	消耗品	消耗品	消耗品	Verbrauch
+	ui.guide.item.body	타로는 손패의 카드를 바꾸고, 행성은 족보의 레벨을 올리고, 스펙트럴은 크게 바꾸는 대신 대가가 있습니다. 한 번에 최대 2개까지 들고, 손패를 고른 채로 써야 하는 것도 있습니다.	Tarots change cards in your hand, planets level up a poker hand, and spectrals change more at a cost. You hold up to 2 at a time, and some must be used with cards selected.	タロットは手札のカードを変え、惑星は役のレベルを上げ、スペクトルは大きく変える代わりに代償があります。同時に2枚まで持て、手札を選んだ状態で使うものもあります。	塔罗牌改变手牌中的卡牌，行星牌提升牌型等级，幻灵牌改变更多但有代价。最多同时持有2张，有些需要先选中手牌才能使用。	塔羅牌改變手牌中的卡牌，行星牌提升牌型等級，幻靈牌改變更多但有代價。最多同時持有2張，有些需要先選中手牌才能使用。	Tarots verändern Karten auf der Hand, Planeten erhöhen die Stufe eines Blattes, Spektralkarten verändern mehr, kosten aber etwas. Du hältst höchstens 2 davon, manche brauchen ausgewählte Karten.
+	ui.guide.deck.head	덱과 스테이크	Deck & Stake	デッキとステーク	牌组与赌注	牌組與賭注	Deck & Einsatz
+	ui.guide.deck.body	덱은 런을 시작하는 52장이고 덱마다 규칙 하나가 다릅니다. 스테이크는 난이도이고, 높은 스테이크를 격파해야 그다음 스테이크가 열립니다. 둘 다 런을 시작할 때 고릅니다.	A deck is the 52 cards you start a run with, and each deck bends one rule. The stake is the difficulty, and clearing one unlocks the next. You pick both when you start a run.	デッキはランを始める52枚で、デッキごとに規則が一つ違います。ステークは難易度で、高いステークを撃破するとその次が開きます。どちらもラン開始時に選びます。	牌组是开局的52张牌，每种牌组会改变一条规则。赌注是难度，通关后解锁下一级。两者都在开始新一局时选择。	牌組是開局的52張牌，每種牌組會改變一條規則。賭注是難度，通關後解鎖下一級。兩者都在開始新一局時選擇。	Ein Deck sind die 52 Karten, mit denen du startest, und jedes Deck ändert eine Regel. Der Einsatz ist die Schwierigkeit; wer einen schafft, schaltet den nächsten frei. Beides wählst du beim Start.
+	ui.guide.next	다음 갈래	Next Topic	次の項目	下一项	下一項	Nächstes Thema
+	ui.guide.order.head	차례	Order	順番	顺序	順序	Reihenfolge
+	ui.guide.order.hand	족보	Hand	役	牌型	牌型	Blatt
+	ui.guide.order.card	카드	Cards	カード	卡牌	卡牌	Karten
+	ui.guide.order.joker	조커	Jokers	ジョーカー	小丑牌	小丑牌	Joker
+	ui.guide.order.mult	곱셈	Multiply	掛け算	相乘	相乘	Multiplizieren
 	ui.hint.hands_left	   ·   남은 핸드 {n}회	   ·   {n} hands left	   ·   残りハンド {n} 回	   ·   剩余出牌 {n} 次	   ·   剩餘出牌 {n} 次	   ·   noch {n} Hände
 	ui.card.chips_split	 — 기본 {base} + 덤 {bonus}	 — base {base} + bonus {bonus}	 — 基本 {base} + ボーナス {bonus}	 — 基础 {base} + 附加 {bonus}	 — 基礎 {base} + 附加 {bonus}	 — Basis {base} + Bonus {bonus}
 	ui.rule.discount	{n}% 싸게 삽니다	{n}% cheaper	{n}% 安く買えます	便宜 {n}%	便宜 {n}%	{n}% günstiger
@@ -1156,6 +1191,7 @@
 	ui.title.leaveBody	지금까지 둔 것은 저장됩니다. 타이틀의 「이어하기」로 돌아올 수 있습니다.	Your progress is saved. You can come back from Continue on the title screen.	ここまでの進行は保存されます。タイトルの「つづきから」で戻れます。	当前进度会被保存。可从标题画面的「继续」返回。	目前進度會被儲存。可從標題畫面的「繼續」返回。	Dein Fortschritt wird gespeichert. Du kannst über „Fortsetzen“ im Titelbildschirm zurückkehren.
 	ui.option.uiTheme	테마	Theme	テーマ	主题	主題	Thema
 	ui.option.note.uiTheme	판의 색을 고릅니다	Pick the panel colors	パネルの色を選びます	选择面板配色	選擇面板配色	Farben der Panels
+	ui.option.reset	처음값으로	Reset to Default	初期値に戻す	恢复默认	恢復預設	Zurücksetzen
 	ui.theme.slate	기본	Default	標準	默认	預設	Standard
 	ui.theme.ink	검정	Black	ブラック	黑色	黑色	Schwarz
 	ui.theme.navy	남색	Navy	ネイビー	深蓝	深藍	Marine
@@ -1215,3 +1251,16 @@
 	ui.badge.next_target	요구 점수 {n}	Target {n}	要求スコア {n}	要求分数 {n}	要求分數 {n}	Ziel {n}
 	ui.badge.pack_note	마음에 안 들면 건너뜁니다	Skip it if you would rather not	気に入らなければスキップします	不满意可以跳过	不滿意可以跳過	Überspringen, wenn nichts passt
 	ui.badge.pick_note	판 위에서 이 블라인드를 고르거나 건너뜁니다	Pick this blind on the table, or skip it	盤上でこのブラインドを選ぶかスキップします	在牌桌上选择此盲注或跳过	在牌桌上選擇此盲注或跳過	Wähle diesen Blind auf dem Tisch oder überspringe ihn
+	ui.run.subtitle	무엇으로 시작할지 먼저 고릅니다	Choose how to start first	まず何で始めるかを選びます	先选择如何开始	先選擇如何開始	Zuerst wählen, womit es losgeht
+	ui.run.pick	고른다	Choose	選ぶ	选择	選擇	Wählen
+	ui.run.continue	이어한다	Continue	続ける	继续	繼續	Fortsetzen
+	ui.run.enter	들어간다	Enter	入る	进入	進入	Los
+	ui.run.open	연다	Open	開く	打开	打開	Öffnen
+	ui.run.locked	잠김	Locked	ロック	已锁定	已鎖定	Gesperrt
+	ui.run.new_desc	덱과 스테이크를 고르고 안테 1부터 시작합니다	Pick a deck and a stake, then start from ante 1	デッキとステークを選び、アンティ1から始めます	选择牌组和赌注，从底注 1 开始	選擇牌組和賭注，從底注 1 開始	Deck und Einsatz wählen, ab Ante 1 starten
+	ui.run.challenge_desc	시작 조건이 바뀐 판 20개입니다	20 runs with changed starting rules	開始条件が変わる20のランです	20 局改变了起始条件的对局	20 局改變了起始條件的對局	20 Runden mit geänderten Startregeln
+	ui.setup.picked	고른 덱	Chosen deck	選んだデッキ	所选牌组	所選牌組	Gewähltes Deck
+	ui.title.collection_desc	만나 본 조커와 소모품. 발견한 것이 앞면입니다	Jokers and consumables you have met. Found ones show their face	出会ったジョーカーと消費アイテム。見つけたものは表向きです	遇见过的小丑与消耗品。发现过的显示正面	遇見過的小丑與消耗品。發現過的顯示正面	Joker und Verbrauchsgüter, die du getroffen hast. Gefundene liegen offen
+	ui.title.leaderboard_desc	이번 시즌의 순위와 내 자리	This season's standings and your place	今シーズンの順位とあなたの位置	本赛季排名与你的位置	本賽季排名與你的位置	Rangliste dieser Saison und dein Platz
+	ui.resume.consumables	소모품	Consumables	消費アイテム	消耗品	消耗品	Verbrauchsgüter
+	ui.resume.none	없음	None	なし	无	無	Keine

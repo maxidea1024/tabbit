@@ -28,42 +28,40 @@ import { StakeKind } from '../generated/enums/stake-kind'
 import { backLookOf, drawCardBack } from '../render/card-back'
 import { UI, SIZE, TEXT, WEIGHT } from '../render/theme'
 import type { ToolSpot } from './layout'
+import { FULL_BODY_TOP, FULL_EDGE, FULL_FOOT_Y } from './modal'
 import type { TipRequest } from './run-panel'
 import { Button } from './widgets'
 
-const WIDTH = 760
+/** 전면 화면의 몸통 폭. 화면의 변에서 64씩 들여놓은 자리입니다. */
+const WIDTH = SIZE.width - FULL_EDGE * 2
 
-/** 덱 격자. 15칸이므로 5 × 3 입니다. */
-const COLUMNS = 5
-const CELL_W = 132
-const CELL_H = 118
-const GRID_X = Math.round((WIDTH - COLUMNS * CELL_W) / 2)
+/** 덱 격자. 15칸이므로 8 × 2 입니다. **한 줄에 여덟이 화면의 폭을 씁니다.** */
+const COLUMNS = 8
+const CELL_W = WIDTH / COLUMNS
+const CELL_H = 132
+const GRID_X = 0
 const GRID_Y = 24
 
 /** 칸 안의 뒷면. **손패보다 작지만 무늬가 읽히는 크기입니다.** */
-const BACK_W = Math.round(SIZE.cardWidth * 0.62)
-const BACK_H = Math.round(SIZE.cardHeight * 0.62)
+const BACK_W = Math.round(SIZE.cardWidth * 0.75)
+const BACK_H = Math.round(SIZE.cardHeight * 0.75)
 
 /** 스테이크 줄. 덱 격자 아래에 한 줄로 놓입니다. */
-const STAKE_COUNT = 8
-const STAKE_W = 80
-const STAKE_H = 58
-const STAKE_X = Math.round((WIDTH - STAKE_COUNT * STAKE_W) / 2)
-const STAKE_HEAD_Y = GRID_Y + 3 * CELL_H + 14
+const STAKE_W = 96
+const STAKE_H = 52
+const STAKE_X = 0
+const STAKE_HEAD_Y = GRID_Y + 2 * CELL_H + 12
 const STAKE_Y = STAKE_HEAD_Y + 24
 
 /**
- * 단추 줄. 시작과 랭크가 나란히 놓입니다.
- *
- * 스테이크 바로 아래입니다. 그 사이에 조커 풀을 고르는 단추 둘이 있었고, 풀이 하나가
- * 되면서 걷었습니다.
+ * 단추 줄. **아래 띠의 오른쪽입니다** — 나아가는 줄이고 둘 다 `lg`, 금색은 하나입니다.
  */
-const START_W = 400
+const START_W = 380
 const RANKED_W = 160
 const BTN_GAP = 12
-const BTN_H = 48
-const BTN_X = Math.round((WIDTH - (START_W + BTN_GAP + RANKED_W)) / 2)
-const BTN_Y = STAKE_Y + STAKE_H + 18
+const BTN_H = 60
+const BTN_X = WIDTH - START_W - BTN_GAP - RANKED_W
+const BTN_Y = FULL_FOOT_Y - FULL_BODY_TOP + 12
 
 const HEIGHT = BTN_Y + BTN_H
 
@@ -209,13 +207,13 @@ export class SetupBody {
     this.body.addChild(this.grid, this.stakes)
 
     this.startButton = new Button(t('ui.setup.start'), START_W, BTN_H, 'primary',
-                                  () => this.onStart?.(this.picked()), 19)
+                                  () => this.onStart?.(this.picked()))
     this.startButton.position.set(BTN_X, BTN_Y)
 
     // **랭크는 조용합니다.** 같은 색으로 같은 크기면 눌러야 하는 것이 둘로 보입니다 —
     // 이 화면에서 대개 누르는 것은 왼쪽의 하나입니다.
     this.rankedButton = new Button(t('ui.lb.ranked'), RANKED_W, BTN_H, 'neutral',
-                                   () => this.onStartRanked?.(), 15)
+                                   () => this.onStartRanked?.())
     this.rankedButton.position.set(BTN_X + START_W + BTN_GAP, BTN_Y)
 
     // 랭크가 잠긴 이유는 **올렸을 때 적힙니다.** 단추 밑에 한 줄을 늘 두면 로그인한
@@ -303,13 +301,12 @@ export class SetupBody {
 
       // **칸의 바탕은 겉면의 것입니다.** 색을 손으로 적어 두었더니 겉면을 갈아입어도 이
       // 격자만 앞 겉면의 색으로 남았습니다 — 고른 것의 파랑만 약속된 색이므로 고정입니다.
+      // **고른 것만 금색 테입니다.** 나머지는 뒷면과 이름만 놓입니다 — 칸마다 상자를
+      // 두르면 15개의 상자가 격자를 만듭니다.
       const board = new Graphics()
-      board.roundRect(0, 0, CELL_W - 10, CELL_H - 10, 8)
-        .fill({ color: UI.cell })
-        .stroke({ color: here ? UI.pick : UI.hairline, width: here ? 2 : 1.5 })
       if (here) {
-        board.roundRect(0, 0, CELL_W - 10, CELL_H - 10, 8)
-          .fill({ color: UI.pick, alpha: 0.22 })
+        board.rect(0.5, 0.5, CELL_W - 11, CELL_H - 11)
+          .stroke({ color: UI.yellow, width: 1 })
       }
       cell.addChild(board)
 
@@ -323,11 +320,11 @@ export class SetupBody {
         text: this.decks[i].name,
         style: {
           fontSize: TEXT.small, fill: here ? UI.ink : UI.inkDim, fontWeight: WEIGHT.bold,
-          wordWrap: true, wordWrapWidth: CELL_W - 22, align: 'center', lineHeight: 14,
+          wordWrap: true, wordWrapWidth: CELL_W - 22, align: 'center',
         },
       })
       name.anchor.set(0.5, 0)
-      name.position.set((CELL_W - 10) / 2, 12 + BACK_H + 6)
+      name.position.set((CELL_W - 10) / 2, 12 + BACK_H + 8)
       cell.addChild(name)
 
       cell.eventMode = 'static'
@@ -375,19 +372,14 @@ export class SetupBody {
       const cx = STAKE_X + i * STAKE_W
       cell.position.set(cx, STAKE_Y)
 
-      const board = new Graphics()
-      board.roundRect(0, 0, STAKE_W - 10, STAKE_H, 8)
-        .fill({ color: UI.cell })
-        .stroke({ color: here ? UI.pick : UI.hairline, width: here ? 2 : 1.5 })
-      if (here) {
-        board.roundRect(0, 0, STAKE_W - 10, STAKE_H, 8)
-          .fill({ color: UI.pick, alpha: 0.22 })
-      }
       // 색 조각 하나. **글자에 색을 입히지 않습니다** — 검은색과 흰색이 글자로는 배경에
-      // 묻히고, 조각으로 두면 여덟이 같은 밝기로 읽힙니다.
-      board.roundRect((STAKE_W - 10) / 2 - 13, 8, 26, 16, 4)
-        .fill({ color: tint })
-        .stroke({ color: UI.outline, width: 1 })
+      // 묻히고, 조각으로 두면 여덟이 같은 밝기로 읽힙니다. 고른 것만 금색 테입니다.
+      const board = new Graphics()
+      const chipW = STAKE_W - 30
+      board.rect((STAKE_W - 10) / 2 - chipW / 2, 4, chipW, 20).fill({ color: tint })
+      if (here) {
+        board.rect(0.5, 0.5, STAKE_W - 11, STAKE_H - 1).stroke({ color: UI.yellow, width: 1 })
+      }
       cell.addChild(board)
 
       // **두 줄까지 접힙니다.** 한국어의 이름은 색 하나(`흰색`)이지만 다른 말에는
@@ -396,14 +388,14 @@ export class SetupBody {
         text: row.name,
         style: {
           fontSize: TEXT.micro, fill: here ? UI.ink : UI.inkDim, fontWeight: WEIGHT.bold,
-          wordWrap: true, wordWrapWidth: STAKE_W - 18, align: 'center', lineHeight: 12,
+          wordWrap: true, wordWrapWidth: STAKE_W - 18, align: 'center',
           // **글자 단위로 끊습니다.** 일본어와 중국어에는 공백이 없어 낱말 단위로만
           // 접으면 `ホワイトステーク` 가 한 줄로 남아 옆 칸을 덮습니다.
           breakWords: true,
         },
       })
       name.anchor.set(0.5, 0)
-      name.position.set((STAKE_W - 10) / 2, 27)
+      name.position.set((STAKE_W - 10) / 2, 30)
       cell.addChild(name)
 
       cell.eventMode = 'static'

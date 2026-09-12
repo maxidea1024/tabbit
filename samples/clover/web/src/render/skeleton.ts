@@ -54,8 +54,10 @@ export function skeletonCircle(g: Graphics, diameter: number): void {
 
 /** 바탕 하나와 그 안의 한 단 밝은 판. 사각형 둘의 공통입니다. */
 function plate(g: Graphics, width: number, height: number, radius: number): void {
-  g.roundRect(0, 0, width, height, radius).fill({ color: COLOR.unseen })
+  // 모서리는 0 입니다. 부르는 쪽의 인자 순서를 지키기 위해 매개변수만 남깁니다.
+  void radius
+  g.rect(0, 0, width, height).fill({ color: COLOR.unseen })
   const pad = Math.min(width, height) * INSET
-  g.roundRect(pad, pad, width - pad * 2, height - pad * 2, Math.max(2, radius - pad * 0.5))
+  g.rect(pad, pad, width - pad * 2, height - pad * 2)
     .fill({ color: COLOR.unseenInk, alpha: 0.55 })
 }

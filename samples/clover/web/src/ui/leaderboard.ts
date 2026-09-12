@@ -31,22 +31,26 @@ import { nameOf, t, tf } from '../core/strings'
 import * as board from '../net/leaderboard'
 import { loggedIn } from '../net/session'
 import type { BoardInfo, BoardPage } from '../net/leaderboard'
-import { UI, TEXT, WEIGHT } from '../render/theme'
+import { UI, TEXT, WEIGHT, SIZE } from '../render/theme'
 import type { ModalPanel } from './modal'
-import { panelFrame } from './modal'
+import { FULL_BODY_TOP, FULL_EDGE, FULL_FOOT_Y, fullFrame } from './modal'
 import { ScrollView } from './scroll'
+import { piece } from './chrome'
+import { wellTint } from '../render/skin'
 import { Button } from './widgets'
 
-const WIDTH = 1180
-const HEIGHT = 744
+/** 전면 화면입니다. 화면의 폭과 높이를 씁니다. */
+const WIDTH = SIZE.width
+const HEIGHT = SIZE.height
 
-/** 판의 안쪽 여백. 사방이 같습니다. */
-const PAD = 26
+/** 화면의 변에서 들여놓는 여백. 전면 화면의 여백과 같습니다. */
+const PAD = FULL_EDGE
 
-/** 머리 띠 아래에서 내용이 시작하는 자리. */
-const TOP = 62
+/** 제목 줄 아래에서 내용이 시작하는 자리. */
+const TOP = FULL_BODY_TOP
 
-const TAB_H = 32
+/** 갈래 칩. 높이 계단의 `sm` 입니다. */
+const TAB_H = 36
 const TAB_GAP = 16
 
 /** 내용이 시작하는 세로 자리. */
@@ -57,7 +61,7 @@ const MINE_H = 40
 const FOOT_H = 44
 
 /** 내 줄이 시작하는 자리. **아래에서부터 셉니다** — 자리가 고정입니다. */
-const MINE_Y = HEIGHT - PAD - FOOT_H - MINE_H - 8
+const MINE_Y = FULL_FOOT_Y - 8 - MINE_H
 
 /** 왼쪽 목록이 보이는 높이. */
 const BODY_H = MINE_Y - BODY_Y - 8
@@ -160,6 +164,7 @@ export function valueLabel(data: Data, metric: string, value: number): string {
 export class LeaderboardPanel implements ModalPanel {
   readonly view = new Container()
   readonly size = { width: WIDTH, height: HEIGHT }
+  readonly fullscreen = true
 
   private readonly tabsRow = new Container()
   private readonly listScroll = new ScrollView(LIST_W, BODY_H)
@@ -196,12 +201,16 @@ export class LeaderboardPanel implements ModalPanel {
   onNeedAccount?: () => void
 
   constructor(private readonly data: Data, private readonly onClose: () => void) {
-    this.view.addChild(panelFrame(WIDTH, HEIGHT, t('ui.lb.title'), this.onClose,
-                                  undefined, false))
+    this.view.addChild(fullFrame(t('ui.lb.title'), [], this.onClose))
 
     // 왼쪽 목록의 바탕. **굴러가는 것은 안쪽이고 바탕은 가만히 있습니다.**
     const listPlate = new Graphics()
-    listPlate.roundRect(PAD - 8, BODY_Y - 8, LIST_W + 16, BODY_H + 16, 10)
+    const listSkin = piece('well', LIST_W + 16, BODY_H + 16, wellTint(UI.cell))
+    if (listSkin !== undefined) {
+      listSkin.position.set(PAD - 8, BODY_Y - 8)
+      listSkin.alpha = 0.9
+      this.view.addChild(listSkin)
+    } else listPlate.rect(PAD - 8, BODY_Y - 8, LIST_W + 16, BODY_H + 16)
       .fill({ color: UI.cell, alpha: 0.72 })
     this.listScroll.position.set(PAD, BODY_Y)
 
@@ -358,24 +367,17 @@ export class LeaderboardPanel implements ModalPanel {
     }
   }
 
+  /**
+   * 갈래 칩 하나. **곁단추입니다** — 고른 것은 밝은 단추, 나머지는 그 밖의 단추입니다.
+   *
+   * 폭은 글의 길이에서 냅니다. 말마다 길이가 다르므로 수로 적어 두면 어느 말에서는
+   * 넘칩니다.
+   */
   private chip(label: string, on: boolean, onPress: () => void): Container {
-    const node = new Container()
-    const text = new Text({
-      text: label,
-      style: { fontSize: TEXT.copy, fill: on ? UI.ink : UI.inkDim, fontWeight: WEIGHT.normal },
-    })
-    const width = Math.round(text.width) + 28
-    const plate = new Graphics()
-    plate.roundRect(0, 0, width, TAB_H, 8)
-      .fill({ color: on ? UI.pick : UI.cell })
-      .stroke({ color: on ? UI.pick : UI.hairline, width: 1.5 })
-    text.anchor.set(0.5)
-    text.position.set(width / 2, TAB_H / 2)
-    node.addChild(plate, text)
-    node.eventMode = 'static'
-    node.cursor = 'pointer'
-    node.on('pointertap', onPress)
-    return node
+    const probe = new Text({ text: label, style: { fontSize: TEXT.small } })
+    const width = Math.max(72, Math.round(probe.width) + 32)
+    probe.destroy()
+    return new Button(label, width, TAB_H, on ? 'select' : 'neutral', onPress)
   }
 
   // -------------------------------------------------------------------------
@@ -394,9 +396,9 @@ export class LeaderboardPanel implements ModalPanel {
 
       const row = new Container()
       const back = new Graphics()
-      back.roundRect(2, y + 2, LIST_W - 14, LIST_ROW - 4, 7)
+      back.rect(2, y + 2, LIST_W - 14, LIST_ROW - 4)
         .fill({ color: on ? UI.rule : PAINT.sheen, alpha: on ? 1 : 0.0001 })
-      if (on) back.roundRect(2, y + 7, 3, LIST_ROW - 14, 2).fill(UI.pick)
+      if (on) back.rect(2, y + 7, 3, LIST_ROW - 14).fill(UI.pick)
       row.addChild(back)
 
       const label = new Text({
@@ -489,9 +491,9 @@ export class LeaderboardPanel implements ModalPanel {
     for (let at = 0; at < PAGE_SIZE; at++) {
       const bar = new Graphics()
       const y = at * ROW_H
-      bar.roundRect(COL.name, y + 7, 120, ROW_H - 16, 4)
+      bar.rect(COL.name, y + 7, 120, ROW_H - 16)
         .fill({ color: PAINT.sheen, alpha: 0.045 })
-      bar.roundRect(COL.value - 70, y + 7, 70, ROW_H - 16, 4)
+      bar.rect(COL.value - 70, y + 7, 70, ROW_H - 16)
         .fill({ color: PAINT.sheen, alpha: 0.03 })
       into.addChild(bar)
     }
@@ -514,12 +516,12 @@ export class LeaderboardPanel implements ModalPanel {
 
     const back = new Graphics()
     if (mine) {
-      back.roundRect(0, y, TABLE_W, ROW_H - 2, 6)
+      back.rect(0, y, TABLE_W, ROW_H - 2)
         .fill({ color: UI.cell })
         .stroke({ color: UI.bar, width: 1, alpha: 0.55 })
     } else {
       // **한 줄 걸러 옅게.** 25줄이 붙어 있으면 눈이 줄을 놓칩니다.
-      back.roundRect(0, y, TABLE_W, ROW_H - 2, 6)
+      back.rect(0, y, TABLE_W, ROW_H - 2)
         .fill({ color: PAINT.sheen, alpha: striped ? 0.022 : 0.0001 })
     }
     row.addChild(back)
@@ -595,7 +597,7 @@ export class LeaderboardPanel implements ModalPanel {
     const shown = this.shown
 
     const plate = new Graphics()
-    plate.roundRect(TABLE_X, y, TABLE_W, MINE_H, 9)
+    plate.rect(TABLE_X, y, TABLE_W, MINE_H)
       .fill({ color: UI.cell })
       .stroke({ color: shown?.me ? UI.pick : UI.hairline, width: 1.5,
                 alpha: shown?.me ? 0.7 : 1 })
@@ -623,7 +625,7 @@ export class LeaderboardPanel implements ModalPanel {
 
       if (guest) {
         const link = new Button(t('ui.account.link'), 120, 26, 'primary',
-                                () => this.later(() => this.onNeedAccount?.()), 12)
+                                () => this.later(() => this.onNeedAccount?.()))
         link.position.set(TABLE_X + TABLE_W - 132, y + (MINE_H - 26) / 2)
         this.mineBar.addChild(link)
       }
@@ -660,7 +662,7 @@ export class LeaderboardPanel implements ModalPanel {
     const onPage = shown.rows.some(row => row.rank === shown.me?.rank)
     if (!onPage) {
       const jump = new Button(t('ui.button.toMe'), 96, 26, 'select',
-                              () => this.later(() => void this.loadPage('me')), 12)
+                              () => this.later(() => void this.loadPage('me')))
       jump.position.set(TABLE_X + COL.value - amount.width - 118, y + (MINE_H - 26) / 2)
       this.mineBar.addChild(jump)
     }
@@ -674,7 +676,8 @@ export class LeaderboardPanel implements ModalPanel {
     this.foot.removeChildren().forEach(child => child.destroy({ children: true }))
 
     // **자리가 고정입니다.** 표의 길이에 따라 오르내리면 같은 단추를 매번 찾아야 합니다.
-    const y = HEIGHT - PAD - FOOT_H
+    // 아래 띠의 세로 가운데입니다.
+    const y = FULL_FOOT_Y + (HEIGHT - FULL_FOOT_Y - FOOT_H) / 2
     const shown = this.shown
     if (!shown) return
 
@@ -714,7 +717,7 @@ export class LeaderboardPanel implements ModalPanel {
   private arrow(glyph: string, live: boolean, onPress: () => void): Container {
     const node = new Container()
     const plate = new Graphics()
-    plate.roundRect(0, 0, 30, 30, 7)
+    plate.rect(0, 0, 30, 30)
       .fill({ color: live ? UI.cell : UI.well })
       .stroke({ color: live ? UI.hairline : UI.hairline, width: 1 })
     const text = new Text({
@@ -738,7 +741,7 @@ export class LeaderboardPanel implements ModalPanel {
     if (!this.waiting) return
 
     const cover = new Graphics()
-    cover.roundRect(TABLE_X, TABLE_TOP - 4, TABLE_W, TABLE_H + 8, 8)
+    cover.rect(TABLE_X, TABLE_TOP - 4, TABLE_W, TABLE_H + 8)
       .fill({ color: UI.scrim, alpha: 0.55 })
     this.veil.addChild(cover)
 
