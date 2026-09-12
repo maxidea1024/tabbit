@@ -456,22 +456,4 @@ public class RecipeModel
 
         return parsed.ToObject<RecipeModel>();
     }
-
-    /// <summary>
-    /// The most recently constructed recipe.
-    ///
-    /// Ambient state, and dubious: deserialization and `--new-recipe` both construct
-    /// one, so this points at whichever happened last rather than at the recipe being
-    /// run. Nothing reads it today; prefer passing the recipe explicitly, as the
-    /// exporters and generators do.
-    /// </summary>
-    public static RecipeModel Current { get; private set; } = null!;
-
-    /// <summary>
-    /// Publishes the new instance as <see cref="Current"/>.
-    /// </summary>
-    public RecipeModel()
-    {
-        Current = this;
-    }
 }

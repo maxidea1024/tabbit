@@ -36,9 +36,4 @@ public sealed class MatrixShape
 
     /// <summary>That table's field holding the position in the grid arrays.</summary>
     public required string ColumnAtField { get; init; }
-
-    /// <summary>The column table for this shape, or null when the model has no such table.</summary>
-    [JsonIgnore]
-    public Table? ColumnTableOrNull
-        => Model.Current?.Tables.Find(table => table.Name == ColumnTable);
 }

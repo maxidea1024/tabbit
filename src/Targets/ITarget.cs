@@ -74,8 +74,8 @@ public sealed class TargetContext
     /// history recorded from a client build would report every server-only table as
     /// deleted, and the next server build would report them all as added again.
     ///
-    /// The same instance for every entry of a run, and the same one
-    /// <see cref="Model.Current"/> points at.
+    /// The same instance for every entry of a run, and the one every table's
+    /// <see cref="Table.Model"/> points at.
     /// </summary>
     public Model FullModel { get; }
 

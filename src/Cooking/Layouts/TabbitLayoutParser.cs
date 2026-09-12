@@ -1386,6 +1386,7 @@ public sealed partial class TabbitLayoutParser : ILayoutParser
 
         var table = new Models.Table
         {
+            Model = Model,
             Location = block.Location,
             TargetSide = block.TargetSide,
             RawName = block.RawName,

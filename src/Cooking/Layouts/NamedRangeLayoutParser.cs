@@ -125,6 +125,7 @@ public sealed class NamedRangeLayoutParser : ILayoutParser
 
         var table = new Models.Table
         {
+            Model = _context.Model,
             Location = marker.Location,
             TargetSide = TargetSide.Both,
             RawName = rawName,
@@ -1201,6 +1202,7 @@ public sealed class NamedRangeLayoutParser : ILayoutParser
 
         var companion = new Models.Table
         {
+            Model = _context.Model,
             Location = table.Location,
             TargetSide = table.TargetSide,
             RawName = table.RawName + MatrixColumnTableSuffix,

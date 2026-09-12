@@ -350,6 +350,7 @@ public class SchemaDeclarationsTests
 
         model.Tables.Add(new Table
         {
+            Model = model,
             Location = new Location { Filename = "book.xlsx", Sheet = "T" },
             RawName = "Reward",
             Name = "Reward",

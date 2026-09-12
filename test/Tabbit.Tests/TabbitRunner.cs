@@ -43,10 +43,10 @@ internal sealed class RunResult
 /// Drives the Tabbit CLI as a subprocess.
 ///
 /// Running out of process rather than calling into the code directly is
-/// deliberate: Tabbit keeps conversion state in statics (Model.Current,
-/// RecipeModel.Current, StagingFiles), so two in-process conversions in the same
-/// test run would contaminate each other. A subprocess also exercises the real
-/// entry point, including argument parsing and exit codes.
+/// deliberate: Tabbit keeps conversion state in statics (StagingFiles, the message
+/// catalog), so two in-process conversions in the same test run would contaminate
+/// each other. A subprocess also exercises the real entry point, including argument
+/// parsing and exit codes.
 /// </summary>
 internal static class TabbitRunner
 {

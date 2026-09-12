@@ -300,6 +300,7 @@ public sealed class SheetPerTableLayoutParser : ILayoutParser
 
         var table = new Models.Table
         {
+            Model = Model,
             Location = sheet.Location!,
             TargetSide = TargetSide.Both,
             RawName = rawName,

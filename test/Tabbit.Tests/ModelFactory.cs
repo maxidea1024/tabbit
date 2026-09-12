@@ -22,7 +22,11 @@ internal static class ModelFactory
         var model = new Model();
 
         foreach (var table in tables)
+        {
+            // Made into a model of its own by `Table` below; this is the one it belongs to.
+            table.Model = model;
             model.Tables.Add(table);
+        }
 
         return model;
     }
@@ -38,6 +42,9 @@ internal static class ModelFactory
     {
         var table = new Models.Table
         {
+            // A table has to belong to a model from the start, and this helper does not
+            // know which one the test will put it in - `Of` re-homes it.
+            Model = new Model(),
             Name = name,
             RawName = name,
             TargetSide = TargetSide.Both,

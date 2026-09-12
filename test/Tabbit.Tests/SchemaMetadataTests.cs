@@ -44,6 +44,7 @@ public class SchemaMetadataTests
 
         var table = new Table
         {
+            Model = new Model(),
             Location = where,
             RawName = "Items",
             Name = "Items",

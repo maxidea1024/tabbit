@@ -183,13 +183,11 @@ public static class TargetRegistry
         // otherwise the sweep would delete it for not having been written.
         var building = Plan(recipe, requested).Where(cache.ShouldRun).ToList();
 
-        // The projections, made once per side rather than once per entry.
-        //
-        // Two reasons, and the second is the one that matters. It is less work - a recipe
-        // naming ten client-side outputs was narrowing the same model ten times - and
-        // `ProjectTo` cannot be called from several threads at once: it publishes the
-        // projected model as `Model.Current` and puts the previous one back when it is done,
-        // which is not a thing two threads can do to one static field.
+        // The projections, made once per side rather than once per entry: a recipe naming
+        // ten client-side outputs was narrowing the same model ten times. `ProjectTo` used
+        // to have a second reason to stay out of the parallel section below - it published
+        // the projection through a static field and put the previous one back - but that
+        // field is gone, and the first reason stands on its own.
         var sided = new Dictionary<TargetSide, Model>();
 
         foreach (var planned in building)

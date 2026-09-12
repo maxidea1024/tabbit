@@ -29,6 +29,26 @@ public class Table
     /// <summary>Name normalized to Pascal case, which is what generated code uses.</summary>
     public required string Name { get; set; }
 
+    /// <summary>
+    /// The model this table belongs to.
+    /// </summary>
+    /// <remarks>
+    /// **The explicit reference that replaced an ambient one.** A field holds only its enum's
+    /// name and used to look the enum up in a process-wide `Model.Current`, which whatever
+    /// model was constructed last had overwritten - so tests cooking models in parallel read
+    /// each other's enums, and two models in one process could never be trusted apart. A
+    /// table knows its model from the moment it is made, and its fields reach the model
+    /// through it.
+    ///
+    /// Required, so that the compiler names every place a table is constructed rather than
+    /// a null turning up at the first enum lookup. A projection's narrowed table points at
+    /// the complete model, not the projection: a field surviving the projection may be typed
+    /// with an enum that did not, and the type still has to resolve - it is emission that is
+    /// filtered, not the type system.
+    /// </remarks>
+    [JsonIgnore]
+    public required Model Model { get; set; }
+
 
 
     /// <summary>

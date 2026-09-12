@@ -191,6 +191,7 @@ public class TargetSideTests
 
         var table = new Table
         {
+            Model = model,
             Location = new Location { Filename = "book.xlsx", Sheet = "S" },
             RawName = "Stage",
             Name = "Stage",
@@ -248,6 +249,7 @@ public class TargetSideTests
 
         var table = new Table
         {
+            Model = model,
             Location = new Location { Filename = "book.xlsx", Sheet = "S" },
             RawName = "Stage",
             Name = "Stage",

@@ -472,7 +472,7 @@ public class Field
                             ("Table", OwnerTable?.Name), ("Field", Name), ("Type", TypeName)));
             }
 
-            return Model.Current.GetEnum(TypeName, null)!;
+            return OwnerTable.Model.GetEnum(TypeName, null)!;
         }
     }
 
@@ -489,7 +489,7 @@ public class Field
             if (ElementType != ValueType.Enum)
                 return null;
 
-            return Model.Current.GetEnum(TypeName, null);
+            return OwnerTable.Model.GetEnum(TypeName, null);
         }
     }
 

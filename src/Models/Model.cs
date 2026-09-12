@@ -47,29 +47,8 @@ public class Model
     /// <summary>Constant sets. Parsed before tables, for the same reason.</summary>
     public List<ConstantSet> ConstantSets { get; set; } = new List<ConstantSet>();
 
-    /// <summary>
-    /// The model being worked on, for the few places that cannot reach one directly.
-    ///
-    /// Ambient state, and not a good pattern: Field.EnumOrNull resolves an enum
-    /// through it because a Field holds only its type name. Worth replacing with an
-    /// explicit reference, which is why ProjectTo takes care to leave this pointing
-    /// at the complete model rather than a filtered view of it.
-    /// </summary>
-    public static Model Current { get; set; } = null!;
-
-    /// <summary>
-    /// Publishes the new instance as <see cref="Current"/>.
-    /// </summary>
-    public Model()
-    {
-        SetToCurrent();
-    }
-
-    /// <summary>Makes this the ambient model.</summary>
-    public void SetToCurrent()
-    {
-        Current = this;
-    }
+    // There is no ambient "current model" any more. A field reaches its model through its
+    // table - `Table.Model` - which is where the reason for that is written down.
 
     /// <summary>Empties every entity list, keeping the instance.</summary>
     public void Reset()
@@ -96,6 +75,11 @@ public class Model
     /// original Data rows, so <see cref="Field.Index"/> still addresses the right
     /// column. Consumers must therefore read cells through a field's Index rather
     /// than by walking a row positionally.
+    ///
+    /// The narrowed tables point at this model, not at the projection, and so do their
+    /// fields through their original tables: a field surviving the projection may be
+    /// typed with an enum that did not, and resolving it has to keep working - it is
+    /// emission that is being filtered, not the type system. See <see cref="Table.Model"/>.
     /// </summary>
     public Model ProjectTo(TargetSide side)
     {
@@ -104,13 +88,6 @@ public class Model
         // sides existed.
         if (side == TargetSide.Both)
             return this;
-
-        // `new Model()` publishes itself as Model.Current, which Field.EnumOrNull
-        // resolves against. That must keep pointing at the complete model: a field
-        // surviving the projection may be typed with an enum that does not, and
-        // resolution should still succeed - it is emission that is being filtered,
-        // not the type system.
-        var previousCurrent = Current;
 
         var projected = new Model();
 
@@ -121,6 +98,7 @@ public class Model
 
             var narrowed = new Table
             {
+                Model = this,
                 Location = table.Location,
                 TargetSide = table.TargetSide,
                 RawName = table.RawName,
@@ -198,8 +176,6 @@ public class Model
             if (TargetSides.Includes(side, constantSet.TargetSide))
                 projected.ConstantSets.Add(constantSet);
         }
-
-        Current = previousCurrent;
 
         return projected;
     }

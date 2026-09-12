@@ -221,6 +221,7 @@ public sealed partial class TabbitLayoutParser
     {
         var table = new Models.Table
         {
+            Model = Model,
             Location = block.Location,
             TargetSide = block.TargetSide,
             RawName = block.RawName,
@@ -302,6 +303,7 @@ public sealed partial class TabbitLayoutParser
     {
         var table = new Models.Table
         {
+            Model = Model,
             Location = block.Location,
             TargetSide = block.TargetSide,
             RawName = block.RawName + ColumnTableSuffix,
