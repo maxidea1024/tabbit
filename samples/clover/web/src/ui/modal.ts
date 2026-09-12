@@ -507,7 +507,7 @@ export function fullFrame(title: string, crumbs: string[], onClose: () => void,
   // **거의 덮습니다.** 전면 화면은 그 화면 하나를 읽는 자리이므로, 뒤의 타이틀이 비쳐
   // 보이면 글 위에 다른 화면의 글과 단추가 겹칩니다 — 0.72 였던 동안 도움말의 본문 뒤로
   // 타이틀의 딱지 셋이 그대로 읽혔습니다.
-  scrim.rect(0, 0, SIZE.width, SIZE.height).fill({ color: UI.scrim, alpha: 0.96 })
+  scrim.rect(0, 0, SIZE.width, SIZE.height).fill({ color: UI.scrim, alpha: 0.99 })
   node.addChild(scrim)
 
   // 걸어온 자리.

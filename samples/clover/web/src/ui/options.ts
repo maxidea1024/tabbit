@@ -25,7 +25,9 @@ import {
   leading, SIZE, STROKE, TEXT, UI, UI_THEME_KEYS, UI_THEMES, WEIGHT,
 } from '../render/theme'
 import type { ToolSpot } from './layout'
-import { FOOTER_BAR, panelFrame, TITLE_BAR, type ModalPanel } from './modal'
+import {
+  FULL_BODY_TOP, FULL_EDGE, FULL_FOOT_Y, fullFrame, type ModalPanel,
+} from './modal'
 import { richLeading, richStyle, richLine, type RichStyle } from './rich'
 import { Fling } from './scroll'
 import { Tooltip } from './tooltip'
@@ -289,45 +291,21 @@ export function saveOptions(options: Options): void {
   }
 }
 
-/**
- * 판의 폭.
- *
- * **여섯 말을 세 칸씩 세우고 카드 여섯 벌을 세 칸씩 세우는 폭입니다.** 좁으면 칸마다의
- * 카드가 무엇인지 보이지 않고, 고르는 것이 겉모습이므로 그것이 보이지 않으면 뜻이 없어집니다.
- */
-const WIDTH = 720
-/**
- * 판의 가장 낮은 높이.
- *
- * **글이 길면 그만큼 자랍니다.** 못박아 두면 말을 바꿨을 때 — 독일어가 한국어보다 깁니다 —
- * 마지막 줄이 판 밖으로 나갑니다. 낮은 값을 두는 것은 탭을 옮길 때마다 판이 들썩이지 않게
- * 하기 위한 것입니다.
- */
-const MIN_HEIGHT = 348 + FOOTER_BAR
-/**
- * 판의 가장 높은 높이.
- *
- * **판이 내용만큼 자라게 두지 않습니다.** 화면이 800이므로 탭 하나가 길어지면 판이 화면
- * 밖으로 나가고, 그때 마지막 줄은 어디에도 없습니다 — 넘치는 만큼은 본문이 굴러갑니다.
- *
- * **700은 아래 변에서 셈한 값입니다.** 판은 다른 판들과 같은 아래 변에 서므로 700이면
- * 위가 102이고, 그보다 키우면 화면 위로 나갑니다. 620이었고 겉면이 여덟이 되면서 화면
- * 탭의 마지막 줄 — 겉면의 이름 넷 — 이 창 밖으로 밀렸습니다.
- */
-const MAX_HEIGHT = 700
+
+/** 왼쪽 갈래 목록. 게임 방법과 같은 자입니다. */
+const NAV_W = 320
+const NAV_H = 63
+const NAV_PLATE_H = 58
+
+/** 오른쪽 본문. 갈래 목록의 오른쪽입니다. */
+const PAGE_X = FULL_EDGE + NAV_W + 48
+const PAGE_W = SIZE.width - FULL_EDGE - PAGE_X
+/** 값을 고치는 것이 서는 자리. 오른쪽 끝에 붙습니다. */
+const VALUE_W = 128
 /** 굴림 한 번에 움직이는 거리. */
 const WHEEL_STEP = 48
 /** 누른 자리에서 이만큼 움직이면 끈 것입니다. 판의 좌표입니다. */
 const DRAG_SLOP = 10
-/**
- * 탭 하나의 높이. **본문과 이어져 보여야 탭입니다.**
- *
- * 폭은 못박지 않고 탭 수로 나눕니다 — 못박아 두면 탭이 하나 늘었을 때 마지막 것이 판
- * 밖으로 나가고, 그것을 아무도 보지 않습니다.
- */
-const TAB_H = 36
-/** 탭 줄의 윗변. */
-const TAB_Y = TITLE_BAR + 14
 /**
  * 본문의 바탕과 테.
  *
@@ -474,19 +452,13 @@ export class OptionsPanel implements ModalPanel {
   get toolSpots(): [string, ToolSpot][] {
     return [...this.tabNodes, ...this.choiceNodes]
   }
-  readonly size = { width: WIDTH, height: MIN_HEIGHT }
-
-  /** 지금 판의 높이. 가장 긴 탭이 정합니다. */
-  private get height(): number {
-    return this.size.height
-  }
-
-  private set height(value: number) {
-    ;(this.size as { width: number; height: number }).height = value
-  }
+  readonly size = { width: SIZE.width, height: SIZE.height }
+  readonly fullscreen = true
 
   private readonly body = new Container()
   private readonly tabRow = new Container()
+  /** 아래 띠의 「처음값으로」. **자리를 알리는 쪽이 갈래 줄과 함께 셉니다.** */
+  private resetButton?: Button
   /** 본문이 담기는 창. 이 밖으로 나간 줄은 잘립니다. */
   /**
    * 미리보기가 쓰는 그림의 열쇠. `<폴더>/<식별자>` 입니다.
@@ -666,9 +638,6 @@ export class OptionsPanel implements ModalPanel {
   relabel(): void {
     // **가장 긴 탭이 판의 높이를 정합니다.** 탭마다 다르게 하면 옮길 때마다 판이 들썩이고,
     // 못박아 두면 말을 바꿨을 때 마지막 줄이 판 밖으로 나갑니다.
-    this.height = Math.min(
-      MAX_HEIGHT, Math.max(MIN_HEIGHT, ...this.tabs().map(tab => this.measure(tab))))
-
     // **제 것을 지우지 않습니다.** 판의 자식은 매번 새로 만드는 틀 하나와, 이 판이 처음부터
     // 끝까지 들고 있는 것 넷입니다 — 넷까지 함께 지우면 그 뒤로 이 판은 지워진 것들을
     // 다시 붙이고 그것들에 그리려 합니다. 지워진 컨테이너는 속이 비어 있어서 마스크를
@@ -678,7 +647,15 @@ export class OptionsPanel implements ModalPanel {
     // 나타납니다 — 그리고 이 함수를 두 번 부르는 것은 말을 바꾸는 것뿐입니다.
     this.view.removeChildren()
     this.frame?.destroy({ children: true })
-    this.frame = panelFrame(WIDTH, this.height, t('ui.button.options'), () => this.onClose())
+    const all = this.tabs()
+    // 아래 띠에는 나아가는 단추 하나뿐입니다. **글을 두지 않습니다.**
+    const foot = new Container()
+    const reset = new Button(t('ui.option.reset'), 200, 60, 'neutral', () => this.resetAll())
+    reset.position.set(SIZE.width - FULL_EDGE * 2 - 200, 21)
+    foot.addChild(reset)
+    this.resetButton = reset
+    this.frame = fullFrame(all[this.tab]?.name ?? t('ui.button.options'),
+      [t('ui.button.options')], () => this.onClose(), undefined, foot)
     this.view.addChild(this.frame, this.tabRow, this.viewport, this.bar, this.tip)
     // **본문은 창 안에서 움직입니다.** 창을 판보다 작게 두고 그 밖으로 나간 줄은 자릅니다 —
     // 자르지 않으면 굴러간 줄이 머리띠와 밑단 위에 그려집니다.
@@ -689,7 +666,6 @@ export class OptionsPanel implements ModalPanel {
     this.draw()
   }
 
-  /** 그 탭이 쓰는 높이. **그리지 않고 재기만 합니다.** */
   /**
    * 고를 수 있는 세트들.
    *
@@ -730,31 +706,18 @@ export class OptionsPanel implements ModalPanel {
     return one === undefined ? setId : nameOf(this.data, 'cardset', one.setId, one.name)
   }
 
-  private measure(tab: Tab): number {
-    let y = TAB_Y + TAB_H + 34
-    for (const row of tab.rows) {
-      if (row.seed) {
-        y += SEED_ROW
-        continue
-      }
-      if (row.cards !== undefined) {
-        const lines = Math.ceil(row.cards.length / CARD_COLUMNS)
-        y += 50 + lines * (CARD_ROW_H + CHOICE_GAP)
-        continue
-      }
-      if (row.themes !== undefined) {
-        const lines = Math.ceil(row.themes.length / THEME_COLUMNS)
-        y += 50 + lines * (THEME_ROW_H + CHOICE_GAP)
-        continue
-      }
-      if (row.choices === undefined) {
-        y += ROW
-        continue
-      }
-      const lines = Math.ceil(row.choices.length / CHOICE_COLUMNS)
-      y += 50 + lines * (CHOICE_H + CHOICE_GAP)
+  /**
+   * 모든 값을 처음값으로. **저장까지 합니다** — 화면만 되돌리면 다음에 켤 때 앞의 값이
+   * 돌아옵니다.
+   */
+  private resetAll(): void {
+    const fresh = defaultOptions()
+    for (const key of Object.keys(fresh) as (keyof Options)[]) {
+      ;(this.options as unknown as Record<string, unknown>)[key] = fresh[key]
     }
-    return y + 18 + FOOTER_BAR
+    saveOptions(this.options)
+    this.applyLater()
+    this.relabel()
   }
 
   private tabs(): Tab[] {
@@ -962,55 +925,68 @@ export class OptionsPanel implements ModalPanel {
     this.tabRow.removeChildren().forEach(child => child.destroy())
     this.tabNodes.clear()
     const all = this.tabs()
-    const names = all.map(tab => tab.name)
-    const ruleY = TAB_Y + TAB_H + 10
-    const pageL = 24
-    const pageR = WIDTH - 24
-    // 갈래 줄은 본문과 같은 폭입니다. 그 안에서 고르게 나눕니다.
-    const step = (pageR - pageL) / names.length
-    const pageB = ruleY + (this.height - FOOTER_BAR - ruleY - 16)
-    const tabW = step - 8
 
-    // **본문은 판 안으로 눌린 칸입니다.** 구운 그림 한 장이고, 그림이 없으면 채움 하나로
-    // 갑니다. 고른 갈래와 본문을 한 길로 잇던 것을 걷었습니다 — 그것은 브라우저 탭의
-    // 문법이고, 이 화면의 갈래는 단추 줄입니다.
-    const page = piece('well', pageR - pageL, pageB - ruleY, wellTint(body()))
-    if (page !== undefined) {
-      page.position.set(pageL, ruleY)
-      this.tabRow.addChild(page)
-    } else {
-      const g = new Graphics()
-      g.rect(pageL, ruleY, pageR - pageL, pageB - ruleY).fill(body())
-      this.tabRow.addChild(g)
-    }
+    // **갈래는 왼쪽에 세로로 섭니다.** 가로 줄로 늘어놓던 동안은 여섯 칸이 좁아 이름이
+    // 줄었고, 어느 갈래를 보고 있는지가 밝은 단추 하나로만 남았습니다 — 전면 화면의
+    // 갈래는 목록이고, 고른 것은 판 위에 서고 왼쪽 변에 값의 색 한 줄이 붙습니다.
+    all.forEach((tab, index) => {
+      const top = FULL_BODY_TOP + 4 + index * NAV_H
+      const row = new Container()
+      row.position.set(FULL_EDGE, top)
 
-    // **갈래는 곁단추 줄입니다.** 고른 것만 밝은 단추이고, 나머지는 그 밖의 단추입니다.
-    names.forEach((name, index) => {
-      const x = pageL + index * step + 4
-      const chosen = index === this.tab
-      const button = new Button(name, tabW, TAB_H, chosen ? 'select' : 'neutral', () => {
+      if (index === this.tab) {
+        const skin = piece('well', NAV_W, NAV_PLATE_H, wellTint(body()))
+        if (skin !== undefined) row.addChild(skin)
+        else {
+          const plate = new Graphics()
+          plate.rect(0, 0, NAV_W, NAV_PLATE_H).fill(body())
+          row.addChild(plate)
+        }
+        const bar = new Graphics()
+        bar.rect(0, 0, 4, NAV_PLATE_H).fill(UI.money)
+        row.addChild(bar)
+      }
+
+      const label = new Text({
+        text: tab.name,
+        style: {
+          fontSize: TEXT.base,
+          fill: index === this.tab ? UI.ink : UI.inkDim,
+          fontWeight: index === this.tab ? WEIGHT.bold : WEIGHT.normal,
+        },
+      })
+      label.anchor.set(0, 0.5)
+      label.position.set(20, NAV_PLATE_H / 2)
+      row.addChild(label)
+
+      row.eventMode = 'static'
+      row.cursor = 'pointer'
+      row.hitArea = new Rectangle(0, 0, NAV_W, NAV_PLATE_H)
+      row.on('pointertap', () => {
         if (this.rolled || this.tab === index) return
         this.tab = index
-        this.buildTabs()
-        this.draw()
+        this.relabel()
       })
-      button.position.set(x, TAB_Y)
-      this.tabRow.addChild(button)
-      const id = all[index]?.id
+      this.tabRow.addChild(row)
+      const id = tab.id
       if (id !== undefined) {
         this.tabNodes.set(`tab:${id}`,
-                          { node: this.tabRow, cx: x + tabW / 2, cy: TAB_Y + TAB_H / 2 })
+                          { node: row, cx: NAV_W / 2, cy: NAV_PLATE_H / 2 })
       }
     })
+
+    if (this.resetButton !== undefined && !this.resetButton.destroyed) {
+      this.tabNodes.set('reset', { node: this.resetButton, cx: 100, cy: 30 })
+    }
   }
 
   /** 창의 위와 아래. 탭 줄 밑에서 밑단 위까지입니다. */
   private get windowTop(): number {
-    return TAB_Y + TAB_H + 10
+    return FULL_BODY_TOP
   }
 
   private get windowHeight(): number {
-    return this.height - FOOTER_BAR - this.windowTop - 10
+    return FULL_FOOT_Y - this.windowTop - 12
   }
 
   /**
@@ -1032,7 +1008,8 @@ export class OptionsPanel implements ModalPanel {
     this.body.y = Math.round(this.scroll)
 
     this.clip.clear()
-    this.clip.rect(6, this.windowTop, WIDTH - 12, this.windowHeight).fill(PAINT.sheen)
+    this.clip.rect(PAGE_X - 12, this.windowTop, PAGE_W + 36, this.windowHeight)
+      .fill(PAINT.sheen)
 
     this.bar.clear()
     if (this.over <= 0) return
@@ -1041,9 +1018,9 @@ export class OptionsPanel implements ModalPanel {
     const height = Math.max(34, track * (this.windowHeight / content))
     const held = Math.min(this.over, Math.max(0, -this.scroll))
     const at = this.over === 0 ? 0 : (held / this.over) * (track - height)
-    this.bar.rect(WIDTH - 16, this.windowTop + 4, 4, track)
+    this.bar.rect(PAGE_X + PAGE_W + 10, this.windowTop + 4, 4, track)
       .fill({ color: PAINT.sheen, alpha: 0.07 })
-    this.bar.rect(WIDTH - 16, this.windowTop + 4 + at, 4, height)
+    this.bar.rect(PAGE_X + PAGE_W + 10, this.windowTop + 4 + at, 4, height)
       .fill({ color: PAINT.sheen, alpha: 0.30 })
   }
 
@@ -1053,21 +1030,21 @@ export class OptionsPanel implements ModalPanel {
     this.choiceNodes.clear()
 
     const rows = this.tabs()[this.tab]?.rows ?? []
-    let y = TAB_Y + TAB_H + 34
+    let y = FULL_BODY_TOP + 10
 
     for (const row of rows) {
       const label = new Text({
         text: row.label,
         style: { fontSize: TEXT.base, fill: UI.ink, fontWeight: WEIGHT.normal },
       })
-      label.position.set(44, y + 4)
+      label.position.set(PAGE_X, y + 4)
       this.body.addChild(label)
 
       if (row.note !== undefined) {
         // **이름 줄의 아래입니다.** 24픽셀로 못박아 두었더니 24픽셀 글의 아랫줄 위에
         // 설명이 얹혔습니다 — 줄 사이는 글꼴에서 잽니다.
-        const note = richLine(row.note, rich(), WIDTH - 220, richLeading('note'))
-        note.position.set(44, y + 4 + leading(TEXT.base))
+        const note = richLine(row.note, rich(), PAGE_W - VALUE_W - 48, richLeading('note'))
+        note.position.set(PAGE_X, y + 4 + leading(TEXT.base))
         this.body.addChild(note)
       }
 
@@ -1088,11 +1065,11 @@ export class OptionsPanel implements ModalPanel {
       }
 
       if (row.choices === undefined) {
-        const value = new Button(row.read(), 128, 36, 'neutral', () => {
+        const value = new Button(row.read(), VALUE_W, 36, 'neutral', () => {
           row.next()
           this.applyLater()
         })
-        value.position.set(WIDTH - 172, y)
+        value.position.set(PAGE_X + PAGE_W - VALUE_W, y)
         this.body.addChild(value)
         // 넘기는 단추도 이름이 붙어 있으면 알립니다. **줄의 `y` 는 그 위에 선 줄들의 글
         // 길이가 정하므로** 도구가 셈하면 말을 바꾼 판에서 어긋납니다.
@@ -1118,14 +1095,14 @@ export class OptionsPanel implements ModalPanel {
    * 보고 있는 패와 적힌 시드가 어긋납니다.
    */
   private drawSeed(top: number): number {
-    const width = WIDTH - 88
+    const width = PAGE_W
     const fieldW = width - 108
     const height = 38
 
     const plate = new Graphics()
-    plate.rect(44, top, fieldW, height)
+    plate.rect(PAGE_X, top, fieldW, height)
       .fill({ color: UI.cell, alpha: this.seedEditable ? 0.92 : 0.5 })
-    plate.rect(44.5, top + 0.5, fieldW - 1, height - 1)
+    plate.rect(PAGE_X + 0.5, top + 0.5, fieldW - 1, height - 1)
       .stroke({
         color: this.editing ? UI.pick : UI.hairline,
         width: 1.5, alpha: this.seedEditable ? 0.9 : 0.4,
@@ -1145,7 +1122,7 @@ export class OptionsPanel implements ModalPanel {
     // 적는 칸의 자리를 도구에 알립니다. **판의 높이가 말에 따라 달라지므로** 도구가
     // 좌표를 못박으면 다른 말에서는 빈자리를 누릅니다.
     this.choiceNodes.set('field:seed',
-                         { node: this.body, cx: 44 + fieldW / 2, cy: top + height / 2 })
+                         { node: this.body, cx: PAGE_X + fieldW / 2, cy: top + height / 2 })
 
     const value = new Text({
       text: this.editing ? this.buffer : this.seedText,
@@ -1175,7 +1152,7 @@ export class OptionsPanel implements ModalPanel {
         this.onSeed?.(this.seedText)
         this.draw()
       })
-      dice.position.set(44 + fieldW + 12, top)
+      dice.position.set(PAGE_X + fieldW + 12, top)
       this.body.addChild(dice)
     }
 
@@ -1206,7 +1183,7 @@ export class OptionsPanel implements ModalPanel {
     const themes = row.themes ?? []
     const now = row.current?.()
     const gap = CHOICE_GAP
-    const width = Math.floor((WIDTH - 88 - gap * (THEME_COLUMNS - 1)) / THEME_COLUMNS)
+    const width = Math.floor((PAGE_W - gap * (THEME_COLUMNS - 1)) / THEME_COLUMNS)
     const lines = Math.ceil(themes.length / THEME_COLUMNS)
 
     themes.forEach((one, index) => {
@@ -1216,7 +1193,7 @@ export class OptionsPanel implements ModalPanel {
       const look = UI_THEMES[one.key] ?? UI_THEMES.slate
 
       const cell = new Container()
-      cell.position.set(44 + column * (width + gap), top + line * (THEME_ROW_H + gap))
+      cell.position.set(PAGE_X + column * (width + gap), top + line * (THEME_ROW_H + gap))
 
       // 고른 것은 파랑 테 하나로 알립니다 — 판 안의 다른 고른 것과 같은 규칙입니다.
       const frame = new Graphics()
@@ -1292,14 +1269,14 @@ export class OptionsPanel implements ModalPanel {
     const now = row.current?.()
     const gap = CHOICE_GAP
     const columns = CARD_COLUMNS
-    const width = Math.floor((WIDTH - 88 - gap * (columns - 1)) / columns)
+    const width = Math.floor((PAGE_W - gap * (columns - 1)) / columns)
     const lines = Math.ceil(cards.length / columns)
 
     cards.forEach((one, index) => {
       const look = this.looks.get(one.key)
       const here = one.key === now
       const cell = new Container()
-      cell.position.set(44 + (index % columns) * (width + gap),
+      cell.position.set(PAGE_X + (index % columns) * (width + gap),
                         top + Math.floor(index / columns) * (CARD_ROW_H + gap))
 
       const board = new Graphics()
@@ -1397,7 +1374,7 @@ export class OptionsPanel implements ModalPanel {
     const now = row.current?.()
     const columns = CHOICE_COLUMNS
     const gap = CHOICE_GAP
-    const width = Math.floor((WIDTH - 88 - gap * (columns - 1)) / columns)
+    const width = Math.floor((PAGE_W - gap * (columns - 1)) / columns)
     const height = CHOICE_H
 
     choices.forEach((choice, index) => {
@@ -1410,7 +1387,7 @@ export class OptionsPanel implements ModalPanel {
           this.applyLater()
         })
       button.highlight = choice.key === now
-      button.position.set(44 + column * (width + gap), top + line * (height + gap))
+      button.position.set(PAGE_X + column * (width + gap), top + line * (height + gap))
       this.body.addChild(button)
       // 이름이 붙은 줄은 도구가 짚을 수 있게 칸의 가운데를 남깁니다.
       if (row.id !== undefined) {

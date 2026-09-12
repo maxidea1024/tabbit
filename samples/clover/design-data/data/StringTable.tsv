@@ -1166,6 +1166,7 @@
 	ui.title.leaveBody	지금까지 둔 것은 저장됩니다. 타이틀의 「이어하기」로 돌아올 수 있습니다.	Your progress is saved. You can come back from Continue on the title screen.	ここまでの進行は保存されます。タイトルの「つづきから」で戻れます。	当前进度会被保存。可从标题画面的「继续」返回。	目前進度會被儲存。可從標題畫面的「繼續」返回。	Dein Fortschritt wird gespeichert. Du kannst über „Fortsetzen“ im Titelbildschirm zurückkehren.
 	ui.option.uiTheme	테마	Theme	テーマ	主题	主題	Thema
 	ui.option.note.uiTheme	판의 색을 고릅니다	Pick the panel colors	パネルの色を選びます	选择面板配色	選擇面板配色	Farben der Panels
+	ui.option.reset	처음값으로	Reset to Default	初期値に戻す	恢复默认	恢復預設	Zurücksetzen
 	ui.theme.slate	기본	Default	標準	默认	預設	Standard
 	ui.theme.ink	검정	Black	ブラック	黑色	黑色	Schwarz
 	ui.theme.navy	남색	Navy	ネイビー	深蓝	深藍	Marine

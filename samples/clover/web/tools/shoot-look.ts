@@ -62,6 +62,10 @@ async function shootFront(browser: Browser): Promise<void> {
   await clickSpot(page, 'title:options')
   await pass(page, 700)
   await shot(page, 'options')
+  // 겉면 고르는 갈래. **미리보기가 겉면의 색을 그대로 내는지가 여기서만 보입니다.**
+  await clickSpot(page, 'option:tab:video')
+  await pass(page, 400)
+  await shot(page, 'options-video')
   await page.keyboard.press('Escape')
   await pass(page, 500)
   await clickSpot(page, 'title:collection')
