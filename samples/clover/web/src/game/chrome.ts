@@ -6,12 +6,13 @@ import { ScoreWave } from '../shader/wave'
 import { Slot } from '../render/hud'
 import { Spring } from '../render/motion'
 import { slotStyle, mix } from '../render/skin'
-import { TEXT, UI, WEIGHT } from '../render/theme'
+import { SIZE, TEXT, UI, WEIGHT } from '../render/theme'
 import { type Box } from '../ui/layout'
 import { ProgressBar } from '../ui/parts'
 import { Button, Panel } from '../ui/widgets'
 import {
-  BOARD_X, BUTTON_Y, CHIPS_GAP, CHIPS_H, CHIPS_R, CONSUMABLE_TRAY, COUNT_PULSE, JOKER_TRAY, PLAY_H, PLAY_Y, SORT_H, SORT_HIDE, IN_W, SCORE_H, CELL_SLOT_W, CELL_SLOT_H,
+  BOARD_X, BUTTON_Y, CELL_SLOT_H, CELL_SLOT_W, CHIPS_GAP, CHIPS_H, CHIPS_R, CONSUMABLE_TRAY,
+  COUNT_PULSE, HAND_Y, IN_W, JOKER_TRAY, PLAY_H, PLAY_Y, SCORE_H, SORT_H, SORT_HIDE,
 } from './metrics'
 import { boxInk } from './helpers'
 import { type Game } from './game'
@@ -470,7 +471,10 @@ export class ChromePart {
     this.playButton.y = BUTTON_Y + off
     this.clearButton.y = BUTTON_Y + off
     this.discardButton.y = BUTTON_Y + off
-    this.game.input.hint.y = BUTTON_Y - 30 + off
+    // **지시문은 손패 위, 족보 이름이 서던 그 자리입니다.** 손패와 단추 줄 사이에 두었던
+    // 동안 그 줄은 카드 밑의 점들과 겹쳤습니다 — 그 사이는 43픽셀이고 점이 그 한가운데에
+    // 있습니다. 단추 줄이 물러나면 함께 물러납니다.
+    this.game.input.hint.y = HAND_Y - SIZE.cardHeight / 2 - 40 + off
   }
 
   /**

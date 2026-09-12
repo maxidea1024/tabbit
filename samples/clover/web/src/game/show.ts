@@ -388,9 +388,13 @@ export class ShowPart {
     const pile = this.game.chrome.deckPile
     this.game.cards.drawDeckPile()
 
-    // **지시문은 누를 버튼 바로 위입니다.** 패널 아래에 두면 눈이 화면 왼쪽 끝까지 갔다
-    // 와야 하고, 정작 누를 것은 가운데에 있습니다.
-    this.game.input.hint.position.set(BOARD_X, BUTTON_Y - 30)
+    // **지시문은 손패 위, 족보 이름이 서던 그 자리입니다.**
+    //
+    // 손패와 단추 줄 사이에 두었던 동안 그 줄은 카드 밑의 점들과 겹쳤습니다 — 그 사이는
+    // 43픽셀이고 점이 그 한가운데에 있어서, 글 한 줄이 더 들어갈 자리가 아닙니다.
+    // 족보 이름과 이 글은 함께 뜨지 않으므로(고른 것이 있으면 이름, 없으면 지시문) 한
+    // 자리를 나눠 씁니다.
+    this.game.input.hint.position.set(BOARD_X, HAND_Y - SIZE.cardHeight / 2 - 40)
 
     // **덱은 판이 도는 동안만 화면에 있습니다.** 상점에서는 오른쪽으로 밀려 나가고,
     // 다음 블라인드로 가면 다시 들어옵니다 — 상점의 물건과 자리를 다투지 않습니다.

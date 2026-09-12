@@ -191,9 +191,9 @@ def edges():
 # 이빠짐 셋을 따로 냅니다. 넷을 돌려 쓰므로 카드가 몇 장이든 비용이 같습니다.
 CARD_W, CARD_H = 88, 124
 TORN_SCALE = 6          # 굽는 배수. 매끈하게 그려 놓고 2배로 줄입니다.
-TORN_AMP = 1.25         # 변이 흔들리는 폭 (1배 픽셀)
-TORN_STEP = 13          # 흔들림을 뽑는 사이 (1배 픽셀)
-TORN_NICKS = 3          # 이빠짐
+TORN_AMP = 2.6          # 변이 흔들리는 폭 (1배 픽셀)
+TORN_STEP = 9           # 흔들림을 뽑는 사이 (1배 픽셀)
+TORN_NICKS = 5          # 이빠짐
 TORN_COUNT = 4
 
 
