@@ -118,14 +118,16 @@ export class ChromePart {
    * **이름이 없습니다.** 두 수 사이에 `×` 가 있으면 그것이 무엇인지 더 적을 것이 없습니다 —
    * 이름은 자리만 잡아먹고 숫자를 아래로 밀어냅니다.
    *
-   * 숫자는 흰색입니다. 바탕은 값이 움직이는 동안에만 파랑과 붉음으로 밝으므로, 숫자까지
-   * 그 색이면 밝은 동안 색만 남고 수가 흐려집니다.
+   * **숫자가 그 뜻의 색입니다** — 칩은 파랑, 배수는 붉음. 흰색으로 두었던 동안 두 상자는
+   * 바탕의 색으로만 갈렸고, 값이 오를 때 글자마다 지나가는 흰빛(`Digits.advance`)도 흰
+   * 글자 위에서는 아무것도 아니었습니다. 제 색에서 흰색으로 갔다가 제 색으로 돌아오는
+   * 것이 그 물결이므로, 제 색이 있어야 물결이 보입니다.
    */
   readonly chips =
-    new Slot('', (IN_W - CHIPS_GAP) / 2, CHIPS_H, UI.ink, 36, 1, true, true)
+    new Slot('', (IN_W - CHIPS_GAP) / 2, CHIPS_H, UI.chips, 36, 1, true, true)
 
   readonly mult =
-    new Slot('', (IN_W - CHIPS_GAP) / 2, CHIPS_H, UI.ink, 36, 0, true, true)
+    new Slot('', (IN_W - CHIPS_GAP) / 2, CHIPS_H, UI.mult, 36, 0, true, true)
 
   /**
    * 왼쪽 판의 칸들이 마지막으로 보여 준 수.

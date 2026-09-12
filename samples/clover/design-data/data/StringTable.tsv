@@ -696,6 +696,9 @@
 	ui.tab.video	화면	Video	画面	画面	畫面	Bild
 	ui.tab.cards	카드	Cards	カード	卡牌	卡牌	Karten
 	ui.tab.input	입력	Input	入力	输入	輸入	Eingabe
+	ui.tab.controls	조작	Controls	操作	操作	操作	Steuerung
+	ui.tab.words	언어	Language	言語	语言	語言	Sprache
+	ui.tab.info	정보	Info	情報	信息	資訊	Info
 	ui.option.cardSet	카드 한 벌	Card set	カードセット	卡牌样式	卡牌樣式	Kartenset
 	ui.option.note.cardSet	겉모습만 바뀝니다. 규칙과 순위에는 닿지 않습니다.	Looks only. Rules and rankings are untouched.	見た目だけが変わります。規則と順位には影響しません。	只改变外观。不影响规则与排名。	只改變外觀。不影響規則與排名。	Nur die Optik. Regeln und Rangliste bleiben unberührt.
 	ui.button.guide	게임 방법	How to Play	遊び方	玩法	玩法	Anleitung
@@ -861,9 +864,10 @@
 	ui.quality.high	높음	High	高	高	高	Hoch
 	ui.quality.medium	보통	Medium	中	中	中	Mittel
 	ui.quality.low	낮음	Low	低	低	低	Niedrig
-	ui.option.volume	음량	Volume	音量	音量	音量	Lautstärke
+	ui.option.sfx	효과음	Sound Effects	効果音	音效	音效	Effekte
+	ui.option.volume	효과음 크기	Effects Volume	効果音の音量	音效音量	音效音量	Effektlautstärke
 	ui.option.music	배경음	Music	BGM	背景音乐	背景音樂	Musik
-	ui.option.music_volume	배경음 크기	Music volume	BGM 音量	背景音乐音量	背景音樂音量	Musiklautstärke
+	ui.option.music_volume	배경음 크기	Music Volume	BGMの音量	背景音乐音量	背景音樂音量	Musiklautstärke
 	ui.option.shake	화면 흔들림	Screen Shake	画面の揺れ	画面震动	畫面震動	Bildschirmwackeln
 	ui.option.particles	파티클	Particles	パーティクル	粒子	粒子	Partikel
 	ui.option.chromatic	색수차	Chromatic	色収差	色差	色差	Farbsaum

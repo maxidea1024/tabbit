@@ -48,13 +48,14 @@ const rich = (): RichStyle => richStyle('note')
 /**
  * 전환을 켜는가.
  *
- * **`auto` 가 처음 값입니다.** 기계가 움직임을 줄이라고 하는지를 그때그때 봅니다 — 한 번
- * 재어 저장하지 않습니다.
+ * **처음 값이 「켜짐」 입니다.** 「자동」 이 있던 동안 그것이 기계의 「동작 줄이기」 를
+ * 물었고, 그 설정을 켜 둔 기계에서는 씬 전환이 전부 120밀리초 잦아듦 하나로 접혔습니다 —
+ * 밀림도 옆으로도 재도 나오지 않았습니다. 줄이는 것은 여기서 끄는 것으로 둡니다.
  */
-export type Motion = 'auto' | 'on' | 'off'
+export type Motion = 'on' | 'off'
 
-/** `Motion` 의 세 값. 옵션의 줄이 이 순서로 돕니다. */
-const MOTIONS: Motion[] = ['auto', 'on', 'off']
+/** `Motion` 의 두 값. 옵션의 줄이 이 순서로 돕니다. */
+const MOTIONS: Motion[] = ['on', 'off']
 
 /**
  * 그래픽 품질.
@@ -161,21 +162,6 @@ export interface Options {
 }
 
 /**
- * 이 기계가 움직임을 줄이라고 하는가.
- *
- * **접근성 설정입니다.** 어지럼을 느끼는 사람이 기계에 한 번 적어 두면 모든 앱이 그것을
- * 봅니다 — 게임마다 다시 찾아 끄게 하지 않습니다.
- */
-function quietMotion(): boolean {
-  try {
-    return globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true
-  } catch {
-    // 이 질의를 모르는 브라우저에서는 줄이지 않습니다.
-    return false
-  }
-}
-
-/**
  * 처음 켰을 때의 값.
  *
  * **음량 둘이 같은 숫자인 것은 같은 크기라는 뜻이 아닙니다.** 배경음 파일은 효과음보다
@@ -186,7 +172,7 @@ export function defaultOptions(): Options {
   return {
     sound: true, volume: 60, music: true, musicVolume: 60, speed: 1, frameCap: 0,
     shake: true, particles: true, chromatic: true, hints: true, haptics: true,
-    transition: 'auto',
+    transition: 'on',
     graphics: 'auto',
     language: '', deck: 'red_deck', stake: 'White', cardSet: 'classic',
     uiTheme: 'slate',
@@ -235,9 +221,7 @@ const KEY = 'clover.options'
  * 저장해 두면 그 값이 사람이 고른 것처럼 남습니다.
  */
 export function transitionWanted(options: Options): boolean {
-  if (options.transition === 'on') return true
-  if (options.transition === 'off') return false
-  return !quietMotion()
+  return options.transition !== 'off'
 }
 
 /**
@@ -731,47 +715,6 @@ export class OptionsPanel implements ModalPanel {
       () => (options[key] ? t('ui.option.on') : t('ui.option.off'))
 
     return [
-      // **언어는 「일반」 의 첫 줄입니다.** 이 화면에서 사람이 가장 먼저 찾는 것이고,
-      // 「소리」나 「화면」 아래에 두면 그 둘을 다 열어 본 뒤에야 찾습니다.
-      {
-        id: 'general',
-        name: t('ui.tab.general'),
-        rows: [
-          {
-            id: 'language',
-            label: t('ui.option.language'),
-            note: t('ui.option.note.language'),
-            read: () => LANGUAGE_NAMES[chosen(options)],
-            next: () => undefined,
-            // **그 말로 적습니다** — 찾는 사람이 그 말의 사람입니다.
-            choices: LANGUAGES.map(one => ({ key: one, label: LANGUAGE_NAMES[one] })),
-            current: () => chosen(options),
-            pick: (key: string) => { options.language = key as Language },
-          },
-        ],
-      },
-      {
-        id: 'sound',
-        name: t('ui.tab.sound'),
-        rows: [
-          { label: t('ui.tab.sound'), read: onOff('sound'), next: flip('sound') },
-          {
-            label: t('ui.option.volume'),
-            read: () => `${options.volume}`,
-            // 0 에서 100 까지 20씩. **끄는 자리는 위에 있습니다** — 음량 0 과 소리 꺼짐은
-            // 다른 것이고, 둘을 한 줄에 두면 어느 쪽으로 껐는지 알 수 없습니다.
-            next: () => { options.volume = options.volume >= 100 ? 20 : options.volume + 20 },
-          },
-          { label: t('ui.option.music'), read: onOff('music'), next: flip('music') },
-          {
-            label: t('ui.option.music_volume'),
-            read: () => `${options.musicVolume}`,
-            next: () => {
-              options.musicVolume = options.musicVolume >= 100 ? 20 : options.musicVolume + 20
-            },
-          },
-        ],
-      },
       {
         id: 'video',
         name: t('ui.tab.video'),
@@ -804,12 +747,10 @@ export class OptionsPanel implements ModalPanel {
           // 안 되므로, 껐을 때는 짧은 잦아듦 하나가 남습니다.
           {
             label: t('ui.option.transition'),
-            // **세 값입니다.** 「자동」 이 기계에 묻는 것이고, 나머지 둘이 사람이 고른
-            // 것입니다 — 켠 것과 「기계가 켜라고 했다」를 가르지 않으면, 기계 설정을
-            // 되돌려도 꺼진 채로 남습니다.
-            read: () => options.transition === 'auto'
-              ? `${t('ui.option.auto')} · ${quietMotion() ? t('ui.option.off') : t('ui.option.on')}`
-              : options.transition === 'on' ? t('ui.option.on') : t('ui.option.off'),
+            // **두 값입니다.** 「자동」 이 있던 동안 그것이 기계의 「동작 줄이기」 를 물었고,
+            // 그 설정을 켜 둔 기계에서는 씬 전환이 전부 120밀리초 잦아듦 하나로 접혔습니다 —
+            // 밀림도 옆으로도 재도 나오지 않았습니다. 줄이는 것은 여기서 끄는 것으로 둡니다.
+            read: () => options.transition === 'on' ? t('ui.option.on') : t('ui.option.off'),
             next: () => {
               const at = MOTIONS.indexOf(options.transition)
               options.transition = MOTIONS[(at + 1) % MOTIONS.length]
@@ -842,14 +783,6 @@ export class OptionsPanel implements ModalPanel {
             current: () => options.uiTheme,
             pick: (key: string) => { options.uiTheme = key },
           },
-        ],
-      },
-      // **카드가 「화면」 과 따로입니다.** 화면의 나머지는 켜고 끄는 것이고 이것은 고르는
-      // 것이며, 세트가 늘어나면 여기에 미리보기가 들어옵니다.
-      {
-        id: 'cards',
-        name: t('ui.tab.cards'),
-        rows: [
           {
             label: t('ui.option.cardSet'),
             note: t('ui.option.note.cardSet'),
@@ -862,8 +795,33 @@ export class OptionsPanel implements ModalPanel {
         ],
       },
       {
-        id: 'game',
-        name: t('ui.tab.game'),
+        id: 'sound',
+        name: t('ui.tab.sound'),
+        rows: [
+          { label: t('ui.option.sfx'), read: onOff('sound'), next: flip('sound') },
+          {
+            label: t('ui.option.volume'),
+            read: () => `${options.volume}`,
+            // 0 에서 100 까지 20씩. **끄는 자리는 위에 있습니다** — 음량 0 과 소리 꺼짐은
+            // 다른 것이고, 둘을 한 줄에 두면 어느 쪽으로 껐는지 알 수 없습니다.
+            next: () => { options.volume = options.volume >= 100 ? 20 : options.volume + 20 },
+          },
+          { label: t('ui.option.music'), read: onOff('music'), next: flip('music') },
+          {
+            label: t('ui.option.music_volume'),
+            read: () => `${options.musicVolume}`,
+            next: () => {
+              options.musicVolume = options.musicVolume >= 100 ? 20 : options.musicVolume + 20
+            },
+          },
+        ],
+      },
+      // **연출과 힌트와 진동이 한 갈래입니다.** 「게임」 과 「입력」 으로 갈라 두었더니
+      // 갈래마다 줄이 한둘이었고, 진동자가 없는 기계에서는 갈래 하나가 통째로 없어져
+      // 갈래의 수가 기계마다 달랐습니다.
+      {
+        id: 'input',
+        name: t('ui.tab.controls'),
         rows: [
           {
             label: t('ui.option.speed'),
@@ -875,24 +833,37 @@ export class OptionsPanel implements ModalPanel {
             label: t('ui.option.hints'), read: onOff('hints'), next: flip('hints'),
             note: t('ui.option.note.hints'),
           },
-        ],
-      },
-      // **이 기계에 진동자가 없으면 이 탭이 없습니다.** 켤 수 없는 것을 꺼진 채로
-      // 늘어놓으면, 고친 사람은 무엇이 달라졌는지 확인할 길이 없습니다.
-      ...(hapticsAvailable() ? [{
-        id: 'input',
-        name: t('ui.tab.input'),
-        rows: [
-          {
+          // **진동자가 없으면 이 줄이 없습니다.** 켤 수 없는 것을 꺼진 채로 늘어놓으면,
+          // 고친 사람은 무엇이 달라졌는지 확인할 길이 없습니다.
+          ...(hapticsAvailable() ? [{
             id: 'haptics',
             label: t('ui.option.haptics'), read: onOff('haptics'), next: flip('haptics'),
             note: t('ui.option.note.haptics'),
+          }] : []),
+        ],
+      },
+      // **갈래는 다섯입니다** — 화면 · 소리 · 조작 · 말 · 정보. 여섯이던 동안 「카드」는
+      // 화면에서 고르는 것 하나뿐이었고 「게임」과 「입력」은 줄 한둘씩이었습니다.
+      {
+        id: 'general',
+        name: t('ui.tab.words'),
+        rows: [
+          {
+            id: 'language',
+            label: t('ui.option.language'),
+            note: t('ui.option.note.language'),
+            read: () => LANGUAGE_NAMES[chosen(options)],
+            next: () => undefined,
+            // **그 말로 적습니다** — 찾는 사람이 그 말의 사람입니다.
+            choices: LANGUAGES.map(one => ({ key: one, label: LANGUAGE_NAMES[one] })),
+            current: () => chosen(options),
+            pick: (key: string) => { options.language = key as Language },
           },
         ],
-      }] : []),
+      },
       {
         id: 'seed',
-        name: t('ui.title.seed'),
+        name: t('ui.tab.info'),
         rows: [{
           label: t('ui.title.seed'),
           read: () => this.seedText,

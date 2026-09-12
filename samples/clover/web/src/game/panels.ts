@@ -227,17 +227,22 @@ export class PanelsPart {
     layer.removeChildren().forEach(child => child.destroy())
     this.handRows.length = 0
 
-    const tabs: { key: RunInfoTab; label: string }[] = [
+    // **판 밖에서는 족보 하나뿐입니다.** 블라인드 · 스테이크 · 인사이트 · 기록은 도는
+    // 판을 읽어 적는 것이라 판이 없으면 적을 것이 없습니다 — 타이틀에서 열면 갈래 넷이
+    // 빈 채로 서 있었습니다.
+    const inRun = this.game.session.scene === 'run'
+    if (!inRun) this.runInfoTab = 'hands'
+    const tabs: { key: RunInfoTab; label: string }[] = inRun ? [
       { key: 'hands', label: t('ui.kind.poker_hand') },
       { key: 'blinds', label: t('ui.tab.blinds') },
       { key: 'stakes', label: t('ui.tab.stakes') },
       { key: 'insight', label: t('ui.tab.insight') },
       { key: 'log', label: t('ui.tab.log') },
-    ]
+    ] : [{ key: 'hands', label: t('ui.kind.poker_hand') }]
     const here = tabs.find(tab => tab.key === this.runInfoTab) ?? tabs[0]
 
     layer.addChild(fullFrame(here.label, [t('ui.run_info.title')],
-      () => this.game.cards.toggleHandList(), this.runInfoCorner()))
+      () => this.game.cards.toggleHandList(), inRun ? this.runInfoCorner() : undefined))
 
     tabs.forEach((tab, index) => {
       const chosen = this.runInfoTab === tab.key
@@ -262,7 +267,7 @@ export class PanelsPart {
     if (this.runInfoTab === 'stakes') return this.drawStakesTab(layer)
     if (this.runInfoTab === 'insight') return this.drawInsightTab(layer)
     if (this.runInfoTab === 'log') return this.drawLogTab(layer)
-    this.drawHandsTab(layer)
+    this.drawHandsTab(layer, inRun)
   }
 
   /**
@@ -317,7 +322,13 @@ export class PanelsPart {
   }
 
   /** 족보 갈래. 이름 · 레벨 · 칩 × 배수 · 친 횟수입니다. */
-  private drawHandsTab(layer: Container): void {
+  /**
+   * 족보 갈래.
+   *
+   * **판 밖에서는 열이 둘입니다.** 레벨과 친 횟수는 도는 판의 값이라 판이 없으면 모두
+   * 레벨 1 과 0회이고, 그 두 열은 아무것도 말하지 않으면서 자리만 차지합니다.
+   */
+  private drawHandsTab(layer: Container, inRun: boolean): void {
     // **아직 못 본 족보는 한 줄로 묶습니다.** 열두 줄을 다 세우면 마지막 셋이 아래 변을
     // 넘고, 그 셋은 이름도 값도 없는 줄입니다 — 몇 개가 남았는지만 적습니다.
     const all = this.game.data.tables.pokerHand.records
@@ -326,11 +337,14 @@ export class PanelsPart {
     const hidden = all.length - rows.length
     const left = FULL_EDGE + 20
     const right = SIZE.width - FULL_EDGE - 20
-    this.columnHead(layer, [
+    this.columnHead(layer, inRun ? [
       { text: t('ui.kind.poker_hand'), x: left },
       { text: t('ui.col.level'), x: RUN_COL_LEVEL },
       { text: t('ui.col.chips_mult'), x: RUN_COL_VALUE },
       { text: t('ui.col.played'), x: right, right: true },
+    ] : [
+      { text: t('ui.kind.poker_hand'), x: left },
+      { text: t('ui.col.chips_mult'), x: RUN_COL_LEVEL },
     ])
 
     const band = new Graphics()
@@ -367,6 +381,7 @@ export class PanelsPart {
       })
       lv.anchor.set(0, 0.5)
       lv.position.set(RUN_COL_LEVEL, y + RUN_ROW_H / 2 - 6)
+      lv.visible = inRun
 
       const value = new Container()
       if (seen) {
@@ -395,7 +410,7 @@ export class PanelsPart {
         dash.anchor.set(0, 0.5)
         value.addChild(dash)
       }
-      value.position.set(RUN_COL_VALUE, y + RUN_ROW_H / 2 - 6)
+      value.position.set(inRun ? RUN_COL_VALUE : RUN_COL_LEVEL, y + RUN_ROW_H / 2 - 6)
 
       const played = new Text({
         text: tf('ui.hand.times', { n: this.game.state.handPlayCounts[key] ?? 0 }),
@@ -403,6 +418,7 @@ export class PanelsPart {
       })
       played.anchor.set(1, 0.5)
       played.position.set(right, y + RUN_ROW_H / 2 - 6)
+      played.visible = inRun
 
       layer.addChild(name, lv, value, played)
       this.handRows.push({ hand: row.hand, seen, y: y - 6, height: RUN_ROW_H })
@@ -780,7 +796,7 @@ export class PanelsPart {
       const x = FULL_EDGE + index * (cellW + gap)
       const box = new Container()
       box.position.set(x, LOG_CELL_Y)
-      const skin = piece('well', cellW, LOG_CELL_H, wellTint(UI.cell))
+      const skin = piece('well', cellW, LOG_CELL_H, wellTint(UI.panel))
       if (skin !== undefined) box.addChild(skin)
       else {
         const plate = new Graphics()

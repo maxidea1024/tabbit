@@ -667,7 +667,11 @@ export class Game {
     app.stage.on('pointertap', () => this.input.dismissAfterTap())
     window.addEventListener('keydown', event => {
       this.audio.unlock()
-      if (event.key === 'Escape') {
+      // **`Esc` 와 백스페이스가 같은 일을 합니다.** 데스크탑에서 한 단계 물러나는 키가
+      // 사람마다 다르고, 둘 다 「되돌아간다」로 쓰입니다 — 브라우저의 뒤로 가기가 걸린
+      // 자리이므로 기본 동작을 막습니다.
+      if (event.key === 'Escape' || event.key === 'Backspace') {
+        event.preventDefault()
         this.session.back()
         return
       }
@@ -1081,6 +1085,8 @@ export class Game {
       this.artDueAt = Infinity
       this.pack.repaintPack()
       this.session.repaintGameOver()
+      // **이어하기의 딱지도 늦게 닿는 그림을 씁니다.** 다시 그리지 않으면 빈 칸으로 남습니다.
+      this.panels.runPanel.repaintArt()
       this.refresh()
     }
 

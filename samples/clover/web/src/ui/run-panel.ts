@@ -33,6 +33,8 @@ import { UI, SIZE, TEXT, WEIGHT } from '../render/theme'
 import { ConsumableKind } from '../generated/enums/consumable-kind'
 import { ShopItemKind } from '../generated/enums/shop-item-kind'
 import { itemFace } from '../render/faces'
+import { NUMERALS } from './font'
+import { sectionHead } from './parts'
 import { ChallengeBody, openCount, type ChallengeProgress } from './challenge'
 import { glowEdge, piece } from './chrome'
 import type { ToolSpot } from './layout'
@@ -231,6 +233,16 @@ export class RunPanel implements ModalPanel {
     this.draw()
   }
 
+  /**
+   * 그림이 닿았으니 다시 그립니다.
+   *
+   * **그림은 늦게 닿습니다.** 이어하기의 딱지는 만들 때 그림이 없어 빈 칸으로 서고,
+   * 다시 그리지 않으면 그대로 남습니다 — 판 안의 통들과 같은 규칙입니다(`onArtReady`).
+   */
+  repaintArt(): void {
+    if (this.page === 'resume' || this.page === 'menu') this.draw()
+  }
+
   private draw(): void {
     this.frameLayer.removeChildren().forEach(child => child.destroy({ children: true }))
     this.menuLayer.removeChildren().forEach(child => child.destroy({ children: true }))
@@ -382,11 +394,20 @@ export class RunPanel implements ModalPanel {
 // 이어하기
 // ---------------------------------------------------------------------------
 
-/** 그만둔 자리 한 장. 왼쪽에 놓이고, 오른쪽에 들고 있던 것들이 섭니다. */
-const RESUME_W = 560
-const RESUME_H = 300
-/** 들고 있던 것들이 서는 오른쪽 자리의 왼쪽 변. */
-const HELD_X = RESUME_W + 48
+/**
+ * 그만둔 자리.
+ *
+ * **화면의 폭을 다 씁니다.** 왼쪽에 560짜리 한 장을 두고 오른쪽에 딱지를 세웠더니 화면의
+ * 오른쪽 절반이 비었고, 값 셋은 그 한 장 안에서 다시 왼쪽으로 몰렸습니다 — 머리 한 줄,
+ * 값 칸 셋, 들고 있던 것 두 줄이 저마다 화면의 폭을 씁니다.
+ */
+const RESUME_HEAD_H = 108
+const RESUME_CELL_Y = 132
+const RESUME_CELL_H = 92
+const RESUME_GAP = 16
+/** 들고 있던 것 두 줄. 이름표 한 줄과 딱지 한 줄입니다. */
+const HELD_JOKER_Y = 256
+const HELD_ITEM_Y = 392
 /** 딱지의 배율과 사이. 판의 딱지(88×124)를 4분의 3으로 둡니다. */
 const HELD_SCALE = 0.75
 const HELD_STEP = Math.round(SIZE.jokerWidth * HELD_SCALE) + 12
@@ -449,79 +470,42 @@ class ResumeBody {
     this.discardButton = undefined
     const saved = this.saved
     if (!saved) return
+    const width = this.size.width
 
-    const card = new Container()
-    card.position.set(0, 24)
-    this.body.addChild(card)
-
-    // **들고 있던 것들.** 오른쪽에 조커 한 줄과 소모품 한 줄 — 어떤 판이었는지는 이것으로
-    // 읽힙니다. 이름은 가리키면 쪽지로 뜨는 것이 아니라 딱지의 띠에 적혀 있습니다.
-    const held = new Container()
-    held.position.set(HELD_X, 24)
-    this.body.addChild(held)
-    const jokers = saved.jokerIds.map(id => ({ kind: ShopItemKind.Joker, id }))
-    const consumables = saved.consumableList.map(one => ({
-      kind: ShopItemKind[ConsumableKind[one.kind] as keyof typeof ShopItemKind] ?? ShopItemKind.Tarot,
-      id: one.id,
-    }))
-    this.heldRow(held, t('ui.button.jokers'), jokers, 0)
-    this.heldRow(held, t('ui.resume.consumables'), consumables,
-                 24 + Math.round(SIZE.jokerHeight * HELD_SCALE) + 40)
-
-    const plate = piece('well', RESUME_W, RESUME_H, wellTint(UI.cell))
-    if (plate) card.addChild(plate)
+    // ── 머리 한 줄. 덱과 스테이크, 그리고 오른쪽에 시드와 그만둔 때 ──────────
+    const head = new Container()
+    const headSkin = piece('well', width, RESUME_HEAD_H, wellTint(UI.panel))
+    if (headSkin) head.addChild(headSkin)
     else {
       const g = new Graphics()
-      g.rect(0, 0, RESUME_W, RESUME_H).fill({ color: UI.cell })
-      card.addChild(g)
+      g.rect(0, 0, width, RESUME_HEAD_H).fill(UI.panel)
+      head.addChild(g)
     }
 
     const title = new Text({
       text: this.deckLine(saved),
       style: { fontSize: TEXT.head, fill: UI.ink, fontWeight: WEIGHT.bold },
     })
-    title.position.set(24, 24)
-    card.addChild(title)
+    title.anchor.set(0, 0.5)
+    title.position.set(24, 40)
+    head.addChild(title)
 
     // 챌린지 런이면 그 이름이 덱 이름보다 큰 표시입니다.
-    if (saved.challengeId !== '') {
-      const row = this.data.tables.challenge.findByChallengeId(saved.challengeId)
-      const name = new Text({
-        text: row ? nameOf(this.data, 'challenge', saved.challengeId, row.name)
-                  : saved.challengeId,
+    const mark = saved.challengeId !== ''
+      ? (() => {
+        const row = this.data.tables.challenge.findByChallengeId(saved.challengeId)
+        return row ? nameOf(this.data, 'challenge', saved.challengeId, row.name)
+          : saved.challengeId
+      })()
+      : saved.ranked ? t('ui.lb.ranked') : ''
+    if (mark !== '') {
+      const tag = new Text({
+        text: mark,
         style: { fontSize: TEXT.small, fill: UI.yellow, fontWeight: WEIGHT.bold },
       })
-      name.position.set(24, 60)
-      card.addChild(name)
-    } else if (saved.ranked) {
-      const mark = new Text({
-        text: t('ui.lb.ranked'),
-        style: { fontSize: TEXT.small, fill: UI.yellow, fontWeight: WEIGHT.bold },
-      })
-      mark.position.set(24, 60)
-      card.addChild(mark)
-    }
-
-    // 그만둔 자리. **셋을 한 줄로 둡니다** — 안테가 어디까지 갔는가가 먼저이고, 금액과
-    // 조커 수가 그 판의 모습입니다.
-    const facts: [string, string][] = [
-      [t('ui.slot.ante'), String(saved.ante)],
-      [t('ui.slot.money'), `$${saved.money}`],
-      [t('ui.insight.group.joker'), String(saved.jokers)],
-    ]
-    for (let i = 0; i < facts.length; i++) {
-      const x = 24 + i * 200
-      const head = new Text({
-        text: facts[i][0],
-        style: { fontSize: TEXT.small, fill: UI.inkDim, fontWeight: WEIGHT.normal, letterSpacing: 1 },
-      })
-      head.position.set(x, 104)
-      const value = new Text({
-        text: facts[i][1],
-        style: { fontSize: TEXT.display, fill: UI.ink, fontWeight: WEIGHT.bold },
-      })
-      value.position.set(x, 124)
-      card.addChild(head, value)
+      tag.anchor.set(0, 0.5)
+      tag.position.set(24 + title.width + 20, 42)
+      head.addChild(tag)
     }
 
     const where = new Text({
@@ -529,34 +513,83 @@ class ResumeBody {
                { where: t(PHASE_KEYS[saved.phase] ?? 'ui.run.phase.round') }),
       style: { fontSize: TEXT.small, fill: UI.inkDim },
     })
-    where.position.set(24, 184)
-    card.addChild(where)
-
-    const seed = new Text({
-      text: saved.seed,
-      style: { fontSize: TEXT.small, fill: UI.inkFaint, fontWeight: WEIGHT.normal, letterSpacing: 1 },
-    })
-    seed.position.set(24, 212)
-    card.addChild(seed)
+    where.anchor.set(0, 0.5)
+    where.position.set(24, 78)
+    head.addChild(where)
 
     const when = new Text({
       text: agoText(saved.savedAt),
       style: { fontSize: TEXT.small, fill: UI.inkFaint },
     })
-    when.anchor.set(1, 0)
-    when.position.set(RESUME_W - 24, 212)
-    card.addChild(when)
+    when.anchor.set(1, 0.5)
+    when.position.set(width - 24, 40)
+    head.addChild(when)
 
-    // **나아가는 줄입니다 — 둘 다 `lg`.** 아래 띠의 오른쪽에 놓이고 금색은 하나입니다.
+    const seed = new Text({
+      text: saved.seed,
+      style: { fontSize: TEXT.small, fill: UI.inkFaint, fontWeight: WEIGHT.normal,
+        letterSpacing: 1 },
+    })
+    seed.anchor.set(1, 0.5)
+    seed.position.set(width - 24, 78)
+    head.addChild(seed)
+    this.body.addChild(head)
+
+    // ── 값 칸 셋. 안테가 어디까지 갔는가가 먼저이고, 금액과 조커 수가 그 판의 모습입니다 ──
+    const facts: [string, string, number][] = [
+      [t('ui.slot.ante'), `${saved.ante} / ${this.data.run.winAnte}`, UI.ink],
+      [t('ui.slot.money'), `$${saved.money}`, UI.money],
+      [t('ui.insight.group.joker'), String(saved.jokers), UI.chips],
+    ]
+    const cellW = (width - RESUME_GAP * (facts.length - 1)) / facts.length
+    facts.forEach((fact, index) => {
+      const cell = new Container()
+      cell.position.set(index * (cellW + RESUME_GAP), RESUME_CELL_Y)
+      const skin = piece('well', cellW, RESUME_CELL_H, wellTint(UI.panel))
+      if (skin) cell.addChild(skin)
+      else {
+        const g = new Graphics()
+        g.rect(0, 0, cellW, RESUME_CELL_H).fill(UI.panel)
+        cell.addChild(g)
+      }
+      const name = new Text({
+        text: fact[0],
+        style: { fontSize: TEXT.small, fill: UI.inkDim, fontWeight: WEIGHT.normal,
+          letterSpacing: 1 },
+      })
+      name.anchor.set(0, 0.5)
+      name.position.set(20, 28)
+      const value = new Text({
+        text: fact[1],
+        style: { fontSize: TEXT.display, fill: fact[2], fontWeight: WEIGHT.bold,
+          fontFamily: NUMERALS },
+      })
+      value.anchor.set(1, 1)
+      value.position.set(cellW - 20, RESUME_CELL_H - 16)
+      cell.addChild(name, value)
+      this.body.addChild(cell)
+    })
+
+    // ── 들고 있던 것 두 줄. 어떤 판이었는지는 이것으로 읽힙니다 ──────────────
+    const jokers = saved.jokerIds.map(id => ({ kind: ShopItemKind.Joker, id }))
+    const consumables = saved.consumableList.map(one => ({
+      kind: ShopItemKind[ConsumableKind[one.kind] as keyof typeof ShopItemKind]
+        ?? ShopItemKind.Tarot,
+      id: one.id,
+    }))
+    this.heldRow(this.body, t('ui.button.jokers'), jokers, HELD_JOKER_Y, width)
+    this.heldRow(this.body, t('ui.resume.consumables'), consumables, HELD_ITEM_Y, width)
+
+    // **나아가는 줄입니다.** 아래 띠의 오른쪽에 놓이고 금색은 하나입니다.
     const footY = FULL_FOOT_Y - FULL_BODY_TOP + 12
     const resume = new Button(t('ui.run.resume'), 320, GO_H, 'primary',
                               () => this.onResume?.())
-    resume.position.set(this.size.width - 320, footY)
+    resume.position.set(width - 320, footY)
     this.resumeButton = resume
 
     const discard = new Button(t('ui.run.discard'), 160, GO_H, 'neutral',
                                () => this.onDiscard?.())
-    discard.position.set(this.size.width - 320 - 12 - 160, footY)
+    discard.position.set(width - 320 - 12 - 160, footY)
     this.discardButton = discard
 
     this.body.addChild(discard, resume)
@@ -566,23 +599,23 @@ class ResumeBody {
    * 들고 있던 것 한 줄. 이름표 아래에 딱지가 왼쪽부터 섭니다. **없으면 「없음」 한 낱말입니다.**
    */
   private heldRow(into: Container, label: string, items: { kind: ShopItemKind; id: string }[],
-                  y: number): void {
-    const head = new Text({
-      text: label,
-      style: { fontSize: TEXT.small, fill: UI.inkDim, fontWeight: WEIGHT.normal, letterSpacing: 1 },
-    })
+                  y: number, width: number): void {
+    const head = sectionHead(width, label, undefined, true)
     head.position.set(0, y)
     into.addChild(head)
     if (items.length === 0) {
-      const none = new Text({ text: t('ui.resume.none'), style: { fontSize: TEXT.small, fill: UI.inkFaint } })
-      none.position.set(0, y + 24)
+      const none = new Text({
+        text: t('ui.resume.none'),
+        style: { fontSize: TEXT.small, fill: UI.inkFaint },
+      })
+      none.position.set(0, y + 40)
       into.addChild(none)
       return
     }
     items.forEach((item, at) => {
       const face = itemFace(this.data, item)
       face.scale.set(HELD_SCALE)
-      face.position.set(at * HELD_STEP, y + 24)
+      face.position.set(at * HELD_STEP, y + 40)
       into.addChild(face)
     })
   }

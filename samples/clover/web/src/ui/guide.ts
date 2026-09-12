@@ -31,8 +31,13 @@ const TOPICS = ['round', 'score', 'joker', 'item', 'shop', 'goal', 'deck', 'cont
 /** 득점의 차례를 적는 칸 넷. 족보 → 카드 → 조커 → 곱셈입니다. */
 const ORDER = ['hand', 'card', 'joker', 'mult'] as const
 
-/** 이 판의 글에 붙는 강조. */
-const rich = (): RichStyle => richStyle('body')
+/**
+ * 이 판의 글에 붙는 강조.
+ *
+ * **읽는 화면이므로 계단 한 칸 위입니다.** 12픽셀로 두었더니 핸드폰에서 읽히지 않았고,
+ * 이 자리는 한 갈래만 읽는 자리라 줄 수를 아낄 이유가 없습니다.
+ */
+const rich = (): RichStyle => richStyle('title')
 
 /** 왼쪽 갈래 목록. */
 const NAV_W = 320
@@ -138,11 +143,13 @@ export class Guide implements ModalPanel {
       row.position.set(FULL_EDGE, top)
 
       if (index === this.at) {
-        const skin = piece('well', NAV_W, NAV_PLATE_H, wellTint(UI.cell))
+        // **판의 색입니다.** 전면 화면의 바닥은 덮개(거의 검정)이므로 칸의 색으로
+        // 두면 바닥과 같아 보이지 않습니다 — 칸은 바닥보다 밝아야 칸입니다.
+        const skin = piece('well', NAV_W, NAV_PLATE_H, wellTint(UI.panel))
         if (skin !== undefined) row.addChild(skin)
         else {
           const plate = new Graphics()
-          plate.rect(0, 0, NAV_W, NAV_PLATE_H).fill({ color: UI.cell, alpha: 0.9 })
+          plate.rect(0, 0, NAV_W, NAV_PLATE_H).fill({ color: UI.panel, alpha: 0.9 })
           row.addChild(plate)
         }
         const bar = new Graphics()
@@ -179,7 +186,10 @@ export class Guide implements ModalPanel {
   private drawBody(key: string): void {
     // **줄 사이가 넉넉합니다.** 이 자리는 한 화면에 여러 마디를 밀어 넣는 자리가 아니라
     // 한 갈래만 읽는 자리이므로, 12픽셀 글에 24픽셀 계단의 줄 사이를 씁니다.
-    const text = richBlock([t(`ui.guide.${key}.body`)], rich(), richLeading('lead'), BODY_W)
+    // **줄 사이는 글의 크기에서 옵니다.** 24픽셀 글에 12픽셀 계단의 줄 사이를 걸었더니
+    // 세 줄이 서로 겹쳤습니다 — 같은 계단의 줄 사이에 한 칸을 더 둡니다.
+    const text = richBlock(bodyLines(t(`ui.guide.${key}.body`)), rich(),
+                           richLeading('title') + 8, BODY_W)
     text.position.set(BODY_X, FULL_BODY_TOP + 10)
     this.view.addChild(text)
 
@@ -200,11 +210,11 @@ export class Guide implements ModalPanel {
     // 보기 판 — 칩 × 배수 = 점수.
     const show = new Container()
     show.position.set(BODY_X, SHOW_Y)
-    const skin = piece('well', BODY_W, SHOW_H, wellTint(UI.cell))
+    const skin = piece('well', BODY_W, SHOW_H, wellTint(UI.panel))
     if (skin !== undefined) show.addChild(skin)
     else {
       const plate = new Graphics()
-      plate.rect(0, 0, BODY_W, SHOW_H).fill({ color: UI.cell, alpha: 0.9 })
+      plate.rect(0, 0, BODY_W, SHOW_H).fill({ color: UI.panel, alpha: 0.9 })
       show.addChild(plate)
     }
 
@@ -239,11 +249,11 @@ export class Guide implements ModalPanel {
     ORDER.forEach((one, index) => {
       const cell = new Container()
       cell.position.set(BODY_X + index * (cellW + CELL_GAP), CELL_Y)
-      const face = piece('well', cellW, CELL_H, wellTint(UI.cell))
+      const face = piece('well', cellW, CELL_H, wellTint(UI.panel))
       if (face !== undefined) cell.addChild(face)
       else {
         const plate = new Graphics()
-        plate.rect(0, 0, cellW, CELL_H).fill({ color: UI.cell, alpha: 0.9 })
+        plate.rect(0, 0, cellW, CELL_H).fill({ color: UI.panel, alpha: 0.9 })
         cell.addChild(plate)
       }
       const label = new Text({
@@ -256,6 +266,18 @@ export class Guide implements ModalPanel {
       this.view.addChild(cell)
     })
   }
+}
+
+/**
+ * 본문을 줄로 가릅니다.
+ *
+ * **번호가 붙은 글은 번호마다 한 줄입니다.** 한 문단으로 흘리면 「1.」 과 「2.」 가 줄
+ * 가운데에서 만나 목록으로 읽히지 않고, 접히는 자리가 말마다 달라 어느 말에서는 번호가
+ * 앞 줄의 끝에 붙습니다. 번호가 없는 글은 그대로 한 줄입니다.
+ */
+function bodyLines(body: string): string[] {
+  const parts = body.split(/\s+(?=\d+\.\s)/).map(one => one.trim()).filter(one => one !== '')
+  return parts.length > 1 ? parts : [body]
 }
 
 /** 곱셈과 등호. **글 표에 두지 않습니다** — 어느 말에서나 같은 기호입니다. */
