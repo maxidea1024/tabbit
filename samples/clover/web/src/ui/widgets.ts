@@ -353,6 +353,12 @@ export class Button extends Container {
     const size = this.caption.style.fontSize as number
     const width = ink === UI.onLight ? 0 : outlineWidth(size)
     this.caption.style.stroke = outlineOf(width, UI.outline)
+    // **글은 얼굴 위에 얹힌 것이므로 아래로 한 픽셀 그림자가 집니다.** 밝은 단추는 글이
+    // 어두우므로 그림자도 밝은 쪽입니다.
+    this.caption.style.dropShadow = {
+      color: ink === UI.onLight ? PAINT.sheen : UI.outline,
+      alpha: ink === UI.onLight ? 0.35 : 0.6, blur: 0, distance: 1, angle: Math.PI / 2,
+    }
   }
 
   /** 지금 글에 걸려 있는 테두리의 굵기. **검증 도구가 읽습니다.** */

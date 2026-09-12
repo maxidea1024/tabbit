@@ -559,7 +559,6 @@ export class BlindPart {
       style: {
         fontSize: TEXT.micro, fill: UI.inkDim,
         wordWrap: true, wordWrapWidth: width - textLeft - 8, breakWords: true,
-        lineHeight: 12,
       },
     })
     const height = Math.max(FACE + 12, 20 + note.height + 8)

@@ -365,7 +365,9 @@ export class LoginScene extends Container {
     // **싱글플레이는 자리가 고정입니다.** 제공자가 몇이든 같은 자리에 있어야 합니다 —
     // 제공자 하나가 늘고 줄 때마다 이 단추가 오르내리면, 늘 같은 것을 누르는 사람이
     // 매번 찾아야 합니다.
-    const singleY = SIZE.height - 214
+    // **아래 변에서 셉니다.** 저작권 · 법적 고지 두 줄 · 나가기 · 설명 · 나아가는 단추가
+    // 아래에서 위로 쌓이고, 나아가는 단추(60)가 커지면서 그 아래 것들이 겹치던 것을 잡습니다.
+    const singleY = SIZE.height - 24 - 12 - 12 - 24 - 12 - 24 - 48 - 40 - 24 - 60
 
     if (this.note !== '') {
       const note = new Text({
@@ -384,7 +386,7 @@ export class LoginScene extends Container {
       // **홀로 남으면 화면 가운데쯤입니다.** 다음에 누를 것 바로 위에 두면 단추의 설명으로
       // 읽히고, 그 글은 「위에 아무것도 없는 까닭」입니다.
       note.anchor.set(0.5, alone ? 1 : 0)
-      note.position.set(SIZE.width / 2, alone ? singleY - 120 : y + 2)
+      note.position.set(SIZE.width / 2, alone ? singleY - 96 : y + 2)
       this.body.addChild(note)
       y += note.height + 14
     }
@@ -425,7 +427,7 @@ export class LoginScene extends Container {
       },
     })
     singleNote.anchor.set(0.5, 0)
-    singleNote.position.set(SIZE.width / 2, singleY + GO_H + 14)
+    singleNote.position.set(SIZE.width / 2, singleY + GO_H + 12)
     this.body.addChild(singleNote)
 
     // 나가기. **이 화면의 마지막 줄입니다** — 로그인도 하지 않고 게임도 하지 않겠다는
@@ -433,7 +435,7 @@ export class LoginScene extends Container {
     const quitW = 144
     const quit = new Button(t('ui.button.quit'), quitW, 48, 'neutral',
                             () => this.onQuit?.())
-    quit.position.set(SIZE.width / 2 - quitW / 2, singleY + GO_H + 52)
+    quit.position.set(SIZE.width / 2 - quitW / 2, singleY + GO_H + 12 + 24 + 24)
     this.body.addChild(quit)
 
     // 저작권. **아래 변의 가운데, 한 줄 위입니다.** 판 번호가 여기 함께 적힙니다.
@@ -456,7 +458,7 @@ export class LoginScene extends Container {
       },
     })
     legal.anchor.set(0.5, 1)
-    legal.position.set(SIZE.width / 2, SIZE.height - 68)
+    legal.position.set(SIZE.width / 2, SIZE.height - 24 - 12 - 12 - 24)
     this.body.addChild(legal)
 
     const keep = new Text({
@@ -467,7 +469,7 @@ export class LoginScene extends Container {
       },
     })
     keep.anchor.set(0.5, 1)
-    keep.position.set(SIZE.width / 2, SIZE.height - 50)
+    keep.position.set(SIZE.width / 2, SIZE.height - 24 - 12 - 12)
     this.body.addChild(keep)
   }
 

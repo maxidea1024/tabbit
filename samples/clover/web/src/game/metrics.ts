@@ -24,7 +24,16 @@ export const PANEL_W = SIDE_PANEL.width
  * 그대로입니다. 예전에는 오른쪽 칸을 `LEFT + 134` 에 두었고, 그러면 줄이 6픽셀 일찍
  * 끝나서 **오른쪽에만 여백이 남았습니다.**
  */
-export const RIGHT_COL = LEFT + 140
+/** 판 안쪽의 여백. 칸과 자리는 이 안에 놓이고, 머리 판과 요구 점수는 판의 폭을 다 씁니다. */
+export const IN_X = LEFT + 16
+export const IN_W = PANEL_W - 32
+/** 2×2 칸의 오른쪽 열. */
+export const RIGHT_COL = IN_X + IN_W / 2
+/** 칸 하나의 크기. 2×2 가 안쪽 폭을 다 씁니다. */
+export const CELL_SLOT_W = IN_W / 2
+export const CELL_SLOT_H = 48
+/** 판 아래 단추 둘의 사이. */
+export const PANEL_BTN_GAP = 8
 
 /** 판이 놓이는 자리의 가운데. 왼쪽 패널을 뺀 나머지의 한가운데입니다. */
 export const BOARD_X = (LEFT + PANEL_W + 20 + SIZE.width) / 2
@@ -528,7 +537,10 @@ export const BUTTON_Y = 712
  * **높이 계단의 `xl` 입니다.** 판을 움직이는 단추라서 가장 큽니다 — 매번 누르는 것이고,
  * 화면에서 이 칸을 쓰는 것은 이 줄뿐입니다.
  */
-export const PLAY_W = 148
+export const PLAY_W = 214
+
+/** 버린다는 낸다보다 좁습니다 — 나아가는 것이 더 큽니다. */
+export const DISCARD_W = 180
 
 export const PLAY_H = 72
 
@@ -538,7 +550,7 @@ export const PLAY_H = 72
  * **손가락으로 누를 수 있는 크기입니다.** 모바일에서 이것이 가장 작은 단추였습니다 —
  * 자리를 세는 쪽이 이 값을 읽으므로, 키워도 둘이 겹치지 않습니다.
  */
-export const SORT_W = 112
+export const SORT_W = 84
 
 /** 곁단추입니다 — 높이 계단의 `sm`. */
 export const SORT_H = 36
@@ -578,9 +590,10 @@ export const SHOP_FOOT_H = 60
  * **윗변은 판의 밑변에서 셉니다.** 판은 화면 아래 22픽셀까지 내려오고, 그 안쪽으로
  * 8픽셀을 둡니다 — 적어 두면 단추를 키운 날에 판 밖으로 밀려납니다.
  */
-export const PANEL_BTN_W = 124
+export const PANEL_BTN_W = (IN_W - PANEL_BTN_GAP) / 2
 
-export const PANEL_FOOT_Y = SIZE.height - 22 - 8 - FOOT_BTN_H
+/** 판의 아랫변(788)에서 24 위입니다. */
+export const PANEL_FOOT_Y = SIZE.height - 12 - 24 - FOOT_BTN_H
 
 /** 취소. 가운데에 서고 그 둘보다 좁습니다. */
 export const CLEAR_W = 76
@@ -668,7 +681,7 @@ export function within(at: number, half: number, span: number): number {
   return Math.max(room, Math.min(span - room, at))
 }
 
-export const CHIPS_Y = 336
+export const CHIPS_Y = 344
 
 /**
  * 왼쪽 판의 줄들이 서는 자리.
@@ -695,14 +708,19 @@ export const CHIPS_Y = 336
  * 것으로 보입니다 — 절반인 10픽셀입니다.
  */
 export const PANEL_ROWS = {
-  score: 200,
-  /** 족보 이름이 앉는 띠의 윗변. 높이는 24 입니다. */
+  /** 라운드 점수 칸의 윗변. 딱지(32~244) 아래 24 입니다. */
+  score: 268,
+  /** 족보 이름은 판 안이 아니라 손패 위에 뜹니다. 남겨 둔 값은 옛 자리입니다. */
   handLabel: 304,
-  hands: 420,
-  money: 484,
+  /** 2×2 칸의 첫 줄. */
+  hands: 416,
+  money: 464,
   /** 적용 중 목록의 머리글. */
-  active: 562,
+  active: 536,
 } as const
+
+/** 라운드 점수 칸의 높이. 이름과 값 한 줄, 그 아래 게이지입니다. */
+export const SCORE_H = 64
 
 /**
  * 무리를 가르는 줄들. **각 사이의 한가운데입니다.**
@@ -725,7 +743,7 @@ export const CHIPS_H = 60
 export const CHIPS_R = 0
 
 /** 두 상자 사이. **곱셈표가 그 사이에 놓입니다.** */
-export const CHIPS_GAP = 34
+export const CHIPS_GAP = 12
 
 /** 구분선 하나가 차지하는 높이. 줄은 그 한가운데입니다. */
 export const RULE_H = 14

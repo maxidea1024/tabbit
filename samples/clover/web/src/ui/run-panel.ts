@@ -5,21 +5,21 @@
 // 셋 다 판을 여는 일인데 서로 다른 자리에 있었습니다. 하나로 모으면 무엇으로 시작할지를
 // 고르는 자리가 하나입니다.
 //
-// **탭 셋입니다.**
+// **탭으로 늘어놓지 않고 단계를 둡니다.** 1단계가 큰 메뉴 셋이고 2단계가 세부입니다 —
+// 디자인 언어의 「전면 화면」이 정본입니다.
 //
-// |탭|언제|무엇|
-// |--|--|--|
-// |새 런|늘|덱과 스테이크를 고르고 시작합니다|
-// |이어하기|저장된 판이 있을 때|그만둔 자리와 「이어서 하기」·「버리기」|
-// |챌린지|늘. 열리기 전에는 잠긴 채로|20칸에서 하나를 골라 시작합니다|
+// |1단계|2단계|
+// |--|--|
+// |새 런|덱과 스테이크를 고르고 시작합니다|
+// |이어하기 (저장된 판이 있을 때)|그만둔 자리와 「이어서 하기」·「버리기」|
+// |챌린지 (열리기 전에는 잠긴 채로)|20칸에서 하나를 골라 시작합니다|
 //
-// **몸통은 저마다 자기 좌표로 그립니다.** 판이 그것을 받아 가로 가운데에 놓고 내용의
-// 윗변을 탭 줄 아래에 맞춥니다 — 몸통이 자기 자리를 알면 탭 줄의 높이를 고칠 때마다
-// 몸통 셋을 함께 고쳐야 합니다.
+// **세부 화면의 ESC 는 큰 메뉴로 돌아갑니다.** 큰 메뉴의 ESC 가 판을 닫습니다.
+//
+// **몸통은 저마다 자기 좌표로 그립니다.** 판이 그것을 받아 전면 화면의 몸통 자리에 놓습니다.
 //
 // **설명 쪽지는 판이 하나만 가집니다.** 몸통마다 자기 쪽지를 두면 화면에 둘이 뜰 수 있고,
-// 쪽지가 판 밖으로 나가지 않게 하는 셈이 몸통마다 달라집니다 — 몸통은 「무엇을 가리켰다」만
-// 알리고, 어디에 어떻게 띄우는지는 판이 정합니다.
+// 쪽지가 화면 밖으로 나가지 않게 하는 셈이 몸통마다 달라집니다.
 
 import { Container, Graphics, Text } from 'pixi.js'
 
@@ -28,44 +28,37 @@ import type { SavedRun } from '../core/save-run'
 import { nameOf, t, tf } from '../core/strings'
 import { StakeKind } from '../generated/enums/stake-kind'
 import { stakeSlug } from '../core/stake'
-import { UI, TEXT, WEIGHT } from '../render/theme'
+import { plateTint, wellTint } from '../render/skin'
+import { UI, SIZE, TEXT, WEIGHT } from '../render/theme'
+import { ConsumableKind } from '../generated/enums/consumable-kind'
+import { ShopItemKind } from '../generated/enums/shop-item-kind'
+import { itemFace } from '../render/faces'
 import { ChallengeBody, openCount, type ChallengeProgress } from './challenge'
+import { glowEdge, piece } from './chrome'
 import type { ToolSpot } from './layout'
-import { panelFrame, TITLE_BAR, type ModalPanel } from './modal'
-import { SetupBody, SETUP_HEIGHT, type RunSetup } from './setup'
+import { FULL_BODY_TOP, FULL_EDGE, FULL_FOOT_Y, fullFrame, type ModalPanel } from './modal'
+import { SetupBody, setupLabel, type RunSetup } from './setup'
 import { Tooltip } from './tooltip'
 import { Button } from './widgets'
 
-const WIDTH = 760
+/** 큰 메뉴의 판 셋. 타이틀의 큰 판과 같은 규격입니다. */
+const CARD_W = 352
+const CARD_H = 520
+const CARD_Y = 160
+const CARD_GAP = 32
+/** 판 위쪽의 그림 자리. */
+const ART_H = 236
+/** 판 아래의 나아가는 단추. 높이 계단의 `lg` 입니다. */
+const GO_H = 60
 
-/** 탭 줄. 제목 아래에 놓입니다. */
-const TAB_Y = TITLE_BAR + 12
-/** 갈래 단추. 높이 계단의 기본 칸입니다. */
-const TAB_H = 48
-const TAB_W = 168
-const TAB_GAP = 6
-
-/** 몸통의 내용이 시작하는 자리. */
-const BODY_TOP = TAB_Y + TAB_H + 22
-
-/**
- * 가장 높은 몸통은 새 런입니다. **판의 높이가 탭마다 바뀌면 밑변이 움직입니다.**
- *
- * **그 몸통에게 묻습니다.** 수로 베껴 적어 두면 몸통에 한 줄을 더한 날부터 그 줄이 판의
- * 밑변 아래에 그려지고, 거기를 누르는 것은 판 바깥을 누르는 것이라 판이 닫힙니다.
- */
-const BODY_H = SETUP_HEIGHT
-const HEIGHT = BODY_TOP + BODY_H + 26
-
-/** 탭 하나의 이름. */
+/** 화면 하나의 이름. `menu` 가 1단계이고 나머지가 2단계입니다. */
 export type RunTab = 'new' | 'resume' | 'challenge'
+type Page = 'menu' | RunTab
 
 /**
  * 무엇을 가리켰는가.
  *
- * 좌표는 **그 몸통의 지역 좌표**입니다. 판이 몸통의 자리를 더해 자기 좌표로 옮깁니다 —
- * 몸통이 자기가 어디에 얹혔는지 알면, 탭 줄의 높이를 고칠 때마다 몸통 셋을 함께 고쳐야
- * 합니다.
+ * 좌표는 **그 몸통의 지역 좌표**입니다. 판이 몸통의 자리를 더해 자기 좌표로 옮깁니다.
  */
 export interface TipRequest {
   name: string
@@ -83,12 +76,7 @@ export interface TipRequest {
   bottom: number
 }
 
-/**
- * 탭 하나의 몸통.
- *
- * `top` 은 그 몸통 안에서 내용이 시작하는 `y` 입니다. 판이 그만큼 끌어올려 놓으므로 셋의
- * 윗변이 같습니다.
- */
+/** 2단계 화면 하나의 몸통. */
 interface TabBody {
   readonly view: Container
   readonly size: { width: number; height: number }
@@ -114,38 +102,32 @@ export interface RunPanelHooks {
 
 export class RunPanel implements ModalPanel {
   readonly view = new Container()
-  readonly size = { width: WIDTH, height: HEIGHT }
-  /**
-   * 가로 가운데에 놓입니다.
-   *
-   * **왼쪽 판을 비껴 놓이지 않습니다.** 그 규칙은 판이 도는 동안 왼쪽에 있는 것을 가리지
-   * 않기 위한 것이고, 이 판은 타이틀에서만 열리므로 비껴 설 대상이 없습니다 — 비껴 서면
-   * 가운데에서 오른쪽으로 밀린 자리에 놓입니다.
-   */
+  readonly size = { width: SIZE.width, height: SIZE.height }
   readonly centered = true
+  readonly fullscreen = true
 
-  private readonly tabRow = new Container()
+  private readonly frameLayer = new Container()
+  private readonly menuLayer = new Container()
   private readonly bodyLayer = new Container()
   private readonly tip = new Tooltip()
-  private frame?: Container
 
   private readonly setupBody: SetupBody
   private readonly challengeBody: ChallengeBody
   private readonly resumeBody: ResumeBody
 
-  private tab: RunTab = 'new'
+  private page: Page = 'menu'
   private saved?: SavedRun
 
-  /** 도구가 짚을 자리들. **탭이 늘거나 폭이 바뀌면 여기서 함께 옮겨 갑니다.** */
+  /** 도구가 짚을 자리들. 화면이 바뀔 때마다 다시 셉니다. */
   private readonly toolNodes = new Map<string, ToolSpot>()
 
   get toolSpots(): [string, ToolSpot][] {
     // **몸통이 그린 자리도 함께 알립니다.** 이어하기의 단추 둘은 저장된 판이 있을 때만
     // 그려지므로, 판이 스스로 세면 그것이 없는 날에 빈자리를 가리킵니다.
     const out: [string, ToolSpot][] = [...this.toolNodes]
-    if (this.tab === 'new') out.push(...this.setupBody.spots())
-    if (this.tab === 'resume') out.push(...this.resumeBody.spots())
-    if (this.tab === 'challenge') out.push(...this.challengeBody.spots())
+    if (this.page === 'new') out.push(...this.setupBody.spots())
+    if (this.page === 'resume') out.push(...this.resumeBody.spots())
+    if (this.page === 'challenge') out.push(...this.challengeBody.spots())
     return out
   }
 
@@ -159,7 +141,7 @@ export class RunPanel implements ModalPanel {
     return this.saved !== undefined
   }
 
-  constructor(data: Data, setup: RunSetup,
+  constructor(private readonly data: Data, setup: RunSetup,
               private readonly progress: ChallengeProgress,
               private readonly hooks: RunPanelHooks) {
     this.setupBody = new SetupBody(data, setup)
@@ -174,16 +156,14 @@ export class RunPanel implements ModalPanel {
     this.resumeBody.onResume = () => hooks.onResume()
     this.resumeBody.onDiscard = () => hooks.onDiscard()
 
-    this.buildFrame()
-    this.view.addChild(this.tabRow, this.bodyLayer, this.tip)
+    this.view.addChild(this.frameLayer, this.menuLayer, this.bodyLayer, this.tip)
     for (const body of this.bodies()) {
-      body.view.position.set(Math.round((WIDTH - body.size.width) / 2),
-                             BODY_TOP - body.top)
+      body.view.position.set(FULL_EDGE, FULL_BODY_TOP - body.top)
       this.bodyLayer.addChild(body.view)
     }
     this.setupBody.onTip = tip => this.showTip(this.setupBody, tip)
     this.challengeBody.onTip = tip => this.showTip(this.challengeBody, tip)
-    this.show('new')
+    this.show('menu')
   }
 
   private bodies(): TabBody[] {
@@ -200,36 +180,26 @@ export class RunPanel implements ModalPanel {
     const dy = body.view.y
     this.tip.show(tip.name, tip.chip ?? '', 0, tip.lines,
                   { x: tip.x + dx, top: tip.top + dy, bottom: tip.bottom + dy },
-                  { width: WIDTH, height: HEIGHT }, undefined, tip.chipTone)
-  }
-
-  private buildFrame(): void {
-    if (this.frame) {
-      this.view.removeChild(this.frame)
-      this.frame.destroy({ children: true })
-    }
-    this.frame = panelFrame(WIDTH, HEIGHT, t('ui.run.title'), this.hooks.onClose,
-                            undefined, false)
-    this.view.addChildAt(this.frame, 0)
+                  { width: SIZE.width, height: SIZE.height }, undefined, tip.chipTone)
   }
 
   /**
    * 저장된 판을 알립니다.
    *
-   * **없으면 이어하기 탭이 없습니다.** 눌러 보고 「없습니다」가 적혀 있는 것보다 탭이
-   * 없는 편이 그 자리에서 끝납니다.
+   * **없으면 이어하기 판이 잠깁니다.** 눌러 보고 「없습니다」가 적혀 있는 것보다 잠긴
+   * 채로 보이는 편이 그 자리에서 끝납니다.
    */
   setSaved(saved: SavedRun | undefined): void {
     this.saved = saved
     this.resumeBody.show(saved)
-    if (saved === undefined && this.tab === 'resume') this.tab = 'new'
-    this.drawTabs()
-    this.syncBodies()
+    if (saved === undefined && this.page === 'resume') this.page = 'menu'
+    this.draw()
   }
 
   /** 바깥에서 고른 덱과 스테이크가 바뀌었을 때. */
   setSetup(setup: RunSetup): void {
     this.setupBody.setSetup(setup)
+    if (this.page === 'menu' || this.page === 'new') this.draw()
   }
 
   /** 로그인 상태. 랭크로 시작할 수 있는지가 이것으로 갈립니다. */
@@ -238,83 +208,173 @@ export class RunPanel implements ModalPanel {
   }
 
   /**
-   * 어느 탭으로 엽니다.
+   * 엽니다. **큰 메뉴가 먼저입니다.**
    *
-   * **이어할 것이 있으면 그것이 먼저입니다.** 판을 두다 그만둔 사람이 다음에 하려는 것은
-   * 대개 그 판이고, 새 런은 그 옆에 있습니다.
+   * 이어할 것이 있어도 그 화면으로 바로 가지 않습니다 — 큰 메뉴의 이어하기 판에 그만둔
+   * 자리가 적혀 있고, 무엇으로 시작할지는 거기서 고릅니다.
    */
   open(): void {
-    this.show(this.saved ? 'resume' : 'new')
+    this.show('menu')
   }
 
-  private show(tab: RunTab): void {
-    if (tab === 'resume' && this.saved === undefined) tab = 'new'
-    this.tab = tab
+  /** ESC 와 바깥 누르기. 세부 화면에서는 큰 메뉴로 돌아가고, 큰 메뉴에서는 닫힙니다. */
+  onBack(): boolean {
+    if (this.page === 'menu') return false
+    this.show('menu')
+    return true
+  }
+
+  private show(page: Page): void {
+    if (page === 'resume' && this.saved === undefined) page = 'menu'
+    this.page = page
     this.tip.hide()
-    this.drawTabs()
-    this.syncBodies()
+    this.draw()
   }
 
-  private syncBodies(): void {
-    this.setupBody.view.visible = this.tab === 'new'
-    this.resumeBody.view.visible = this.tab === 'resume'
-    this.challengeBody.view.visible = this.tab === 'challenge'
+  private draw(): void {
+    this.frameLayer.removeChildren().forEach(child => child.destroy({ children: true }))
+    this.menuLayer.removeChildren().forEach(child => child.destroy({ children: true }))
+    this.toolNodes.clear()
+
+    this.setupBody.view.visible = this.page === 'new'
+    this.resumeBody.view.visible = this.page === 'resume'
+    this.challengeBody.view.visible = this.page === 'challenge'
+
+    if (this.page === 'menu') {
+      this.frameLayer.addChild(fullFrame(t('ui.run.title'), [], this.hooks.onClose,
+                                         undefined, undefined, t('ui.run.subtitle')))
+      this.drawMenu()
+      return
+    }
+
+    const back = (): void => { this.show('menu') }
+    if (this.page === 'new') {
+      // 오른쪽 위에 지금 고른 덱.
+      const right = new Container()
+      const label = new Text({
+        text: t('ui.setup.picked'),
+        style: { fontSize: TEXT.small, fill: UI.inkDim, letterSpacing: 1 },
+      })
+      label.anchor.set(1, 0)
+      const picked = new Text({
+        text: setupLabel(this.data, this.setupBody.picked()),
+        style: { fontSize: TEXT.display, fill: UI.red, fontWeight: WEIGHT.bold },
+      })
+      picked.anchor.set(1, 0)
+      picked.position.set(0, 16)
+      right.addChild(label, picked)
+      this.frameLayer.addChild(fullFrame(t('ui.setup.title'), [t('ui.run.title'), t('ui.run.tab.new')],
+                                         back, right))
+      return
+    }
+    if (this.page === 'resume') {
+      this.frameLayer.addChild(fullFrame(t('ui.run.tab.resume'), [t('ui.run.title'), t('ui.run.tab.resume')],
+                                         back))
+      return
+    }
+    this.frameLayer.addChild(fullFrame(t('ui.run.tab.challenge'),
+                                       [t('ui.run.title'), t('ui.run.tab.challenge')], back))
   }
 
-  /** 지금 서는 탭들. 이어하기는 저장된 판이 있을 때만입니다. */
-  private tabs(): { key: RunTab; label: string; locked: boolean }[] {
-    const rows: { key: RunTab; label: string; locked: boolean }[] = [
-      { key: 'new', label: t('ui.run.tab.new'), locked: false },
+  /**
+   * 큰 메뉴. **판 셋이고 새 런만 금색입니다.**
+   *
+   * 판마다 위에 그림 자리, 이름, 두 줄 설명, 아래에 나아가는 단추입니다. 이어하기는 저장된
+   * 판이 없으면 잠기고, 챌린지는 열리기 전에는 잠깁니다 — 잠긴 판은 채도를 뺍니다.
+   */
+  private drawMenu(): void {
+    const saved = this.saved
+    const opened = openCount(this.progress)
+    const cards: {
+      key: RunTab; title: string; lines: string[]; go: string; tone: number
+      primary: boolean; locked: boolean
+    }[] = [
+      {
+        key: 'new', title: t('ui.run.tab.new'),
+        lines: [t('ui.run.new_desc'), setupLabel(this.data, this.setupBody.picked())],
+        go: t('ui.run.pick'), tone: UI.red, primary: true, locked: false,
+      },
+      {
+        key: 'resume', title: t('ui.run.tab.resume'),
+        lines: saved ? this.resumeBody.summary(saved) : [],
+        go: t('ui.run.continue'), tone: UI.bar, primary: false, locked: saved === undefined,
+      },
+      {
+        key: 'challenge', title: t('ui.run.tab.challenge'),
+        lines: [t('ui.run.challenge_desc'), opened === 0 ? t('ui.challenge.lockedAll') : ''],
+        go: t('ui.run.open'), tone: UI.money, primary: false, locked: opened === 0,
+      },
     ]
-    if (this.saved) {
-      rows.push({ key: 'resume', label: t('ui.run.tab.resume'), locked: false })
-    }
-    // **열리기 전에도 보입니다.** 할 것이 더 있다는 것이 처음부터 보여야 하고, 무엇으로
-    // 열리는지는 그 탭 안의 쪽지에 적혀 있습니다.
-    rows.push({
-      key: 'challenge',
-      label: t('ui.run.tab.challenge'),
-      locked: openCount(this.progress) === 0,
+    const left = (SIZE.width - (CARD_W * cards.length + CARD_GAP * (cards.length - 1))) / 2
+    cards.forEach((card, index) => {
+      const node = new Container()
+      node.position.set(left + index * (CARD_W + CARD_GAP), CARD_Y)
+
+      const plate = piece('plate', CARD_W, CARD_H, plateTint(UI.panel))
+      if (plate) node.addChild(plate)
+      else {
+        const g = new Graphics()
+        g.rect(0, 0, CARD_W, CARD_H).fill({ color: UI.panel, alpha: UI.panelAlpha })
+        node.addChild(g)
+      }
+      const art = piece('tray', CARD_W - 2, ART_H, wellTint(card.tone))
+      if (art) {
+        art.position.set(1, 1)
+        art.alpha = card.locked ? 0.25 : 0.55
+        node.addChild(art)
+      }
+      const band = glowEdge(CARD_W, card.primary ? UI.yellow : UI.rule)
+      if (band) node.addChild(band)
+
+      const title = new Text({
+        text: card.title,
+        style: { fontSize: TEXT.display, fill: card.locked ? UI.inkDim : UI.ink, fontWeight: WEIGHT.bold },
+      })
+      title.position.set(24, ART_H + 26)
+      node.addChild(title)
+
+      card.lines.filter(line => line !== '').forEach((line, at) => {
+        const text = new Text({
+          text: line,
+          style: {
+            fontSize: TEXT.small, fill: card.locked ? UI.inkFaint : UI.inkDim,
+            wordWrap: true, wordWrapWidth: CARD_W - 48, breakWords: true,
+          },
+        })
+        text.position.set(24, ART_H + 26 + 48 + at * 28)
+        node.addChild(text)
+      })
+
+      const go = new Button(card.locked ? t('ui.run.locked') : card.go, CARD_W - 48, GO_H,
+                            card.primary ? 'primary' : 'neutral', () => this.show(card.key))
+      go.position.set(24, CARD_H - 24 - GO_H)
+      go.enabled = !card.locked
+      node.addChild(go)
+      this.toolNodes.set(`tab:${card.key}`, { node: go, cx: (CARD_W - 48) / 2, cy: GO_H / 2 })
+
+      if (!card.locked) {
+        // **판 어디를 눌러도 그 단추입니다.** 큰 판이 곧 누르는 자리입니다.
+        node.eventMode = 'static'
+        node.cursor = 'pointer'
+        node.on('pointertap', event => {
+          if (event.target === go || go.children.includes(event.target as never)) return
+          this.show(card.key)
+        })
+      } else {
+        node.alpha = 0.7
+      }
+      this.menuLayer.addChild(node)
     })
-    return rows
-  }
-
-  private drawTabs(): void {
-    this.tabRow.removeChildren().forEach(child => child.destroy({ children: true }))
-    for (const key of [...this.toolNodes.keys()]) {
-      if (key.startsWith('tab:')) this.toolNodes.delete(key)
-    }
-
-    const rows = this.tabs()
-    const total = rows.length * TAB_W + (rows.length - 1) * TAB_GAP
-    let x = Math.round((WIDTH - total) / 2)
-
-    for (const row of rows) {
-      const here = row.key === this.tab
-      // **갈래는 단추 줄입니다.** 고른 것은 밝은 단추이고, 잠긴 것도 눌러서 그 안의 잠긴
-      // 20칸을 볼 수 있으므로 잠긴 단추가 아니라 그 밖의 단추입니다.
-      const cell = new Button(row.label, TAB_W, TAB_H, here ? 'select' : 'neutral',
-                              () => this.show(row.key))
-      cell.position.set(x, TAB_Y)
-      this.tabRow.addChild(cell)
-      this.toolNodes.set(`tab:${row.key}`, { node: cell, cx: TAB_W / 2, cy: TAB_H / 2 })
-
-      x += TAB_W + TAB_GAP
-    }
-  }
-
-  tick(seconds: number): void {
-    this.tip.advance(seconds)
-  }
-
-  onClosed(): void {
-    this.tip.hide()
   }
 
   relabel(): void {
-    this.buildFrame()
     for (const body of this.bodies()) body.relabel()
-    this.drawTabs()
+    this.draw()
+  }
+
+  /** 겉면을 갈아 끼운 뒤. 판을 통째로 다시 그립니다. */
+  restyle(): void {
+    this.draw()
   }
 }
 
@@ -322,8 +382,14 @@ export class RunPanel implements ModalPanel {
 // 이어하기
 // ---------------------------------------------------------------------------
 
-const CARD_W = 520
-const CARD_H = 300
+/** 그만둔 자리 한 장. 왼쪽에 놓이고, 오른쪽에 들고 있던 것들이 섭니다. */
+const RESUME_W = 560
+const RESUME_H = 300
+/** 들고 있던 것들이 서는 오른쪽 자리의 왼쪽 변. */
+const HELD_X = RESUME_W + 48
+/** 딱지의 배율과 사이. 판의 딱지(88×124)를 4분의 3으로 둡니다. */
+const HELD_SCALE = 0.75
+const HELD_STEP = Math.round(SIZE.jokerWidth * HELD_SCALE) + 12
 
 /**
  * 그만둔 자리 한 장.
@@ -334,7 +400,7 @@ const CARD_H = 300
  */
 class ResumeBody {
   readonly view = new Container()
-  readonly size = { width: CARD_W, height: CARD_H }
+  readonly size = { width: SIZE.width - FULL_EDGE * 2, height: FULL_FOOT_Y - FULL_BODY_TOP }
   readonly top = 0
 
   private readonly body = new Container()
@@ -358,19 +424,15 @@ class ResumeBody {
     this.draw()
   }
 
-  private draw(): void {
-    this.body.removeChildren().forEach(child => child.destroy({ children: true }))
-    this.resumeButton = undefined
-    this.discardButton = undefined
-    const saved = this.saved
-    if (!saved) return
+  /** 큰 메뉴의 이어하기 판에 적히는 두 줄 — 무엇으로, 어디까지. */
+  summary(saved: SavedRun): string[] {
+    return [
+      this.deckLine(saved),
+      tf('ui.run.stopped', { where: t(PHASE_KEYS[saved.phase] ?? 'ui.run.phase.round') }),
+    ]
+  }
 
-    const plate = new Graphics()
-    plate.rect(0, 0, CARD_W, CARD_H)
-      .fill({ color: UI.cell })
-      .stroke({ color: UI.hairline, width: 2 })
-    this.body.addChild(plate)
-
+  private deckLine(saved: SavedRun): string {
     const deck = this.data.tables.deck.findByDeckId(saved.deckId)
     const deckName = deck
       ? nameOf(this.data, 'deck', saved.deckId, deck.name) : saved.deckId
@@ -378,13 +440,48 @@ class ResumeBody {
       .find(one => StakeKind[one.stake] === saved.stake)
     const stakeName = stakeRow
       ? nameOf(this.data, 'stake', stakeSlug(stakeRow.stake), stakeRow.name) : saved.stake
+    return `${deckName} · ${stakeName}`
+  }
+
+  private draw(): void {
+    this.body.removeChildren().forEach(child => child.destroy({ children: true }))
+    this.resumeButton = undefined
+    this.discardButton = undefined
+    const saved = this.saved
+    if (!saved) return
+
+    const card = new Container()
+    card.position.set(0, 24)
+    this.body.addChild(card)
+
+    // **들고 있던 것들.** 오른쪽에 조커 한 줄과 소모품 한 줄 — 어떤 판이었는지는 이것으로
+    // 읽힙니다. 이름은 가리키면 쪽지로 뜨는 것이 아니라 딱지의 띠에 적혀 있습니다.
+    const held = new Container()
+    held.position.set(HELD_X, 24)
+    this.body.addChild(held)
+    const jokers = saved.jokerIds.map(id => ({ kind: ShopItemKind.Joker, id }))
+    const consumables = saved.consumableList.map(one => ({
+      kind: ShopItemKind[ConsumableKind[one.kind] as keyof typeof ShopItemKind] ?? ShopItemKind.Tarot,
+      id: one.id,
+    }))
+    this.heldRow(held, t('ui.button.jokers'), jokers, 0)
+    this.heldRow(held, t('ui.resume.consumables'), consumables,
+                 24 + Math.round(SIZE.jokerHeight * HELD_SCALE) + 40)
+
+    const plate = piece('well', RESUME_W, RESUME_H, wellTint(UI.cell))
+    if (plate) card.addChild(plate)
+    else {
+      const g = new Graphics()
+      g.rect(0, 0, RESUME_W, RESUME_H).fill({ color: UI.cell })
+      card.addChild(g)
+    }
 
     const title = new Text({
-      text: `${deckName} · ${stakeName}`,
+      text: this.deckLine(saved),
       style: { fontSize: TEXT.head, fill: UI.ink, fontWeight: WEIGHT.bold },
     })
-    title.position.set(24, 22)
-    this.body.addChild(title)
+    title.position.set(24, 24)
+    card.addChild(title)
 
     // 챌린지 런이면 그 이름이 덱 이름보다 큰 표시입니다.
     if (saved.challengeId !== '') {
@@ -392,17 +489,17 @@ class ResumeBody {
       const name = new Text({
         text: row ? nameOf(this.data, 'challenge', saved.challengeId, row.name)
                   : saved.challengeId,
-        style: { fontSize: TEXT.body, fill: UI.yellow, fontWeight: WEIGHT.bold },
+        style: { fontSize: TEXT.small, fill: UI.yellow, fontWeight: WEIGHT.bold },
       })
-      name.position.set(24, 52)
-      this.body.addChild(name)
+      name.position.set(24, 60)
+      card.addChild(name)
     } else if (saved.ranked) {
       const mark = new Text({
         text: t('ui.lb.ranked'),
-        style: { fontSize: TEXT.body, fill: UI.yellow, fontWeight: WEIGHT.bold },
+        style: { fontSize: TEXT.small, fill: UI.yellow, fontWeight: WEIGHT.bold },
       })
-      mark.position.set(24, 52)
-      this.body.addChild(mark)
+      mark.position.set(24, 60)
+      card.addChild(mark)
     }
 
     // 그만둔 자리. **셋을 한 줄로 둡니다** — 안테가 어디까지 갔는가가 먼저이고, 금액과
@@ -413,64 +510,89 @@ class ResumeBody {
       [t('ui.insight.group.joker'), String(saved.jokers)],
     ]
     for (let i = 0; i < facts.length; i++) {
-      const x = 24 + i * 160
+      const x = 24 + i * 200
       const head = new Text({
         text: facts[i][0],
-        style: { fontSize: TEXT.small, fill: UI.inkDim, fontWeight: WEIGHT.bold, letterSpacing: 1 },
+        style: { fontSize: TEXT.small, fill: UI.inkDim, fontWeight: WEIGHT.normal, letterSpacing: 1 },
       })
-      head.position.set(x, 92)
+      head.position.set(x, 104)
       const value = new Text({
         text: facts[i][1],
         style: { fontSize: TEXT.display, fill: UI.ink, fontWeight: WEIGHT.bold },
       })
-      value.position.set(x, 110)
-      this.body.addChild(head, value)
+      value.position.set(x, 124)
+      card.addChild(head, value)
     }
 
     const where = new Text({
       text: tf('ui.run.stopped',
                { where: t(PHASE_KEYS[saved.phase] ?? 'ui.run.phase.round') }),
-      style: { fontSize: TEXT.body, fill: UI.inkDim },
+      style: { fontSize: TEXT.small, fill: UI.inkDim },
     })
-    where.position.set(24, 158)
-    this.body.addChild(where)
+    where.position.set(24, 184)
+    card.addChild(where)
 
     const seed = new Text({
       text: saved.seed,
       style: { fontSize: TEXT.small, fill: UI.inkFaint, fontWeight: WEIGHT.normal, letterSpacing: 1 },
     })
-    seed.position.set(24, 182)
-    this.body.addChild(seed)
+    seed.position.set(24, 212)
+    card.addChild(seed)
 
     const when = new Text({
       text: agoText(saved.savedAt),
       style: { fontSize: TEXT.small, fill: UI.inkFaint },
     })
     when.anchor.set(1, 0)
-    when.position.set(CARD_W - 24, 182)
-    this.body.addChild(when)
+    when.position.set(RESUME_W - 24, 212)
+    card.addChild(when)
 
-    // **이어서 하기가 큽니다.** 버리는 것은 되돌릴 수 없으므로 같은 크기로 나란히 두면
-    // 잘못 누르는 일이 생깁니다.
-    const resume = new Button(t('ui.run.resume'), 320, 48, 'primary',
+    // **나아가는 줄입니다 — 둘 다 `lg`.** 아래 띠의 오른쪽에 놓이고 금색은 하나입니다.
+    const footY = FULL_FOOT_Y - FULL_BODY_TOP + 12
+    const resume = new Button(t('ui.run.resume'), 320, GO_H, 'primary',
                               () => this.onResume?.())
-    resume.position.set(24, CARD_H - 72)
+    resume.position.set(this.size.width - 320, footY)
     this.resumeButton = resume
 
-    const discard = new Button(t('ui.run.discard'), 132, 48, 'neutral',
+    const discard = new Button(t('ui.run.discard'), 160, GO_H, 'neutral',
                                () => this.onDiscard?.())
-    discard.position.set(CARD_W - 24 - 132, CARD_H - 72)
+    discard.position.set(this.size.width - 320 - 12 - 160, footY)
     this.discardButton = discard
 
-    this.body.addChild(resume, discard)
+    this.body.addChild(discard, resume)
+  }
+
+  /**
+   * 들고 있던 것 한 줄. 이름표 아래에 딱지가 왼쪽부터 섭니다. **없으면 「없음」 한 낱말입니다.**
+   */
+  private heldRow(into: Container, label: string, items: { kind: ShopItemKind; id: string }[],
+                  y: number): void {
+    const head = new Text({
+      text: label,
+      style: { fontSize: TEXT.small, fill: UI.inkDim, fontWeight: WEIGHT.normal, letterSpacing: 1 },
+    })
+    head.position.set(0, y)
+    into.addChild(head)
+    if (items.length === 0) {
+      const none = new Text({ text: t('ui.resume.none'), style: { fontSize: TEXT.small, fill: UI.inkFaint } })
+      none.position.set(0, y + 24)
+      into.addChild(none)
+      return
+    }
+    items.forEach((item, at) => {
+      const face = itemFace(this.data, item)
+      face.scale.set(HELD_SCALE)
+      face.position.set(at * HELD_STEP, y + 24)
+      into.addChild(face)
+    })
   }
 
   /** 도구가 짚을 자리. 판이 모아 갑니다. */
   spots(): [string, ToolSpot][] {
     const out: [string, ToolSpot][] = []
-    if (this.resumeButton) out.push(['resume', { node: this.resumeButton, cx: 160, cy: 24 }])
+    if (this.resumeButton) out.push(['resume', { node: this.resumeButton, cx: 160, cy: GO_H / 2 }])
     if (this.discardButton) {
-      out.push(['discard', { node: this.discardButton, cx: 66, cy: 24 }])
+      out.push(['discard', { node: this.discardButton, cx: 80, cy: GO_H / 2 }])
     }
     return out
   }

@@ -398,7 +398,7 @@ export function itemFace(data: Data, item: ItemFace,
     text: shopLabel(item.kind, item.id, data),
     style: {
       fontSize: 11, fill: UI.ink, fontWeight: '800', align: 'center',
-      wordWrap: true, wordWrapWidth: w - 8, breakWords: true, lineHeight: 12,
+      wordWrap: true, wordWrapWidth: w - 8, breakWords: true,
     },
   })
   label.anchor.set(0.5, 0.5)
@@ -457,7 +457,7 @@ export function voucherFace(data: Data, voucherId: string, note: string): Contai
     text: title,
     style: {
       fontSize: 13, fill: COLOR.slipInk, fontWeight: '900', align: 'center',
-      wordWrap: true, wordWrapWidth: w - 12, breakWords: true, lineHeight: 15,
+      wordWrap: true, wordWrapWidth: w - 12, breakWords: true,
     },
   })
   label.anchor.set(0.5, 0)
@@ -466,7 +466,7 @@ export function voucherFace(data: Data, voucherId: string, note: string): Contai
     text: note,
     style: {
       fontSize: 9, fill: COLOR.slipDim, fontWeight: '700', align: 'center',
-      wordWrap: true, wordWrapWidth: w - 12, breakWords: true, lineHeight: 12,
+      wordWrap: true, wordWrapWidth: w - 12, breakWords: true,
     },
   })
   line.anchor.set(0.5, 0)
@@ -535,7 +535,7 @@ export function packFace(row: PackFaceRow, caption: FaceCaption = {}): Container
     text: packName(row.kind, row.size),
     style: {
       fontSize: 11, fill: UI.ink, fontWeight: '800', align: 'center',
-      wordWrap: true, wordWrapWidth: w - 10, breakWords: true, lineHeight: 14,
+      wordWrap: true, wordWrapWidth: w - 10, breakWords: true,
     },
   })
   label.anchor.set(0.5, 0.5)

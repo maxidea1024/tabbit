@@ -18,7 +18,6 @@ import { Container, Graphics, Text } from 'pixi.js'
 import { SETTLE_SECONDS, settle } from '../render/motion'
 import { plate, panelStyle, plateTint } from '../render/skin'
 import { TEXT, UI, WEIGHT, SIZE } from '../render/theme'
-import { outlined } from './font'
 import { glowEdge, piece } from './chrome'
 import { richLine, richStyle } from './rich'
 
@@ -38,11 +37,11 @@ export interface RuleNote {
  * 판으로 읽힙니다.
  */
 const WIDTH = SIZE.width + 240
-const PAD = 16
+const PAD = 24
 /** 줄 하나의 높이. 이름이 작게 위에, 바뀐 값이 크게 아래에 놓입니다. */
-const ROW = 60
+const ROW = 48
 /** 한 판에 적는 규칙의 수. 넘치면 몇 개가 더 있는지만 적습니다. */
-const ROWS = 4
+const ROWS = 3
 
 /** 뜨고 · 머물고 · 걷히는 세 마디. 초입니다. */
 const RISE = 0.22
@@ -64,6 +63,8 @@ export class RuleBanner extends Container {
   /** 0 에서 1 로 들었다가 0 으로 돌아갑니다. */
   private enter = 0
   private life = 0
+  /** 이 띠의 색. 보스는 붉음, 그 밖은 금색입니다. */
+  private tone = UI.money
   /** 판의 세로 길이. `Container.height` 와 겹치지 않게 따로 셉니다. */
   private tall = 0
   /** 머리글에 적은 것. 검증 도구가 묻는 값입니다. */
@@ -87,63 +88,52 @@ export class RuleBanner extends Container {
     if (notes.length === 0) return
     this.body.removeChildren().forEach(child => child.destroy())
 
-    const style = richStyle('body')
     const shown = notes.slice(0, ROWS)
-    let y = PAD
-
-    // 머리글 — 무엇이 걸었는가. **없으면 두지 않습니다.**
     this.headText = from ?? ''
-    if (from !== undefined && from !== '') {
-      const head = new Text({
-        text: from,
-        style: { ...outlined(TEXT.mini, UI.outline), fill: UI.inkDim, fontWeight: WEIGHT.bold },
-      })
-      head.anchor.set(0.5, 0)
-      head.position.set(WIDTH / 2, y)
-      this.body.addChild(head)
-      y += TEXT.mini + 8
-    }
+    // **한 줄에 누가, 그리고 무엇.** 왼쫝에 건 것의 이름이 그 색으로, 세로 줄 하나, 오른쪽에
+    // 바뀐 규칙이 흰 글로 섭니다. 여러 개면 아래로 쌓입니다.
+    const tone = shown[0]?.good === false ? UI.bad : UI.money
+    this.tone = tone
+    const tall = PAD * 2 + shown.length * ROW
+    const middle = WIDTH / 2
+    // 이름은 가운데 왼쪽에, 규칙은 가운데 오른쪽에서 시작합니다. 화면의 가운데가 가르는 줄입니다.
+    const name = new Text({
+      text: this.headText,
+      style: { fontSize: TEXT.base, fill: tone, fontWeight: WEIGHT.bold,
+        dropShadow: { color: UI.outline, alpha: 0.8, blur: 0, distance: 1, angle: Math.PI / 2 } },
+    })
+    name.anchor.set(1, 0.5)
+    name.position.set(middle - 36, tall / 2)
+    if (this.headText !== '') this.body.addChild(name)
 
-    for (const note of shown) {
-      // 규칙의 이름은 작게 위에. **이것은 왼쪽 목록에도 있는 것입니다** — 여기서 크게
-      // 두면 목록의 한 줄과 같은 모양이 되고, 그러면 되풀이로 읽힙니다.
-      const name = new Text({
-        text: note.title,
-        style: { ...outlined(TEXT.mini, UI.outline), fill: UI.inkDim, fontWeight: WEIGHT.bold },
-      })
-      name.anchor.set(0.5, 0)
-      name.position.set(WIDTH / 2, y)
+    const bar = new Graphics()
+    bar.rect(middle - 1, PAD + 6, 2, tall - PAD * 2 - 12).fill({ color: tone, alpha: 0.6 })
+    this.body.addChild(bar)
 
-      // 바뀐 값이 주인공입니다. **목록이 담을 수 없는 것이 이것입니다.**
-      // **수까지 그 색입니다.** 강조의 규칙은 수를 칩의 파랑으로 두는 것인데, 여기서는
-      // 좋아졌는지 나빠졌는지가 그 색이므로 파랑으로 두면 그 뜻이 사라집니다.
-      const tint = note.good ? UI.good : UI.bad
-      const value = richLine(note.change, {
-        ...style,
-        number: tint,
-        term: tint,
-        base: { ...style.base, fontSize: TEXT.base, fill: tint, fontWeight: WEIGHT.bold },
+    shown.forEach((note, index) => {
+      // **바뀐 값이 주인공입니다.** 이름은 흰 글, 값은 그 색입니다.
+      const line = richLine(`${note.title}  ${note.change}`, {
+        ...richStyle('title'),
+        number: note.good ? UI.good : UI.bad,
+        term: note.good ? UI.good : UI.bad,
+        base: { fontSize: TEXT.base, fill: UI.ink, fontWeight: WEIGHT.bold,
+          dropShadow: { color: UI.outline, alpha: 0.8, blur: 0, distance: 1, angle: Math.PI / 2 } },
       }, undefined, 36)
-      value.position.set((WIDTH - value.width) / 2, y + TEXT.mini + 6)
-
-      this.body.addChild(name, value)
-      y += ROW
-    }
+      line.position.set(middle + 36, PAD + index * ROW + (ROW - line.height) / 2)
+      this.body.addChild(line)
+    })
 
     if (notes.length > shown.length) {
-      // **말이 아니라 수입니다.** 「외 2개」를 적으려면 글 표에 줄이 하나 더 있어야 하고,
-      // `+2` 는 어느 말로도 같습니다.
       const more = new Text({
         text: `+${notes.length - shown.length}`,
-        style: { ...outlined(TEXT.mini, UI.outline), fill: UI.inkDim, fontWeight: WEIGHT.bold },
+        style: { fontSize: TEXT.small, fill: UI.inkDim, fontWeight: WEIGHT.bold },
       })
-      more.anchor.set(0.5, 0)
-      more.position.set(WIDTH / 2, y + 2)
+      more.anchor.set(1, 0.5)
+      more.position.set(WIDTH - 120 - 64, tall / 2)
       this.body.addChild(more)
-      y += TEXT.mini + 6
     }
 
-    this.tall = y + PAD
+    this.tall = tall
     this.redraw()
 
     this.enter = 0
@@ -180,9 +170,19 @@ export class RuleBanner extends Container {
     const skin = piece('plate', WIDTH, this.tall, plateTint(UI.panel))
     if (skin !== undefined) this.board.addChild(skin)
     else plate(this.board, WIDTH, this.tall, panelStyle())
-    const glow = glowEdge(WIDTH, UI.money)
+    // **띠는 그 색으로 옅게 물듭니다.** 보스는 붉음이고 그 밖은 금색입니다 — 위 변의 빛이
+    // 같은 색입니다.
+    const wash = new Graphics()
+    wash.rect(0, 0, WIDTH, this.tall).fill({ color: this.tone, alpha: 0.16 })
+    this.board.addChild(wash)
+    const glow = glowEdge(WIDTH, this.tone)
     if (glow !== undefined) this.board.addChild(glow)
-    else this.board.rect(0, 0, WIDTH, 3).fill({ color: UI.money, alpha: 0.9 })
+    else this.board.rect(0, 0, WIDTH, 3).fill({ color: this.tone, alpha: 0.9 })
+    const foot = glowEdge(WIDTH, this.tone)
+    if (foot !== undefined) {
+      foot.position.set(0, this.tall - 2)
+      this.board.addChild(foot)
+    }
   }
 
   advance(seconds: number): void {
@@ -211,13 +211,7 @@ export class RuleBanner extends Container {
     this.scale.set(Math.max(0.001, open), 1)
     this.body.y = 0
 
-    // 남은 시간의 띠. **왼쪽에서 오른쪽으로 줄어듭니다.**
-    const left = Math.max(0, 1 - Math.max(0, this.life - RISE) / HOLD)
     this.timer.clear()
-    if (left > 0) {
-      this.timer.rect(PAD, this.tall - 5, (WIDTH - PAD * 2) * left, 2)
-        .fill({ color: UI.money, alpha: 0.5 })
-    }
   }
 
   /** 판이 서는 자리. 넓이의 절반이 피벗이므로 가운데 `x` 와 아랫변 `y` 입니다. */

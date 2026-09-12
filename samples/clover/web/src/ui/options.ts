@@ -1246,7 +1246,6 @@ export class OptionsPanel implements ModalPanel {
         style: {
           fontSize: TEXT.small, fill: here ? UI.ink : UI.inkDim, fontWeight: WEIGHT.bold,
           wordWrap: true, wordWrapWidth: width - 8, align: 'center', breakWords: true,
-          lineHeight: 13,
         },
       })
       name.anchor.set(0.5, 0)
@@ -1311,7 +1310,6 @@ export class OptionsPanel implements ModalPanel {
         style: {
           fontSize: TEXT.small, fill: here ? UI.ink : UI.inkDim, fontWeight: WEIGHT.bold,
           wordWrap: true, wordWrapWidth: width - 10, align: 'center', breakWords: true,
-          lineHeight: 13,
         },
       })
       name.anchor.set(0.5, 0)

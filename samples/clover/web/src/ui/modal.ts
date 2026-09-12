@@ -44,6 +44,21 @@ export interface ModalPanel {
   /** 닫힌 뒤에 부릅니다. 판이 자기 상태를 되돌릴 자리입니다. */
   onClosed?(): void
   /**
+   * 화면 전체를 쓰는 판인가.
+   *
+   * **전면 화면은 떠 있는 판이 아닙니다.** 배경 위에 막 하나를 깔고 내용이 화면의 변까지
+   * 갑니다 — 시작 계열과 읽는 화면(도감 · 리더보드 · 도움말 · 옵션)이 이것입니다. 자리는
+   * 화면의 원점이고 들어올 때 아래에서 조금 올라옵니다.
+   */
+  readonly fullscreen?: boolean
+  /**
+   * ESC 나 바깥 누르기가 왔을 때 판이 먼저 받습니다. `true` 를 돌려주면 닫지 않습니다.
+   *
+   * **단계가 있는 화면은 한 단계만 물러납니다.** 세부 화면에서 ESC 는 큰 메뉴로 돌아가는
+   * 것이고, 큰 메뉴에서 ESC 가 판을 닫습니다.
+   */
+  onBack?(): boolean
+  /**
    * 프레임마다 부릅니다. 판 안에 움직이는 것이 있으면 여기서 흘립니다.
    *
    * **`advance` 가 아닙니다.** 판 스스로 프레임을 받는 것들이 이미 그 이름을 다른 인자로
@@ -183,6 +198,7 @@ export class Modals extends Container {
     const top = this.topEntry()
     if (!top) return
     if (top.panel.dismissable === false) return
+    if (top.panel.onBack?.() === true) return
     this.close(top.panel)
   }
 
@@ -272,6 +288,15 @@ export class Modals extends Container {
 
   private place(entry: Entry): void {
     const { view, size } = entry.panel
+
+    // **전면 화면은 화면의 원점에 놓입니다.** 아래에서 24픽셀 올라오며 짙어집니다.
+    if (entry.panel.fullscreen) {
+      view.scale.set(1)
+      view.position.set(0, (1 - entry.t) * 24)
+      view.alpha = entry.t * (1 - BACK_FADE * entry.depth)
+      view.visible = entry.t > 0.01
+      return
+    }
 
     // 넘쳤다가 자리에 앉습니다. `t` 가 1에 가까워질수록 넘침이 잦아듭니다.
     const overshoot = 0
@@ -445,6 +470,101 @@ export function panelFrame(width: number, height: number, title: string,
   }
   shut.position.set(left + extraWidth, footTop + (FOOTER_BAR - 60) / 2)
   node.addChild(shut)
+
+  node.eventMode = 'static'
+  return node
+}
+
+/** 전면 화면의 여백. 내용은 이 안쪽에서 화면의 변까지 갑니다. */
+export const FULL_EDGE = 64
+/** 전면 화면에서 몸통이 시작하는 자리. 제목 줄 아래입니다. */
+export const FULL_BODY_TOP = 176
+/** 전면 화면 아래 띠의 윗변. 왼쪽에 한 줄 설명, 오른쪽에 나아가는 단추입니다. */
+export const FULL_FOOT_Y = 696
+
+/**
+ * 전면 화면의 껍데기.
+ *
+ * |자리|무엇|
+ * |--|--|
+ * |왼쪽 위|걸어온 자리(`< 런 시작 / 새 런`)와 제목|
+ * |오른쪽 위|ESC 키캡과 지금 고른 것|
+ * |가르는 줄|왼쪽에서 밝게 시작해 오른쪽으로 사라집니다|
+ * |아래|띠 하나. 왼쪽에 한 줄 설명, 오른쪽에 나아가는 단추|
+ *
+ * **막은 여기서 깝니다.** 뒤의 화면이 어둡게 남되 사라지지는 않습니다.
+ *
+ * @param crumbs 걸어온 자리. 마지막이 지금 화면입니다. 비어 있으면 제목 앞에 `<` 만 섭니다.
+ * @param right 오른쪽 위에 놓이는 것. 오른쪽 끝(`FULL_EDGE`)에 맞춰 부르는 쪽이 앵커를 둡니다.
+ * @param foot 아래 띠에 놓이는 것. 띠의 왼쪽 위에서 시작합니다.
+ * @param note 아래 띠의 왼쪽 한 줄 설명.
+ */
+export function fullFrame(title: string, crumbs: string[], onClose: () => void,
+                          right?: Container, foot?: Container, note?: string): Container {
+  const node = new Container()
+
+  const scrim = new Graphics()
+  scrim.rect(0, 0, SIZE.width, SIZE.height).fill({ color: UI.scrim, alpha: 0.72 })
+  node.addChild(scrim)
+
+  // 걸어온 자리.
+  const trail = new Container()
+  let x = 0
+  const back = new Text({ text: '<', style: { fontSize: TEXT.base, fill: UI.inkDim } })
+  back.position.set(0, -6)
+  trail.addChild(back)
+  x += back.width + 14
+  crumbs.forEach((part, index) => {
+    if (index > 0) {
+      const slash = new Text({ text: '/', style: { fontSize: TEXT.small, fill: UI.inkFaint } })
+      slash.position.set(x, 0)
+      trail.addChild(slash)
+      x += slash.width + 10
+    }
+    const last = index === crumbs.length - 1
+    const step = new Text({
+      text: part,
+      style: { fontSize: TEXT.small, fill: last ? UI.ink : UI.inkDim, fontWeight: WEIGHT.normal },
+    })
+    step.position.set(x, 0)
+    trail.addChild(step)
+    x += step.width + 10
+  })
+  trail.position.set(FULL_EDGE, 44)
+  node.addChild(trail)
+
+  const heading = new Text({
+    text: title,
+    style: { fontSize: TEXT.giant, fill: UI.ink, fontWeight: WEIGHT.bold },
+  })
+  heading.position.set(FULL_EDGE, 74)
+  node.addChild(heading)
+
+  const esc = escKey(onClose)
+  esc.position.set(SIZE.width - FULL_EDGE - KEY_W, 34)
+  node.addChild(esc)
+
+  if (right) {
+    right.position.set(SIZE.width - FULL_EDGE, 84)
+    node.addChild(right)
+  }
+
+  const rule = glowEdge(SIZE.width - FULL_EDGE * 2, UI.rule)
+  if (rule) {
+    rule.position.set(FULL_EDGE, 142)
+    node.addChild(rule)
+  }
+
+  // 아래 띠.
+  const foot_ = new Graphics()
+  foot_.rect(FULL_EDGE, FULL_FOOT_Y, SIZE.width - FULL_EDGE * 2, 1).fill({ color: UI.hairline, alpha: 0.6 })
+  node.addChild(foot_)
+  // **아래 띠에 글을 두지 않습니다.** 선 하나와 나아가는 단추뿐입니다.
+  void note
+  if (foot) {
+    foot.position.set(FULL_EDGE, FULL_FOOT_Y)
+    node.addChild(foot)
+  }
 
   node.eventMode = 'static'
   return node

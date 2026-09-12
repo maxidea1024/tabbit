@@ -1215,3 +1215,16 @@
 	ui.badge.next_target	요구 점수 {n}	Target {n}	要求スコア {n}	要求分数 {n}	要求分數 {n}	Ziel {n}
 	ui.badge.pack_note	마음에 안 들면 건너뜁니다	Skip it if you would rather not	気に入らなければスキップします	不满意可以跳过	不滿意可以跳過	Überspringen, wenn nichts passt
 	ui.badge.pick_note	판 위에서 이 블라인드를 고르거나 건너뜁니다	Pick this blind on the table, or skip it	盤上でこのブラインドを選ぶかスキップします	在牌桌上选择此盲注或跳过	在牌桌上選擇此盲注或跳過	Wähle diesen Blind auf dem Tisch oder überspringe ihn
+	ui.run.subtitle	무엇으로 시작할지 먼저 고릅니다	Choose how to start first	まず何で始めるかを選びます	先选择如何开始	先選擇如何開始	Zuerst wählen, womit es losgeht
+	ui.run.pick	고른다	Choose	選ぶ	选择	選擇	Wählen
+	ui.run.continue	이어한다	Continue	続ける	继续	繼續	Fortsetzen
+	ui.run.enter	들어간다	Enter	入る	进入	進入	Los
+	ui.run.open	연다	Open	開く	打开	打開	Öffnen
+	ui.run.locked	잠김	Locked	ロック	已锁定	已鎖定	Gesperrt
+	ui.run.new_desc	덱과 스테이크를 고르고 안테 1부터 시작합니다	Pick a deck and a stake, then start from ante 1	デッキとステークを選び、アンティ1から始めます	选择牌组和赌注，从底注 1 开始	選擇牌組和賭注，從底注 1 開始	Deck und Einsatz wählen, ab Ante 1 starten
+	ui.run.challenge_desc	시작 조건이 바뀐 판 20개입니다	20 runs with changed starting rules	開始条件が変わる20のランです	20 局改变了起始条件的对局	20 局改變了起始條件的對局	20 Runden mit geänderten Startregeln
+	ui.setup.picked	고른 덱	Chosen deck	選んだデッキ	所选牌组	所選牌組	Gewähltes Deck
+	ui.title.collection_desc	만나 본 조커와 소모품. 발견한 것이 앞면입니다	Jokers and consumables you have met. Found ones show their face	出会ったジョーカーと消費アイテム。見つけたものは表向きです	遇见过的小丑与消耗品。发现过的显示正面	遇見過的小丑與消耗品。發現過的顯示正面	Joker und Verbrauchsgüter, die du getroffen hast. Gefundene liegen offen
+	ui.title.leaderboard_desc	이번 시즌의 순위와 내 자리	This season's standings and your place	今シーズンの順位とあなたの位置	本赛季排名与你的位置	本賽季排名與你的位置	Rangliste dieser Saison und dein Platz
+	ui.resume.consumables	소모품	Consumables	消費アイテム	消耗品	消耗品	Verbrauchsgüter
+	ui.resume.none	없음	None	なし	无	無	Keine

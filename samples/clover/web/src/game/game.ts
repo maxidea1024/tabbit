@@ -1,5 +1,5 @@
 import { PAINT } from '../render/ink'
-import { type Application, Container, Graphics, Rectangle, Text, TilingSprite } from 'pixi.js'
+import { type Application, Container, Graphics, Rectangle, Text } from 'pixi.js'
 import { type Data } from '../core/data'
 import { type Action, apply, newRun } from '../core/run'
 import { t, tf } from '../core/strings'
@@ -17,7 +17,6 @@ import { cardBackMotif, setCardSet, setLookOf } from '../render/card-set'
 import { bakeCardFaces, forgetCardFaces } from '../render/card-face'
 import { SIZE, UI } from '../render/theme'
 import { box, type Box, splitX } from '../ui/layout'
-import { noise } from '../shader/noise'
 import { Button } from '../ui/widgets'
 import { CollectionPanel } from '../ui/collection'
 import { discover, saveCollection, sightings } from '../core/collection'
@@ -32,9 +31,7 @@ import { type Crossings, readCrossings, Transition } from '../render/transition'
 import { type ToolSpot } from '../ui/layout'
 import { OptionsPanel, saveOptions } from '../ui/options'
 import {
-  BOARD_X, BUTTON_GAP, BUTTON_Y, CLEAR_W, DECK_MEET, FOOT_BTN_H, HELD_RISE, ITEM_LINGER,
-  ITEM_SETTLE, JOKER_Y, LEFT, PANEL_BTN_W, PANEL_FOOT_Y, PANEL_W, PLAY_H, PLAY_W, PLAY_Y,
-  RIGHT_COL, SORT_H, SORT_W, STEP_MS,
+  BOARD_X, BUTTON_GAP, BUTTON_Y, CLEAR_W, DECK_MEET, FOOT_BTN_H, HELD_RISE, ITEM_LINGER, ITEM_SETTLE, JOKER_Y, LEFT, PANEL_BTN_W, PANEL_FOOT_Y, PANEL_W, PLAY_H, PLAY_W, PLAY_Y, SORT_H, SORT_W, STEP_MS, DISCARD_W, IN_X, PANEL_BTN_GAP,
 } from './metrics'
 import { blurResolution } from './helpers'
 import {
@@ -259,17 +256,21 @@ export class Game {
     this.player = new TimelinePlayer(beat => this.show.showBeat(beat))
     this.session.hub = new LeaderboardHub(data, this.panels.modals, this.input.toasts)
     this.session.netStatus = new NetStatus(this.input.toasts)
+    const redDeck = data.tables.deck.findByDeckId('red_deck')
     this.session.title = new Title({
+      back: redDeck ? backLookOf(redDeck) : undefined,
       onStart: () => this.session.openRunPanel(),
       onGuide: () => this.panels.modals.open(this.panels.guide),
       onOptions: () => this.session.openOptions(),
-      onCollection: () => this.panels.modals.open(this.panels.collection),
+      onCollection: () => this.session.openScreen(this.panels.collection.view),
       onLeaderboard: () => this.session.hub.openLeaderboard(),
       onAccount: () => this.session.openAccount(),
       onSignOut: () => this.session.signOut(),
       onQuit: () => this.session.askQuit(),
     })
     this.session.hub.onAccountChanged = () => this.session.syncAccount()
+    this.session.hub.onOpenBoard = view => this.session.openScreen(view)
+    this.session.hub.onCloseBoard = () => this.session.leaveScreen()
     this.session.hub.onNeedLogin = () => this.session.cross('title_login',
       () => this.session.enterLogin())
     this.session.hub.onSignOut = () => this.session.signOut()
@@ -296,7 +297,7 @@ export class Game {
     // **칸을 굽는 렌더러와 글씨의 배율을 넘깁니다.** 배율은 창의 크기를 따라 바뀌므로 값이
     // 아니라 읽는 함수입니다.
     this.panels.collection = new CollectionPanel(data, this.session.collected,
-      () => this.panels.modals.close(this.panels.collection),
+      () => this.session.leaveScreen(),
       { renderer: this.app.renderer, density: () => this.textScale })
     this.panels.optionsPanel = new OptionsPanel(data, this.session.settings,
       () => this.session.applyOptions(),
@@ -305,7 +306,7 @@ export class Game {
 
     // 판을 여는 자리 하나. **탭 셋이 저마다 판을 엽니다.**
     this.panels.runPanel = new RunPanel(data, this.session.setup(), this.session.challenges, {
-      onClose: () => this.panels.modals.close(this.panels.runPanel),
+      onClose: () => this.session.leaveScreen(),
       // **고른 그 자리에서 저장합니다.** 판을 닫을 때 저장하면 판을 닫지 않고 시작한
       // 판이 다음 번에 다른 덱으로 열립니다.
       onPickSetup: (next: RunSetup) => {
@@ -402,7 +403,8 @@ export class Game {
     // **알갱이는 조각보다 위, 떠 있는 판들보다 아래입니다.** 삭는 카드는 판 위의 일이고,
     // 그 위에 상점이나 옵션이 떠 있으면 알갱이가 그 뒤로 가야 합니다.
     this.show.recede.addChild(this.board, this.show.particles, this.show.motes, this.overlay,
-      this.show.screenFlash, this.session.title)
+      this.show.screenFlash, this.session.title, this.session.screens)
+    this.session.screens.visible = false
     // **알림은 판 위입니다.** 흐려지는 층 안에 있어서 판이 열려 있는 동안의 알림이 그 판
     // 뒤에서 흐린 채로 떴습니다 — 순위표를 열었을 때의 「서버가 받지 않았습니다」가 정확히
     // 그 자리였고, 알림은 무엇이 열려 있든 읽혀야 하는 것입니다.
@@ -426,14 +428,6 @@ export class Game {
     // 통신 표시와 입력 막이. **판보다 위입니다.**
     this.world.addChild(this.session.netStatus)
 
-    // **알갱이 한 겹.** 화면 전체에 옅게 깔립니다 — 이것 하나로 납작한 면이 재질이 됩니다.
-    // 누름을 받지 않고, 무대 배율을 따라갑니다.
-    const grain = new TilingSprite({ texture: noise('grain'), width: SIZE.width, height: SIZE.height })
-    grain.alpha = 0.05
-    grain.blendMode = 'add'
-    grain.eventMode = 'none'
-    grain.zIndex = 9_900
-    this.world.addChild(grain)
 
     // 되돌아온 주소를 보고, 로그인되어 있으면 내 것을 읽습니다. 그다음에 어느 씬으로
     // 갈지가 정해집니다 — **로그인했거나 싱글플레이로 정했으면 타이틀입니다.**
@@ -462,7 +456,7 @@ export class Game {
 
     this.chrome.playButton = new Button(t('ui.button.play'), PLAY_W, PLAY_H, 'primary',
       () => this.cards.play())
-    this.chrome.discardButton = new Button(t('ui.button.discard'), PLAY_W, PLAY_H, 'danger',
+    this.chrome.discardButton = new Button(t('ui.button.discard'), DISCARD_W, PLAY_H, 'danger',
       () => this.cards.discard())
     // **가운데 버튼이 곧 몇 장 골랐는가입니다.** 점 다섯을 따로 두면 같은 것을 두 곳에서
     // 세게 되고, 그 둘 사이를 눈이 오갑니다.
@@ -529,13 +523,16 @@ export class Game {
     // 가기 전에 되돌리는 것이기 때문입니다.
     // **줄을 세어 가운데에 놓습니다.** 자리를 하나하나 적어 두면 버튼 크기를 고친 날에
     // 가운데가 어긋납니다.
+    // **낸다와 버린다 둘입니다.** 판의 가운데에 나란히 서고 낸다가 더 큽니다 — 취소는
+    // 고른 카드를 다시 누르는 것이고, 셋째 단추는 줄을 셋으로 가릅니다.
     const row = splitX(
-      box(BOARD_X - (PLAY_W * 2 + CLEAR_W + BUTTON_GAP * 2) / 2, BUTTON_Y,
-        PLAY_W * 2 + CLEAR_W + BUTTON_GAP * 2, PLAY_H),
-      [PLAY_W, CLEAR_W, PLAY_W], BUTTON_GAP)
+      box(BOARD_X - (PLAY_W + DISCARD_W + 14) / 2, BUTTON_Y, PLAY_W + DISCARD_W + 14, PLAY_H),
+      [PLAY_W, DISCARD_W], 14)
     this.chrome.playButton.position.set(row[0].x, row[0].y)
-    this.chrome.clearButton.position.set(row[1].x, row[1].y)
-    this.chrome.discardButton.position.set(row[2].x, row[2].y)
+    this.chrome.clearButton.position.set(row[0].x, row[0].y)
+    this.chrome.discardButton.position.set(row[1].x, row[1].y)
+    void CLEAR_W
+    void BUTTON_GAP
     this.chrome.primaryButton.position.set(BOARD_X - 105, 520)
     this.chrome.skipButton.position.set(BOARD_X - 75, 586)
     this.chrome.rerollButton.position.set(BOARD_X - 64, 578)
@@ -544,12 +541,12 @@ export class Game {
     // **간격은 단추의 너비에서 셉니다.** 100픽셀을 적어 두었고, 손가락으로 누를 수 있게
     // 단추를 112픽셀로 키운 날부터 둘이 12픽셀 겹쳐 있었습니다.
     const sortY = BUTTON_Y + (PLAY_H - SORT_H) / 2
-    this.chrome.sortRankButton.position.set(LEFT + PANEL_W + 30, sortY)
-    this.chrome.sortSuitButton.position.set(LEFT + PANEL_W + 30 + SORT_W + 10, sortY)
+    this.chrome.sortRankButton.position.set(LEFT + PANEL_W + 20, sortY)
+    this.chrome.sortSuitButton.position.set(LEFT + PANEL_W + 20 + SORT_W + 10, sortY)
     // **판의 밑단에 붙입니다.** 위에 두면 그 아래가 통째로 빈 자리로 남습니다 — 왼쪽 판은
     // 화면 아래 22픽셀까지 내려오고, 버튼은 그 안쪽에 있으면 됩니다.
-    this.chrome.infoButton.position.set(LEFT, PANEL_FOOT_Y)
-    this.chrome.menuButton.position.set(RIGHT_COL, PANEL_FOOT_Y)
+    this.chrome.infoButton.position.set(IN_X, PANEL_FOOT_Y)
+    this.chrome.menuButton.position.set(IN_X + PANEL_BTN_W + PANEL_BTN_GAP, PANEL_FOOT_Y)
 
     // **창 전체의 예외도 받아 둡니다.** F12 를 열지 않아도 `__clover.errors` 로 읽힙니다.
     window.addEventListener('error',
@@ -1425,6 +1422,8 @@ export class Game {
 
     this.chrome.money.target = this.shown.money
     this.chrome.score.target = this.shown.score
+    // 게이지는 요구 점수를 넘긴 만큼까지 보입니다.
+    this.chrome.scoreBar.set(this.shown.score, Math.max(1, Number(this.state.target)))
     this.chrome.hands.text = String(state.handsLeft)
     this.chrome.discards.text = String(state.discardsLeft)
     this.chrome.anteSlot.text = `${state.ante} / ${this.data.run.winAnte}`

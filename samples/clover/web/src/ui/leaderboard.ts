@@ -31,22 +31,23 @@ import { nameOf, t, tf } from '../core/strings'
 import * as board from '../net/leaderboard'
 import { loggedIn } from '../net/session'
 import type { BoardInfo, BoardPage } from '../net/leaderboard'
-import { UI, TEXT, WEIGHT } from '../render/theme'
+import { UI, TEXT, WEIGHT, SIZE } from '../render/theme'
 import type { ModalPanel } from './modal'
-import { panelFrame } from './modal'
+import { FULL_BODY_TOP, FULL_EDGE, FULL_FOOT_Y, fullFrame } from './modal'
 import { ScrollView } from './scroll'
 import { piece } from './chrome'
 import { wellTint } from '../render/skin'
 import { Button } from './widgets'
 
-const WIDTH = 1180
-const HEIGHT = 744
+/** 전면 화면입니다. 화면의 폭과 높이를 씁니다. */
+const WIDTH = SIZE.width
+const HEIGHT = SIZE.height
 
-/** 판의 안쪽 여백. 사방이 같습니다. */
-const PAD = 26
+/** 화면의 변에서 들여놓는 여백. 전면 화면의 여백과 같습니다. */
+const PAD = FULL_EDGE
 
-/** 머리 띠 아래에서 내용이 시작하는 자리. */
-const TOP = 62
+/** 제목 줄 아래에서 내용이 시작하는 자리. */
+const TOP = FULL_BODY_TOP
 
 /** 갈래 칩. 높이 계단의 `sm` 입니다. */
 const TAB_H = 36
@@ -60,7 +61,7 @@ const MINE_H = 40
 const FOOT_H = 44
 
 /** 내 줄이 시작하는 자리. **아래에서부터 셉니다** — 자리가 고정입니다. */
-const MINE_Y = HEIGHT - PAD - FOOT_H - MINE_H - 8
+const MINE_Y = FULL_FOOT_Y - 8 - MINE_H
 
 /** 왼쪽 목록이 보이는 높이. */
 const BODY_H = MINE_Y - BODY_Y - 8
@@ -163,6 +164,7 @@ export function valueLabel(data: Data, metric: string, value: number): string {
 export class LeaderboardPanel implements ModalPanel {
   readonly view = new Container()
   readonly size = { width: WIDTH, height: HEIGHT }
+  readonly fullscreen = true
 
   private readonly tabsRow = new Container()
   private readonly listScroll = new ScrollView(LIST_W, BODY_H)
@@ -199,8 +201,7 @@ export class LeaderboardPanel implements ModalPanel {
   onNeedAccount?: () => void
 
   constructor(private readonly data: Data, private readonly onClose: () => void) {
-    this.view.addChild(panelFrame(WIDTH, HEIGHT, t('ui.lb.title'), this.onClose,
-                                  undefined, false))
+    this.view.addChild(fullFrame(t('ui.lb.title'), [], this.onClose))
 
     // 왼쪽 목록의 바탕. **굴러가는 것은 안쪽이고 바탕은 가만히 있습니다.**
     const listPlate = new Graphics()
@@ -675,7 +676,8 @@ export class LeaderboardPanel implements ModalPanel {
     this.foot.removeChildren().forEach(child => child.destroy({ children: true }))
 
     // **자리가 고정입니다.** 표의 길이에 따라 오르내리면 같은 단추를 매번 찾아야 합니다.
-    const y = HEIGHT - PAD - FOOT_H
+    // 아래 띠의 세로 가운데입니다.
+    const y = FULL_FOOT_Y + (HEIGHT - FULL_FOOT_Y - FOOT_H) / 2
     const shown = this.shown
     if (!shown) return
 

@@ -15,4 +15,4 @@
 // **한 번만 지납니다.** 로그인했거나 싱글플레이로 정했으면 `loading` 에서 곧바로
 // `title` 입니다. 타이틀의 계정 단추가 다시 이 씬으로 보냅니다.
 
-export type Scene = 'loading' | 'login' | 'title' | 'run'
+export type Scene = 'loading' | 'login' | 'title' | 'screen' | 'run'

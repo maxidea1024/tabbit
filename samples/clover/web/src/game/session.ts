@@ -35,6 +35,7 @@ import { cellPlate, hairline, ProgressBar, SECTION_H, sectionHead, valueCell } f
 import {
   chosen, graphicsLevel, loadOptions, type Options, saveOptions, transitionWanted,
 } from '../ui/options'
+import { sceneArt } from '../ui/scene-art'
 import { Toasts } from '../ui/toast'
 import { LEFT, PANEL_GROOVES, PANEL_W, POPUP_X, RANK_TICK, SAVE_GAP, SORT_HIDE } from './metrics'
 import { blindName } from './tables'
@@ -60,6 +61,16 @@ export class SessionPart {
 
   /** 타이틀. **시작을 누르기 전에는 판이 없습니다.** */
   title!: Title
+  /**
+   * 전면 화면들이 서는 자리. 시작 · 콜렉션 · 리더보드가 여기서 한 장씩 뜹니다.
+   *
+   * **판이 아니라 씬입니다.** 타이틀 위에 띄우지 않고 씬을 바꾼 뒤에 보입니다 — 뒤에는
+   * 타이틀과 같은 배경 그림이 어둡게 깔립니다.
+   */
+  readonly screens = new Container()
+  private readonly screenSlot = new Container()
+  /** 지금 뜬 전면 화면이 ESC 를 먼저 받는 자리. `true` 를 돌려주면 물러나지 않습니다. */
+  private screenBack?: () => boolean
 
   /**
    * 지금 어느 씬인가.
@@ -373,12 +384,50 @@ export class SessionPart {
    * 맞추지 않으면 처음 열 때의 자리에 표시가 남습니다. 저장된 판도 그때 다시 읽습니다.
    */
   openRunPanel(): void {
-    this.game.panels.runPanel.relabel()
-    this.game.panels.runPanel.setSetup(this.setup())
-    this.game.panels.runPanel.setSignedIn(this.hub.signedIn)
-    this.game.panels.runPanel.setSaved(loadRun())
-    this.game.panels.runPanel.open()
-    this.game.panels.modals.open(this.game.panels.runPanel)
+    const panel = this.game.panels.runPanel
+    panel.relabel()
+    panel.setSetup(this.setup())
+    panel.setSignedIn(this.hub.signedIn)
+    panel.setSaved(loadRun())
+    panel.open()
+    this.openScreen(panel.view, () => panel.onBack())
+  }
+
+  /**
+   * 전면 화면 하나를 씬으로 엽니다. **타이틀에서 갈라져 나갑니다.**
+   *
+   * @param back ESC 와 뒤로 가기를 먼저 받는 자리. `true` 면 화면이 스스로 처리한 것입니다.
+   */
+  openScreen(view: Container, back?: () => boolean): void {
+    this.cross('title_screen', () => this.enterScreen(view, back))
+  }
+
+  private enterScreen(view: Container, back?: () => boolean): void {
+    this.scene = 'screen'
+    this.screenBack = back
+    this.game.show.syncBackdrop()
+    keepAwake(false)
+    this.game.input.toasts.setCenter(Toasts.OUT_RUN)
+    this.login.visible = false
+    this.title.visible = false
+    this.game.board.visible = false
+    this.game.overlay.visible = false
+    if (this.screens.children.length === 0) {
+      const art = sceneArt(0.42)
+      if (art !== undefined) this.screens.addChild(art)
+      this.screens.addChild(this.screenSlot)
+    }
+    this.screenSlot.removeChildren()
+    this.screenSlot.addChild(view)
+    view.visible = true
+    view.position.set(0, 0)
+    this.screens.visible = true
+  }
+
+  /** 전면 화면에서 타이틀로 돌아갑니다. */
+  leaveScreen(): void {
+    if (this.scene !== 'screen') return
+    this.cross('screen_title', () => this.enterTitle())
   }
 
   /**
@@ -440,6 +489,12 @@ export class SessionPart {
   back(): void {
     if (this.game.panels.modals.busy) {
       this.game.panels.modals.closeTop()
+      return
+    }
+    // **전면 화면은 한 단계씩 물러납니다.** 세부 화면이면 큰 메뉴로, 큰 메뉴면 타이틀로.
+    if (this.scene === 'screen') {
+      if (this.screenBack?.() === true) return
+      this.leaveScreen()
       return
     }
     // 자리를 비우던 것을 그만둡니다. **고른 것이 있으면 그것을 먼저 놓습니다.**
@@ -820,6 +875,7 @@ export class SessionPart {
     this.game.input.toasts.setCenter(Toasts.OUT_RUN)
     this.login.visible = true
     this.title.visible = false
+    this.screens.visible = false
     this.game.board.visible = false
     this.game.overlay.visible = false
   }
@@ -834,6 +890,7 @@ export class SessionPart {
     this.game.input.toasts.setCenter(Toasts.IN_RUN)
     this.login.visible = false
     this.title.visible = false
+    this.screens.visible = false
     this.game.board.visible = true
     this.game.overlay.visible = true
     this.game.audio.unlock()
@@ -895,6 +952,8 @@ export class SessionPart {
     this.game.input.toasts.setCenter(Toasts.OUT_RUN)
     this.login.visible = false
     this.title.visible = true
+    this.screens.visible = false
+    this.screenBack = undefined
     this.game.board.visible = false
     this.game.overlay.visible = false
 

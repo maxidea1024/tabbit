@@ -16,7 +16,7 @@
 import { FillGradient, Graphics } from 'pixi.js'
 
 import { shade } from './color'
-import { PAINT } from './ink'
+
 import { UI, RADIUS, STROKE } from './theme'
 
 /** `border` 에 이 값을 넘기면 테를 그리지 않습니다. 금속 테 그림이 그 일을 합니다. */
@@ -267,7 +267,9 @@ export function groove(g: Graphics, x: number, y: number, width: number,
  * 가운데에 오도록 올려 둡니다.
  */
 export function plateTint(base: number): number {
-  return mix(base, PAINT.sheen, 0.34)
+  // **그대로입니다.** 그림의 꼭대기가 흰색이므로 넘기는 색이 곧 판의 윗변이고, 검은 겉면이면
+  // 판이 검습니다. 흰 쪽으로 섞던 것을 걷었습니다 — 검은 겉면에서 판이 회색이 되었습니다.
+  return base
 }
 
 /**
@@ -277,7 +279,7 @@ export function plateTint(base: number): number {
  * 절반 남짓 올려 둡니다.
  */
 export function wellTint(base: number): number {
-  return mix(base, PAINT.sheen, 0.55)
+  return base
 }
 
 export function floatingStyle(): PlateStyle {

@@ -63,10 +63,14 @@ export function piece(name: ChromeName, width: number, height: number, tint?: nu
   const pad = cut.pad
   const w = (width + pad * 2) / BAKE_SCALE
   const h = (height + pad * 2) / BAKE_SCALE
+  // **귀 조각에는 여백까지 들어갑니다.** 여백을 빼고 자르면 귀 조각이 여백만 담고 얼굴의
+  // 사선이 늘어나는 가운데 칸에 들어갑니다 — 단추의 잘린 귀가 가로로 늘어나 보였습니다.
+  // 좁은 단추에서는 두 귀가 겹치지 않을 만큼만 잡습니다.
+  const side = Math.min(cut.left + pad, (width + pad * 2) / 2)
   const sprite = new NineSliceSprite({
     texture,
-    leftWidth: cut.left / BAKE_SCALE,
-    rightWidth: cut.right / BAKE_SCALE,
+    leftWidth: side / BAKE_SCALE,
+    rightWidth: Math.min(cut.right + pad, (width + pad * 2) / 2) / BAKE_SCALE,
     topHeight: (cut.top + pad) / BAKE_SCALE,
     bottomHeight: (cut.bottom + pad) / BAKE_SCALE,
     width: w, height: h,

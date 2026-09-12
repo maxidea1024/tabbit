@@ -190,7 +190,7 @@ export class JokerView extends Container {
       // **낙말을 중간에서 자르지 않습니다.** 자르면 독일어의 합성어가
       // 「Messinggewic / ht」처럼 끝어져 읽힐 수 없게 됩니다 — 넘치는 것은
       // 아래에서 글자를 줄여 맞춥니다.
-      wordWrap: true, wordWrapWidth: SIZE.jokerWidth - 8, breakWords: false, lineHeight: 12,
+      wordWrap: true, wordWrapWidth: SIZE.jokerWidth - 8, breakWords: false,
     },
   })
   private readonly counter = new Text({

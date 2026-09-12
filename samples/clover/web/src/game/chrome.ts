@@ -5,13 +5,13 @@ import { piece } from '../ui/chrome'
 import { ScoreWave } from '../shader/wave'
 import { Slot } from '../render/hud'
 import { Spring } from '../render/motion'
-import { slotStyle, wellTint } from '../render/skin'
+import { slotStyle, mix } from '../render/skin'
 import { TEXT, UI, WEIGHT } from '../render/theme'
 import { type Box } from '../ui/layout'
+import { ProgressBar } from '../ui/parts'
 import { Button, Panel } from '../ui/widgets'
 import {
-  BOARD_X, BUTTON_Y, CHIPS_GAP, CHIPS_H, CHIPS_R, CONSUMABLE_TRAY, COUNT_PULSE, JOKER_TRAY,
-  PANEL_W, PLAY_H, PLAY_Y, SORT_H, SORT_HIDE,
+  BOARD_X, BUTTON_Y, CHIPS_GAP, CHIPS_H, CHIPS_R, CONSUMABLE_TRAY, COUNT_PULSE, JOKER_TRAY, PLAY_H, PLAY_Y, SORT_H, SORT_HIDE, IN_W, SCORE_H, CELL_SLOT_W, CELL_SLOT_H,
 } from './metrics'
 import { boxInk } from './helpers'
 import { type Game } from './game'
@@ -47,7 +47,12 @@ export class ChromePart {
    */
   panelPlate?: Panel
 
-  readonly score = new Slot(t('ui.slot.round_score'), PANEL_W, 52, UI.ink)
+  readonly score = new Slot(t('ui.slot.round_score'), IN_W, SCORE_H, UI.ink)
+  /**
+   * 라운드 점수 아래의 게이지. **눈금의 끝은 요구 점수가 아닙니다** — 넘긴 만큼이 금색으로
+   * 보입니다.
+   */
+  readonly scoreBar = new ProgressBar(IN_W - 24)
 
   // **이 둘이 화면에서 가장 큰 두 숫자입니다.** 점수는 이 둘의 곱이고, 나머지 칸들은
   // 그것을 설명하는 것들입니다 — 크기가 그 서열을 그대로 보여야 합니다.
@@ -113,10 +118,10 @@ export class ChromePart {
    * 그 색이면 밝은 동안 색만 남고 수가 흐려집니다.
    */
   readonly chips =
-    new Slot('', (PANEL_W - CHIPS_GAP) / 2, CHIPS_H, UI.ink, 36, 1, true, true)
+    new Slot('', (IN_W - CHIPS_GAP) / 2, CHIPS_H, UI.ink, 36, 1, true, true)
 
   readonly mult =
-    new Slot('', (PANEL_W - CHIPS_GAP) / 2, CHIPS_H, UI.ink, 36, 0, true, true)
+    new Slot('', (IN_W - CHIPS_GAP) / 2, CHIPS_H, UI.ink, 36, 0, true, true)
 
   /**
    * 왼쪽 판의 칸들이 마지막으로 보여 준 수.
@@ -129,13 +134,13 @@ export class ChromePart {
    */
   panelShown = { hands: -1, discards: -1, ante: -1 }
 
-  readonly hands = new Slot(t('ui.slot.hands'), 124, 52, UI.good)
+  readonly hands = new Slot(t('ui.slot.hands'), CELL_SLOT_W, CELL_SLOT_H, UI.good)
 
-  readonly discards = new Slot(t('ui.slot.discards'), 124, 52, UI.discard)
+  readonly discards = new Slot(t('ui.slot.discards'), CELL_SLOT_W, CELL_SLOT_H, UI.discard)
 
-  readonly money = new Slot(t('ui.slot.money'), 124, 52, UI.money)
+  readonly money = new Slot(t('ui.slot.money'), CELL_SLOT_W, CELL_SLOT_H, UI.money)
 
-  readonly anteSlot = new Slot(t('ui.slot.ante'), 124, 52, UI.ink)
+  readonly anteSlot = new Slot(t('ui.slot.ante'), CELL_SLOT_W, CELL_SLOT_H, UI.ink)
 
   /**
    * 왼쪽 판의 값 칸 전부.
@@ -260,8 +265,10 @@ export class ChromePart {
     g.removeChildren().forEach(child => child.destroy())
     const style = slotStyle(UI.ink)
     for (const area of [chipsBox, multBox]) {
-      // **판의 다른 칸과 같은 구운 칸입니다.** 그림이 없으면 지금까지의 길로 그립니다.
-      const skin = piece('well', area.width, area.height, wellTint(style.top))
+      // **칩은 파랑의 어두운 것, 배수는 붉음의 어두운 것입니다.** 값이 움직이지 않을 때도
+      // 어느 쪽이 무엇인지가 바탕으로 읽힙니다.
+      const tone = area === chipsBox ? UI.chips : UI.mult
+      const skin = piece('well', area.width, area.height, mix(tone, UI.ground, 0.72))
       if (skin !== undefined) {
         skin.position.set(area.x, area.y)
         g.addChild(skin)
@@ -333,9 +340,11 @@ export class ChromePart {
     for (const tray of [JOKER_TRAY, CONSUMABLE_TRAY]) {
       // **칸을 하나씩 그리지 않습니다. 고정된 영역 하나입니다** — 칸 수를 덱·바우처·
       // 챌린지가 바꾸므로, 칸마다 그리면 줄의 너비가 규칙을 따라 달라집니다.
-      const skin = piece('tray', tray.width, tray.height, wellTint(UI.panel))
+      // **반투명입니다.** 자리는 바탕이고, 그 뒤의 무늬가 비쳐야 판 위에 파인 자리로 읽힙니다.
+      const skin = piece('tray', tray.width, tray.height, UI.ground)
       if (skin !== undefined) {
         skin.position.set(tray.x, tray.y)
+        skin.alpha = 0.62
         g.addChild(skin)
         continue
       }
@@ -406,7 +415,9 @@ export class ChromePart {
     // `advanceHandControls` 가 매 프레임 정합니다.
     this.playButton.visible = this.game.session.scene === 'run'
     this.discardButton.visible = this.game.session.scene === 'run'
-    this.clearButton.visible = this.game.session.scene === 'run'
+    // **취소 단추는 두지 않습니다.** 고른 카드를 다시 누르면 놓이고, 낸다와 버린다 사이에
+    // 세 번째 단추가 서면 나아가는 줄이 셋으로 갈립니다.
+    this.clearButton.visible = false
     this.clearButton.enabled = inRound && this.game.cards.selected.size > 0
     this.playButton.enabled = inRound && this.game.cards.selected.size > 0 && state.handsLeft > 0
     this.discardButton.enabled = inRound && this.game.cards.selected.size > 0

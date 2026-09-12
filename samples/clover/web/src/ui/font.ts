@@ -12,6 +12,7 @@
 import { TextStyle, type StrokeStyle, type Text } from 'pixi.js'
 
 import { language, type Language } from '../core/strings'
+import { forgetLeading } from '../render/theme'
 
 /**
  * 말마다 쓰는 글꼴 이름.
@@ -141,6 +142,8 @@ export function useFont(language: Language): void {
   TextStyle.defaultTextStyle.fontFamily = [
     FAMILY[language], 'clover-latin', 'system-ui', 'sans-serif',
   ]
+  // **줄 사이는 글꼴에서 재는 값입니다.** 글꼴이 바뀌었으니 재어 둔 것을 비웁니다.
+  forgetLeading()
 }
 
 /**

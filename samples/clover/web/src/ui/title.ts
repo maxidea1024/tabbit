@@ -19,6 +19,8 @@
 import { Container, Graphics, Text } from 'pixi.js'
 import { t } from '../core/strings'
 
+import { drawCardBack, type BackLook } from '../render/card-back'
+import { PAINT } from '../render/ink'
 import { plateTint, wellTint } from '../render/skin'
 import { UI, SIZE, TEXT, WEIGHT } from '../render/theme'
 import { glowEdge, piece } from './chrome'
@@ -74,6 +76,53 @@ function copyrightLine(): string {
 const ACCOUNT_W = 200
 const ACCOUNT_H = 72
 
+/**
+ * 시작 판의 그림 — 카드의 뒷면 한 장을 크게.
+ *
+ * **판에서 쓰는 그 그림입니다.** 따로 그린 것이 아니라 붉은 덱의 뒷면을 두 배로 놓고
+ * 그림 자리 밖은 잘라 냅니다.
+ */
+function backArt(width: number, height: number, look?: BackLook): Container {
+  const node = new Container()
+  if (look === undefined) return node
+  const w = SIZE.cardWidth * 2
+  const h = SIZE.cardHeight * 2
+  const back = new Container()
+  drawCardBack(back, w, h, 0, look)
+  back.position.set((width - w) / 2, (height - h) / 2 + 40)
+  const clip = new Graphics()
+  clip.rect(0, 0, width, height).fill(PAINT.mask)
+  node.addChild(clip, back)
+  node.mask = clip
+  return node
+}
+
+/** 콜렉션 판의 그림 — 세로 결. 늘어선 카드의 등입니다. */
+function stripeArt(width: number, height: number): Container {
+  const node = new Container()
+  const g = new Graphics()
+  const step = 22
+  for (let x = 12; x < width - 8; x += step) {
+    g.rect(x, 14, 8, height - 28).fill({ color: UI.legendary, alpha: 0.10 })
+  }
+  node.addChild(g)
+  return node
+}
+
+/** 리더보드 판의 그림 — 순위의 가로 막대 넷. 위가 길고 아래로 짧아집니다. */
+function barsArt(width: number, height: number): Container {
+  const node = new Container()
+  const g = new Graphics()
+  const lengths = [0.62, 0.46, 0.34, 0.26]
+  lengths.forEach((part, at) => {
+    g.rect(24, 48 + at * 30, Math.round((width - 48) * part), 14)
+      .fill({ color: UI.money, alpha: at === 0 ? 0.42 : 0.18 })
+  })
+  void height
+  node.addChild(g)
+  return node
+}
+
 export interface TitleHooks {
   /** 판을 여는 자리. 새 런 · 이어하기 · 챌린지가 그 안에 있습니다. */
   onStart: () => void
@@ -87,14 +136,22 @@ export interface TitleHooks {
   onSignOut: () => void
   /** 게임을 나갑니다. **묻는 것은 부르는 쪽이 합니다.** */
   onQuit: () => void
+  /** 시작 판의 그림에 놓이는 카드 뒷면. 붉은 덱의 것입니다. 없으면 그림 자리만 남습니다. */
+  back?: BackLook
 }
 
 /** 큰 판 하나의 재료. */
 interface Card {
   key: string
+  /** 두 줄 설명의 열쇠. */
+  lines: string[]
+  /** 나아가는 단추의 글. */
+  go: string
   tone: number
   primary: boolean
   press: () => void
+  /** 그림 자리에 놓이는 것. */
+  art: (width: number, height: number, back?: BackLook) => Container
 }
 
 export class Title extends Container {
@@ -129,6 +186,7 @@ export class Title extends Container {
 
   /** 글을 다시 읽어야 하는 것들. 말이 바뀌면 갈아 끼웁니다. */
   private readonly buttons: { key: string; button: Button }[] = []
+  private readonly lines: { key: string; text: Text }[] = []
 
   private signOutButton?: Button
   private linkButton?: Button
@@ -140,9 +198,12 @@ export class Title extends Container {
    * 순위까지 있습니다 — `game.ts` 가 여기에 카드를 넣습니다.
    */
   readonly accountSlot = new Container()
+  /** 시작 판의 그림에 놓이는 카드 뒷면. */
+  private readonly back?: BackLook
 
   constructor(hooks: TitleHooks) {
     super()
+    this.back = hooks.back
 
     // **배경 그림 위에 막을 깝니다.** 판 없이 놓인 글이 읽혀야 합니다 — 그림을 어둡게
     // 물들이는 것이 곧 막이고, 사각형을 얹으면 그 변이 가로선으로 보입니다.
@@ -188,9 +249,18 @@ export class Title extends Container {
 
     // 큰 판 셋. **시작만 금색입니다.**
     const cards: Card[] = [
-      { key: 'ui.button.start', tone: UI.red, primary: true, press: hooks.onStart },
-      { key: 'ui.button.collection', tone: UI.legendary, primary: false, press: hooks.onCollection },
-      { key: 'ui.button.leaderboard', tone: UI.money, primary: false, press: hooks.onLeaderboard },
+      {
+        key: 'ui.button.start', lines: ['ui.run.new_desc'], go: 'ui.run.enter',
+        tone: UI.red, primary: true, press: hooks.onStart, art: backArt,
+      },
+      {
+        key: 'ui.button.collection', lines: ['ui.collection.hint'], go: 'ui.run.open',
+        tone: UI.legendary, primary: false, press: hooks.onCollection, art: stripeArt,
+      },
+      {
+        key: 'ui.button.leaderboard', lines: ['ui.lb.login.keep'], go: 'ui.run.open',
+        tone: UI.money, primary: false, press: hooks.onLeaderboard, art: barsArt,
+      },
     ]
     const left = (SIZE.width - (CARD_W * cards.length + CARD_GAP * (cards.length - 1))) / 2
     cards.forEach((card, index) => {
@@ -229,13 +299,17 @@ export class Title extends Container {
       node.addChild(g)
     }
 
-    // 그림 자리. **눌린 자리에 그 판의 색이 듭니다.** 그림은 뒤에 옵니다.
+    // 그림 자리. **눌린 자리에 그 판의 색이 들고 그 위에 판의 그림이 놓입니다** — 시작은
+    // 카드의 뒷면, 콜렉션은 세로 결, 리더보드는 순위의 가로 막대입니다.
     const art = piece('tray', CARD_W - 2, ART_H, wellTint(card.tone))
     if (art !== undefined) {
       art.position.set(1, 1)
       art.alpha = 0.55
       node.addChild(art)
     }
+    const picture = card.art(CARD_W - 2, ART_H, this.back)
+    picture.position.set(1, 1)
+    node.addChild(picture)
 
     // 머리띠.
     const band = glowEdge(CARD_W, card.primary ? UI.yellow : UI.rule)
@@ -244,19 +318,31 @@ export class Title extends Container {
       node.addChild(band)
     }
 
-    // 이름.
+    // 이름과 두 줄 설명.
     const name = new Text({
       text: t(card.key),
       style: { fontSize: TEXT.display, fill: UI.ink, fontWeight: WEIGHT.bold },
     })
     name.position.set(24, ART_H + 26)
     node.addChild(name)
+    card.lines.forEach((line, at) => {
+      const text = new Text({
+        text: t(line),
+        style: {
+          fontSize: TEXT.small, fill: UI.inkDim, wordWrap: true, wordWrapWidth: CARD_W - 48,
+          breakWords: true,
+        },
+      })
+      text.position.set(24, ART_H + 26 + 48 + at * 28)
+      node.addChild(text)
+      this.lines.push({ key: line, text })
+    })
 
-    // 나아가는 단추. **판의 아랫변에 붙습니다.**
-    const go = new Button(t(card.key), CARD_W - 48, GO_H, card.primary ? 'primary' : 'neutral',
+    // 나아가는 단추. **판의 아랫변에 붙습니다.** 글은 「들어간다」·「연다」입니다.
+    const go = new Button(t(card.go), CARD_W - 48, GO_H, card.primary ? 'primary' : 'neutral',
                           card.press)
     go.position.set(24, CARD_H - 24 - GO_H)
-    this.buttons.push({ key: card.key, button: go })
+    this.buttons.push({ key: card.go, button: go })
     const spot = card.key === 'ui.button.start' ? 'start'
       : card.key === 'ui.button.collection' ? 'collection' : 'leaderboard'
     this.toolNodes.set(spot, { node: go, cx: (CARD_W - 48) / 2, cy: GO_H / 2 })
@@ -288,6 +374,7 @@ export class Title extends Container {
   relabel(): void {
     this.tagline.text = t('ui.title.tagline')
     for (const one of this.buttons) one.button.text = t(one.key)
+    for (const one of this.lines) one.text.text = t(one.key)
   }
 
   /**

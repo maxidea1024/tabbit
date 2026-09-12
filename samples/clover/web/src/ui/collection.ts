@@ -38,12 +38,13 @@ import { UI, SIZE, TEXT, WEIGHT } from '../render/theme'
 import { Spring } from '../render/motion'
 import { attachTip, TipHold, TIP_GROW } from './tip'
 import type { ToolSpot } from './layout'
-import { panelFrame, type ModalPanel } from './modal'
+import { type ModalPanel, FULL_BODY_TOP, FULL_EDGE, FULL_FOOT_Y, fullFrame } from './modal'
 import { ScrollView } from './scroll'
 import { Tooltip } from './tooltip'
 import { Button } from './widgets'
 
-const WIDTH = 1092
+/** 전면 화면입니다. 화면의 폭을 씁니다. */
+const WIDTH = SIZE.width
 
 /**
  * 격자.
@@ -67,7 +68,7 @@ const CELL_Y = 152
  */
 const VIEW_W = COLUMNS * CELL_X + 16
 const GRID_X = Math.round((WIDTH - VIEW_W) / 2)
-const GRID_Y = 178
+const GRID_Y = 296
 
 /**
  * 판의 높이. **격자가 정합니다.**
@@ -81,9 +82,9 @@ const GRID_Y = 178
  * **줄 하나가 반쯤 걸치게 둡니다.** 딱 세 줄이 들어가면 그 아래에 더 있다는 것이 화면에
  * 없고, 막대는 굴려 본 뒤에야 눈에 듭니다 — 잘린 줄이 그것을 먼저 알립니다.
  */
-const VIEW_H = 3 * CELL_Y + 60
+const VIEW_H = FULL_FOOT_Y - GRID_Y - 12
 
-const HEIGHT = GRID_Y + VIEW_H + 44
+const HEIGHT = SIZE.height
 
 /**
  * 보이는 줄의 위아래로 더 짓는 줄 수.
@@ -147,9 +148,9 @@ interface Placed {
 const ROUND_GROUPS: readonly CollectionGroup[] = ['tag', 'blind', 'boss']
 
 /** 탭 줄과 그 아래 단추 줄. */
-const TAB_Y = 60
+const TAB_Y = FULL_BODY_TOP
 const TAB_H = 40
-const HEAD_Y = 110
+const HEAD_Y = FULL_BODY_TOP + 52
 const HEAD_H = 46
 
 /** 동그란 얼굴의 지름. 카드와 같은 자리에 서므로 카드의 폭을 넘지 않습니다. */
@@ -226,6 +227,7 @@ const SORTS: { key: SortKey; label: string }[] = [
 export class CollectionPanel implements ModalPanel {
   readonly view = new Container()
   readonly size = { width: WIDTH, height: HEIGHT }
+  readonly fullscreen = true
 
   private readonly body = new Container()
   /**
@@ -411,8 +413,7 @@ export class CollectionPanel implements ModalPanel {
       this.view.removeChild(this.frame)
       this.frame.destroy({ children: true })
     }
-    this.frame = panelFrame(WIDTH, HEIGHT, t('ui.collection.title'), this.onClose,
-                            undefined, false)
+    this.frame = fullFrame(t('ui.collection.title'), [], this.onClose)
     this.view.addChildAt(this.frame, 0)
   }
 
@@ -421,9 +422,9 @@ export class CollectionPanel implements ModalPanel {
     this.view.addChild(this.body)
 
     // 탭 아홉. **한 줄입니다** — 두 줄이 되면 어느 줄이 먼저인지가 읽히지 않습니다.
-    const tabW = 108
+    const tabW = 120
     const tabGap = 8
-    const tabsX = Math.round((WIDTH - (TABS.length * tabW + (TABS.length - 1) * tabGap)) / 2)
+    const tabsX = FULL_EDGE
     for (const [index, one] of TABS.entries()) {
       const button = new Button(t(one.label), tabW, TAB_H, 'neutral',
                                 () => this.choose(one.key))
@@ -454,13 +455,14 @@ export class CollectionPanel implements ModalPanel {
     this.scroll.content.addChild(this.spacer, this.grid)
     this.body.addChild(this.scroll)
 
-    this.foundLabel.anchor.set(1, 0.5)
-    // ESC 키캡(64)이 오른쪽 위에 있으므로 그 왼쪽에 놓습니다.
-    this.foundLabel.position.set(WIDTH - 24 - 64 - 20, 26)
+    // 오른쪽 위, ESC 키캡 아래 — 전면 화면에서 「지금 고른 것」이 서는 자리입니다.
+    this.foundLabel.anchor.set(1, 0)
+    this.foundLabel.position.set(SIZE.width - FULL_EDGE, 84)
     this.body.addChild(this.foundLabel)
 
-    this.hint.anchor.set(0.5, 0.5)
-    this.hint.position.set(WIDTH / 2, HEIGHT - 26)
+    // **아래 띠에 글을 두지 않습니다.** 가리키면 쪽지가 뜨는 것은 칸이 알립니다.
+    this.hint.visible = false
+    this.hint.position.set(FULL_EDGE, FULL_FOOT_Y + (SIZE.height - FULL_FOOT_Y) / 2)
     this.body.addChild(this.hint)
 
     // **쪽지는 맨 위입니다.** 칸 위에 떠야 하므로 판의 마지막 자식입니다.
@@ -691,7 +693,7 @@ export class CollectionPanel implements ModalPanel {
       text: name,
       style: {
         fontSize: TEXT.copy, fill: COLOR.slipInk, fontWeight: WEIGHT.heavy, align: 'center',
-        wordWrap: true, wordWrapWidth: w - 12, breakWords: true, lineHeight: 16,
+        wordWrap: true, wordWrapWidth: w - 12, breakWords: true,
       },
     })
     label.anchor.set(0.5, 0.5)
@@ -1073,7 +1075,7 @@ export class CollectionPanel implements ModalPanel {
       style: {
         fontSize: TEXT.mini, fill: met ? UI.ink : UI.inkDim, fontWeight: WEIGHT.normal,
         align: 'center', wordWrap: true, wordWrapWidth: CELL_X - 8,
-        breakWords: true, lineHeight: 13,
+        breakWords: true,
       },
     })
     label.anchor.set(0.5, 0)

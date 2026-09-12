@@ -1114,7 +1114,7 @@ export class ShopPart {
           text: t('ui.shop.voucher_taken'),
           style: {
             fontSize: TEXT.micro, fill: UI.inkDim, fontWeight: WEIGHT.normal, align: 'center',
-            wordWrap: true, wordWrapWidth: CELL_W - 16, breakWords: true, lineHeight: 13,
+            wordWrap: true, wordWrapWidth: CELL_W - 16, breakWords: true,
           },
         })
         none.anchor.set(0.5, 0.5)

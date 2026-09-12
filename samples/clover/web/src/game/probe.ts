@@ -818,7 +818,7 @@ export class ProbePart {
    * 다른 곳을 누릅니다.
    */
   private runSpots(): Record<string, { x: number; y: number }> {
-    if (!this.game.panels.modals.has(this.game.panels.runPanel)) return {}
+    if (this.game.session.scene !== 'screen' || !this.game.panels.runPanel.view.visible) return {}
     const out: Record<string, { x: number; y: number }> = {}
     for (const [key, one] of this.game.panels.runPanel.toolSpots) {
       if (one.node.destroyed) continue

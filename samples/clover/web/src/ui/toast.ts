@@ -108,7 +108,7 @@ export class Toasts extends Container {
     const heading = new Text({
       text: title,
       style: {
-        fontSize: TEXT.small, fill: UI.ink, fontWeight: WEIGHT.bold, lineHeight: 12,
+        fontSize: TEXT.small, fill: UI.ink, fontWeight: WEIGHT.bold,
         wordWrap: true, wordWrapWidth: WIDTH - 40, breakWords: true,
       },
     })

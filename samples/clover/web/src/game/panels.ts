@@ -28,7 +28,9 @@ import { SECTION_H, sectionHead } from '../ui/parts'
 import { ScrollView } from '../ui/scroll'
 import { richBlock, richLeading, richLine, richStyle } from '../ui/rich'
 import { OptionsPanel } from '../ui/options'
-import { LEFT, MENU_PAD, PANEL_ROWS, PANEL_W } from './metrics'
+import {
+  LEFT, MENU_PAD, PANEL_ROWS, PANEL_W, IN_X, IN_W,
+} from './metrics'
 import { blindName, HAND_SHAPE, INSIGHT_COLOR, ruleValue, snake } from './tables'
 import { type RunInfoTab } from './types'
 import { type Game } from './game'
@@ -340,7 +342,7 @@ export class PanelsPart {
         text: row.note,
         style: {
           fontSize: TEXT.mini, fill: UI.inkDim,
-          wordWrap: true, wordWrapWidth: width - 220, breakWords: true, lineHeight: 13,
+          wordWrap: true, wordWrapWidth: width - 220, breakWords: true,
         },
       })
       note.position.set(28, y + 18)
@@ -907,9 +909,9 @@ export class PanelsPart {
     const shown = Math.min(entries.length, entries.length > 4 ? 3 : 4)
 
     // 구획 머리 하나. 판 안의 다른 구획과 같은 것입니다.
-    const head = sectionHead(PANEL_W, tf('ui.active.count', { n: entries.length }), undefined,
+    const head = sectionHead(IN_W, tf('ui.active.count', { n: entries.length }), undefined,
       false)
-    head.position.set(LEFT, top - 6)
+    head.position.set(IN_X, top - 6)
     this.game.tray.activeLayer.addChild(head)
 
     entries.slice(0, shown).forEach((entry, index) => {
@@ -917,11 +919,11 @@ export class PanelsPart {
       // 줄의 딱지에 닿아 있었습니다.
       const y = top + 22 + index * rowH
       const line = new Container()
-      line.position.set(LEFT, y)
+      line.position.set(IN_X, y)
 
       const plate = new Graphics()
-      plate.rect(0, 0, PANEL_W, rowH - 4).fill(UI.cell)
-      plate.rect(0.5, 0.5, PANEL_W - 1, rowH - 5)
+      plate.rect(0, 0, IN_W, rowH - 4).fill(UI.cell)
+      plate.rect(0.5, 0.5, IN_W - 1, rowH - 5)
         .stroke({ color: UI.hairline, width: 1 })
       line.addChild(plate)
       // **방금 들어온 줄은 값의 색 테로 밝습니다.** 바우처가 규칙으로 들어갔다는 것이 이

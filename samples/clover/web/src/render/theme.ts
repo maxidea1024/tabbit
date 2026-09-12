@@ -7,6 +7,7 @@
 // 하나와 밝기 하나이고, 나머지는 `palette.ts` 의 표가 만듭니다 — 그 이유와 배수는 그쪽에
 // 적혀 있습니다.
 
+import { CanvasTextMetrics, TextStyle } from 'pixi.js'
 import { buildSurface, type Surface, type SurfaceSeed } from './palette'
 
 /**
@@ -28,6 +29,8 @@ import { buildSurface, type Surface, type SurfaceSeed } from './palette'
  * `level` 은 판의 상대휘도입니다. **겉면 하나의 밝기가 이 숫자 하나입니다** — 칸도 단추도
  * 선도 이 값에서 배수로 나오므로, 밝기를 바꾸려면 여기만 고칩니다.
  */
+// **판의 밝기는 씨앗이 정하고 부품은 그 색 그대로 물듭니다.** 구운 부품은 꼭대기가 흰색이라
+// 넘기는 색이 곧 판의 윗변입니다 — 검은 겉면은 검고, 밝은 겉면은 밝습니다.
 const SEEDS: Record<string, SurfaceSeed> = {
   /**
    * 기본. **검정 바닥에 청회색 판입니다.**
@@ -36,7 +39,7 @@ const SEEDS: Record<string, SurfaceSeed> = {
    * 1/4 로 내려 거의 검정입니다.
    */
   slate: {
-    hue: 255, chroma: 0.020, level: 0.0165, alpha: 0.96,
+    hue: 255, chroma: 0.020, level: 0.0230, alpha: 0.96,
     accent: { hue: 62, chroma: 0.075 },
   },
   /**
@@ -68,10 +71,6 @@ const SEEDS: Record<string, SurfaceSeed> = {
   bright: {
     hue: 261, chroma: 0.030, level: 0.0470, alpha: 0.98,
     accent: { hue: 210, chroma: 0.095 },
-    tune: {
-      panelEdge: 3.8, yellow: 6.4, money: 6.8, green: 6.4, good: 5.8,
-      accentTerm: 7.6, bar: 5.4, mark: 5.0,
-    },
   },
   /** 초록. 카드를 늘어놓는 상의 색입니다 — 이 갈래의 게임에서 가장 오래된 색입니다. */
   green: {
@@ -202,8 +201,31 @@ export function step(size: number): number {
  * 가장 좁은 값입니다.
  */
 export function leading(size: number): number {
-  // **줄 사이도 12의 배수입니다.** 픽셀 서체는 줄이 반 픽셀 어긋나면 획이 흐려집니다.
-  return Math.max(12, Math.round(size * 1.45 / 12) * 12)
+  // **글꼴에서 잽니다.** 상수로 적어 두면 글꼴을 바꾼 날 앞 줄 위에 다음 줄이 얹힙니다 —
+  // 지금 걸린 글꼴의 올림과 내림을 재서 그 위에 글자 크기의 4분의 1을 더합니다. 정수로
+  // 올리므로 획은 격자에 그대로 맞습니다.
+  const family = TextStyle.defaultTextStyle.fontFamily
+  const name = Array.isArray(family) ? family.join(', ') : String(family)
+  const key = `${name}|${size}`
+  const found = LEADING.get(key)
+  if (found !== undefined) return found
+  let line = Math.round(size * 1.5)
+  try {
+    const metrics = CanvasTextMetrics.measureFont(`${size}px ${name}`)
+    if (metrics.fontSize > 0) line = Math.ceil(metrics.fontSize + size * 0.25)
+  } catch {
+    // 글꼴을 잴 수 없는 곳(헤드리스)에서는 1.5배로 갑니다.
+  }
+  LEADING.set(key, line)
+  return line
+}
+
+/** 재어 둔 줄 사이. 글꼴이 바뀌면(`useFont`) 비워야 합니다. */
+const LEADING = new Map<string, number>()
+
+/** 글꼴이 바뀌었으니 재어 둔 줄 사이를 비웁니다. */
+export function forgetLeading(): void {
+  LEADING.clear()
 }
 
 /** 글자의 굵기. **셋뿐입니다** — 넷째를 더하면 어느 것이 더 무거운지가 보이지 않습니다. */

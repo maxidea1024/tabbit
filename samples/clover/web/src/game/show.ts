@@ -24,11 +24,7 @@ import { box, CENTER, pointOf, putText, splitX } from '../ui/layout'
 import { Button, Panel } from '../ui/widgets'
 import { RuleBanner, type RuleNote } from '../ui/rule-banner'
 import {
-  ACTIVE_GLOW, BLIND_MUSIC_DIM, BLUR_BACK_PX, BLUR_PX, BOARD_X, BUTTON_Y, CHIPS_GAP, CHIPS_H,
-  CHIPS_Y, CONSUMABLE_TRAY, DEALER, DECK_X, DECK_Y, DELTA_LIFE, DELTA_POOL, EMBER, HAND_Y,
-  JOKER_TRAY, JOKER_Y, LAND_AT, LEFT, PACK_TITLE_Y, PACK_X, PANEL_ROWS, PANEL_W,
-  PLAY_H, PLAY_W, PLAY_Y, RIGHT_COL, RISER_HOLD, RISER_LIFT, RISER_ON_CARD, RISER_SPAN,
-  SELL_WAIT, TRAY_PAD_X, within,
+  ACTIVE_GLOW, BLIND_MUSIC_DIM, BLUR_BACK_PX, BLUR_PX, BOARD_X, BUTTON_Y, CHIPS_GAP, CHIPS_H, CHIPS_Y, CONSUMABLE_TRAY, DEALER, DECK_X, DECK_Y, DELTA_LIFE, DELTA_POOL, EMBER, HAND_Y, JOKER_TRAY, JOKER_Y, LAND_AT, LEFT, PACK_TITLE_Y, PACK_X, PANEL_ROWS, PANEL_W, PLAY_H, PLAY_W, PLAY_Y, RIGHT_COL, RISER_HOLD, RISER_LIFT, RISER_ON_CARD, RISER_SPAN, SELL_WAIT, TRAY_PAD_X, within, IN_X, IN_W, SCORE_H,
 } from './metrics'
 import { ACT_KINDS, ACT_LOOK, moneyReason, ruleChange, SCORING_BEATS, VALUE_OPS } from './tables'
 import { edgeBlur, rgbOf } from './helpers'
@@ -275,9 +271,10 @@ export class ShowPart {
   heatShown = 0.1
 
   buildPanel(): void {
-    const panel = new Panel(PANEL_W + 24, SIZE.height - 44)
+    // **판은 16 · 32 에서 시작하고 물건 자리의 윗변과 같습니다.**
+    const panel = new Panel(PANEL_W, SIZE.height - 32 - 12)
     this.game.chrome.panelPlate = panel
-    panel.position.set(LEFT - 12, 22)
+    panel.position.set(LEFT, 32)
     // **조커와 소모품의 자리는 상점 아래에 그립니다.** 상점이 판 안에 서므로, 이 사각형이
     // 위에 있으면 상점의 머리띠를 가로질러 자리가 그려집니다.
     this.game.chrome.frames.zIndex = -2
@@ -286,8 +283,10 @@ export class ShowPart {
     // 이유가 없습니다.
     this.game.chrome.drawFrames()
 
-    this.game.blind.badge.position.set(LEFT, 34)
-    this.game.chrome.score.position.set(LEFT, PANEL_ROWS.score)
+    this.game.blind.badge.position.set(LEFT, 32)
+    this.game.chrome.score.position.set(IN_X, PANEL_ROWS.score)
+    // 게이지는 칸의 아랫변 안쪽입니다.
+    this.game.chrome.scoreBar.position.set(IN_X + 12, PANEL_ROWS.score + SCORE_H - 14)
     // **자원 넷은 오르내림이 바탕색에 드러납니다.** 라운드 득점과 칩·배수는 오르기만 하므로
     // 그 색이 아무것도 가르지 않습니다.
     //
@@ -309,9 +308,9 @@ export class ShowPart {
     // **네 무리이고 사이가 26입니다.** 이 넷은 판이 도는 동안 가끔 보는 것이고 칩과 배수는
     // 매 순간 보는 것인데, 사이가 12·30·12로 제각각이면 여섯 칸이 한 덩어리로 보여서
     // 그중 어느 둘이 지금 중요한지가 자리로 드러나지 않습니다.
-    this.game.chrome.hands.position.set(LEFT, PANEL_ROWS.hands)
+    this.game.chrome.hands.position.set(IN_X, PANEL_ROWS.hands)
     this.game.chrome.discards.position.set(RIGHT_COL, PANEL_ROWS.hands)
-    this.game.chrome.money.position.set(LEFT, PANEL_ROWS.money)
+    this.game.chrome.money.position.set(IN_X, PANEL_ROWS.money)
     this.game.chrome.anteSlot.position.set(RIGHT_COL, PANEL_ROWS.money)
 
     // **무리를 가르는 줄을 두지 않습니다.** 무리는 사이의 넓이가 가릅니다 — 줄까지 두면
@@ -319,9 +318,9 @@ export class ShowPart {
 
     // **상자 둘과 그 사이의 곱셈표입니다.** 원작의 배치이고, 붙여 놓는 것보다 이 편이
     // 「칩 곱하기 배수」 라는 식으로 읽힙니다.
-    const block = box(LEFT, CHIPS_Y, PANEL_W, CHIPS_H)
+    const block = box(IN_X, CHIPS_Y, IN_W, CHIPS_H)
     const [chipsBox, gapBox, multBox] =
-      splitX(block, [1, CHIPS_GAP / (PANEL_W - CHIPS_GAP) * 2, 1])
+      splitX(block, [1, CHIPS_GAP / (IN_W - CHIPS_GAP) * 2, 1])
     this.game.chrome.paintScoreBox(chipsBox, multBox)
     this.game.chrome.chips.position.set(chipsBox.x, chipsBox.y)
     this.game.chrome.mult.position.set(multBox.x, multBox.y)
@@ -347,14 +346,17 @@ export class ShowPart {
     // **두 무리의 한가운데가 아니라 아래 무리의 머리입니다.** 사이의 한가운데에 두었더니
     // 위의 점수와 아래의 두 수 어느 쪽에도 붙지 않은 글 한 줄이 되었습니다 — 이 글이
     // 설명하는 것은 아래의 두 수이므로, 그 상자와 8픽셀을 두고 붙습니다.
-    putText(this.game.chrome.handLabel, box(LEFT, PANEL_ROWS.handLabel, PANEL_W, 24), CENTER)
+    // **족보 이름은 판 안이 아니라 손패 위에 뜹니다.** 고른 카드 바로 위에서 무엇을 만들었는지가
+    // 읽혀야 하고, 판 안에 두면 눈이 왼쪽으로 한 번 가야 합니다.
+    putText(this.game.chrome.handLabel,
+            box(BOARD_X - 200, HAND_Y - SIZE.cardHeight / 2 - 52, 400, 24), CENTER)
 
     // **딱지 아래의 것들은 한 통에 담습니다.** 블라인드 딱지는 들고 있는 태그만큼 자라고,
     // 그러면 그 아래가 통째로 내려가야 합니다 — 낱개로 자리를 다시 세면 여섯 곳을 고쳐야
     // 하고 그중 하나를 빠뜨리면 그것만 겹칩니다.
     //
     this.game.chrome.panelStack.addChild(this.game.chrome.panelGrooves, this.game.chrome.score,
-      this.game.chrome.scoreBox,
+      this.game.chrome.scoreBar, this.game.chrome.scoreBox,
       this.game.chrome.scoreFlash, this.game.chrome.scoreWave.view, this.game.chrome.chips,
       this.game.chrome.mult, times, this.game.chrome.handLabel,
       this.game.chrome.hands, this.game.chrome.discards, this.game.chrome.money,
@@ -1667,8 +1669,6 @@ export class ShowPart {
   }
 
   syncMood(): void {
-    /** 바닥 `#06070A` 를 0..1 로 적은 것. 어느 국면에서나 같습니다. */
-    const GROUND: [number, number, number] = [0.024, 0.027, 0.039]
     const state = this.game.state
 
     // **판 밖의 두 화면은 프랙탈이 아닙니다.** 색을 정할 것이 없습니다 — `syncBackdrop`
@@ -1682,31 +1682,28 @@ export class ShowPart {
     // 배경도 연출이 끝난 뒤에 갑니다. 득점 중에 색이 바뀌면 무엇이 끝난 것인지 흐려집니다.
     if (!this.game.presented) return
 
-    // **바닥은 검정입니다.** 국면의 색은 바닥에 섞지 않고 무늬에만 듭니다 — 바닥에
-    // 섞으면 화면 전체가 한 색으로 물들고 강조색이 설 자리가 없어집니다. 디자인 언어의
-    // 「바닥과 장면」이 정본이고, 바닥의 값은 `#06070A` 입니다.
     if (state.phase === 'lost') {
-      this.setMood(GROUND, [0.07, 0.07, 0.08])
+      this.setMood([0.05, 0.05, 0.058], [0.55, 0.5, 0.55])
       return
     }
     if (state.phase === 'won') {
-      this.setMood(GROUND, [0.15, 0.12, 0.05])
+      this.setMood([0.075, 0.062, 0.026], [1, 0.82, 0.34])
       return
     }
     if (state.phase === 'shop') {
-      this.setMood(GROUND, [0.05, 0.12, 0.11])
+      this.setMood([0.032, 0.062, 0.072], [0.32, 0.86, 0.82])
       return
     }
 
     switch (state.blind) {
       case BlindKind.Boss:
-        this.setMood(GROUND, [0.15, 0.04, 0.05])
+        this.setMood([0.082, 0.024, 0.04], [1, 0.26, 0.33])
         break
       case BlindKind.Big:
-        this.setMood(GROUND, [0.10, 0.06, 0.15])
+        this.setMood([0.062, 0.042, 0.082], [0.72, 0.42, 0.98])
         break
       default:
-        this.setMood(GROUND, [0.04, 0.07, 0.14])
+        this.setMood([0.042, 0.052, 0.086], [0.30, 0.52, 0.98])
         break
     }
   }

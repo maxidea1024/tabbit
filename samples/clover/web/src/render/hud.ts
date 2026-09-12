@@ -11,16 +11,19 @@ import { type Anchor, type Box, box, BOTTOM, inset, pointOf, putText, splitY }
   from '../ui/layout'
 import { richLeading, richStyle, richBlock, rowsOf, type RichStyle } from '../ui/rich'
 import { mix, plate, slotStyle, wellTint } from './skin'
+import { PAINT } from './ink'
 import { piece } from '../ui/chrome'
 import { Spring } from './motion'
-import { UI, TEXT, WEIGHT } from './theme'
+import { UI, TEXT, WEIGHT, STEP } from './theme'
 
 /** 값 하나가 들어가는 칸. */
 /** 이름이 앉는 띠의 높이. 숫자는 그 아래의 남은 자리를 씁니다. */
 const CAPTION_H = 22
 
 /** 딱지의 머리 판 높이. 이름(24)이 앉는 띠입니다. */
-const HEAD_H = 40
+const HEAD_H = 48
+/** 딱지의 높이. 머리 판과 요구 점수 자리입니다 — 자라지 않습니다. */
+const BADGE_H = 212
 /**
  * 한 줄 칸의 좌우 여백. 이름은 왼쪽 끝, 값은 오른쪽 끝에서 이만큼 들어옵니다.
  */
@@ -174,6 +177,13 @@ class Digits extends Container {
 
   get text(): string { return this.shown }
 
+  /** 글자 하나의 모습. **채움만 흰색이고 나머지는 나눠 쓰는 모습 그대로입니다.** */
+  private glyphStyle(): TextStyle {
+    const own = this.style.clone()
+    own.fill = PAINT.sheen
+    return own
+  }
+
   set text(value: string) {
     if (value === this.shown) return
     this.shown = value
@@ -214,12 +224,32 @@ class Digits extends Container {
         glyph.scale.set(1)
         continue
       }
-      // 올라갔다 내려옵니다. 한가운데가 가장 높습니다.
+      // 올라갔다 내려옵니다. 한가운데가 가장 높습니다. **그 글자에 흰빛이 지나갑니다** —
+      // 제 색에서 흰색으로 갔다가 제 색으로 돌아옵니다. 글자의 채움은 흰색이고 색은
+      // `tint` 로 얹으므로 글자마다 다른 색을 줄 수 있습니다.
       const bounce = Math.sin(at * Math.PI)
       glyph.y = -WAVE_LIFT * bounce
       glyph.scale.set(1 + WAVE_SWELL * bounce)
+      glyph.tint = mix(this.ink, PAINT.sheen, bounce)
     }
-    if (done) this.life = -1
+    if (done) {
+      this.life = -1
+      for (const glyph of this.glyphs) glyph.tint = this.ink
+    }
+  }
+
+  /**
+   * 글자의 색.
+   *
+   * **채움은 흰색이고 색은 `tint` 입니다.** 물결이 지나가는 동안 글자마다 다른 색이어야
+   * 하는데, 채움은 글자 전부가 나눠 쓰는 모습 하나에 있습니다.
+   */
+  private ink: number = PAINT.sheen
+
+  /** 글자들의 색을 바꿉니다. 물결이 돌고 있지 않으면 곧바로 듭니다. */
+  recolor(ink: number): void {
+    this.ink = ink
+    if (this.life < 0) for (const glyph of this.glyphs) glyph.tint = ink
   }
 
   /**
@@ -236,10 +266,13 @@ class Digits extends Container {
       const ch = this.shown[i]
       let glyph = this.glyphs[i]
       if (!glyph) {
-        glyph = new Text({ text: ch, style: this.style })
+        glyph = new Text({ text: ch, style: this.glyphStyle() })
         glyph.anchor.set(0.5, 0.5)
+        glyph.tint = this.ink
         this.glyphs.push(glyph)
         this.addChild(glyph)
+      } else if (glyph.style.fontSize !== this.style.fontSize) {
+        glyph.style.fontSize = this.style.fontSize
       }
       glyph.visible = true
       if (glyph.text !== ch) glyph.text = ch
@@ -435,6 +468,7 @@ export class Slot extends Container {
     }
     this.baseY = this.value.y
     this.valueStyle.fill = ink
+    if (this.value instanceof Digits) this.value.recolor(ink)
     this.draw()
   }
 
@@ -858,7 +892,8 @@ export class BlindBadge extends Container {
   })
   private readonly need = new Text({
     text: '',
-    style: { fontSize: TEXT.banner, fill: UI.bar, fontWeight: WEIGHT.bold, fontFamily: NUMERALS },
+    // **그 화면의 주인공 하나입니다** — 계단의 맨 위 칸(72)입니다.
+    style: { fontSize: STEP[4], fill: UI.bad, fontWeight: WEIGHT.bold, fontFamily: NUMERALS },
   })
   /** 요구 점수라는 것을 적는 작은 글. */
   private readonly caption = new Text({
@@ -981,7 +1016,7 @@ export class BlindBadge extends Container {
   setInfo(name: string, lead: string, lines: string[], mark: number, seal?: Container,
           tags: Container[] = []): void {
     this.settle(`info|${name}|${lead}|${lines.join('|')}`)
-    const height = 156
+    const height = BADGE_H
     this.boxHeight = height
 
     this.plate.clear()
@@ -1009,10 +1044,10 @@ export class BlindBadge extends Container {
     this.reward.text = ''
     this.fill(this.note, [], BlindBadge.infoRich(), richLeading('note'), 0)
 
-    const rows = this.fill(this.lead, [lead], BlindBadge.leadRich(), richLeading('body'), HEAD_H + 12)
+    const rows = this.fill(this.lead, [lead], BlindBadge.leadRich(), richLeading('body'), HEAD_H + 24)
     // 굵은 줄 바로 아래입니다. 굵은 줄이 두 줄이면 그만큼 내려섭니다.
     this.fill(this.info, lines, BlindBadge.infoRich(), richLeading('note'),
-              HEAD_H + 12 + rows * richLeading('body') + 10)
+              HEAD_H + 24 + rows * richLeading('body') + 10)
 
     this.setTags(tags)
   }
@@ -1023,7 +1058,7 @@ export class BlindBadge extends Container {
    * 아래에 무엇을 둘 자리를 세는 쪽이 알아야 합니다 — 화면이 같은 계산을 베껴 적으면
    * 여기를 고칠 때 그쪽만 남습니다.
    */
-  boxHeight = 138
+  boxHeight = BADGE_H
 
   set(name: string, target: number, reward: number, note: string,
       boss: boolean, big = false, seal?: Container, tags: Container[] = []): void {
@@ -1039,7 +1074,7 @@ export class BlindBadge extends Container {
     // **비워 두는 자리가 아까운 것보다 흔들리는 것이 나쁩니다.** 이 딱지는 왼쪽 판의 맨
     // 위이고, 높이가 바뀌면 그 아래가 전부 따라 움직입니다 — 블라인드를 넘길 때마다 판이
     // 한 번씩 출렁이던 것이 그것입니다.
-    const height = 156
+    const height = BADGE_H
     this.boxHeight = height
     // **판을 물들이지 않습니다.** 셋이 저마다의 바탕색이면 판 셋이 서로 다른 물건이 되고,
     // 어느 블라인드인지는 이름과 문양이 이미 말합니다 — 색은 이름 앞의 문양 하나에만
@@ -1079,17 +1114,17 @@ export class BlindBadge extends Container {
     // 요구 점수. **바와 같은 색입니다** — 채워야 하는 것으로 읽힙니다.
     this.caption.text = t('ui.label.target')
     this.caption.anchor.set(0.5, 0)
-    this.caption.position.set(this.boxWidth / 2, HEAD_H + 10)
+    this.caption.position.set(this.boxWidth / 2, HEAD_H + 24)
 
     this.need.text = target.toLocaleString('en-US')
     this.need.anchor.set(0.5, 0)
-    this.need.position.set(this.boxWidth / 2, HEAD_H + 24)
+    this.need.position.set(this.boxWidth / 2, HEAD_H + 44)
 
     this.reward.text = tf('ui.blind.reward', { n: reward })
     this.reward.anchor.set(0.5, 0)
-    this.reward.position.set(this.boxWidth / 2, HEAD_H + 66)
+    this.reward.position.set(this.boxWidth / 2, HEAD_H + 134)
 
-    this.fill(this.note, [note], BlindBadge.infoRich(), richLeading('note'), HEAD_H + 82)
+    this.fill(this.note, [note], BlindBadge.infoRich(), richLeading('note'), HEAD_H + 160)
 
     this.setTags(tags)
   }

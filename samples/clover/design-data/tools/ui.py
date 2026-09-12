@@ -66,24 +66,25 @@ def plate():
     """
     c = PLATE_CUT
     # **두 점짜리 선형입니다.** 꺾이는 점을 두면 9분할로 늘렸을 때 그 꺾임이 사라집니다.
-    return ('background: linear-gradient(180deg, #ffffff 0%%, #5a5a5a 100%%);'
+    # **꼭대기가 흰색입니다.** 물들이는 색이 곧 판의 윗변이고 아래로 내려가며 조금 어두워집니다.
+    return ('background: linear-gradient(180deg, #ffffff 0%%, #a0a0a0 100%%);'
             ' clip-path: polygon(0 0, 100%% 0, 100%% calc(100%% - %s), calc(100%% - %s) 100%%,'
             ' 0 100%%);' % (px(c), px(c)))
 
 
 def well():
     """칸 — 판 안으로 눌린 자리. 위 안쪽의 그늘과 아래의 밝은 줄."""
-    return ('background: #3c3c3c;'
-            ' box-shadow: inset 0 %s 0 #202020, inset 0 %s %s #141414,'
-            ' inset 0 -%s 0 #787878;'
-            % (px(1), px(2), px(5), px(1)))
+    # **몸통이 흰색입니다.** 물들이는 색이 곧 칸의 색이고, 위 안쪽의 그늘만 어둡습니다.
+    return ('background: linear-gradient(180deg, #6e6e6e 0%%, #ffffff 100%%);'
+            ' box-shadow: inset 0 %s 0 #4a4a4a, inset 0 %s %s #5a5a5a;'
+            % (px(1), px(2), px(5)))
 
 
 def tray():
     """물건 자리 — 칸을 하나씩 그리지 않습니다. 고정된 영역 하나입니다."""
-    return ('background: linear-gradient(180deg, #3a3a3a 0%%, #242424 100%%);'
-            ' box-shadow: inset 0 %s 0 #8c8c8c, inset 0 0 0 %s #1e1e1e;'
-            % (px(1), px(1)))
+    # **테를 두르지 않습니다.** 윗변의 한 줄만 안쪽으로 있습니다.
+    return ('background: linear-gradient(180deg, #ffffff 0%%, #b4b4b4 100%%);'
+            ' box-shadow: inset 0 %s 0 #ffffff;' % px(1))
 
 
 def head():
@@ -113,8 +114,8 @@ def keycap():
 
 
 def gauge_groove():
-    return ('background: #1a1a1a; box-shadow: inset 0 %s %s #000000,'
-            ' inset 0 -%s 0 #565656;' % (px(1), px(3), px(1)))
+    return ('background: #ffffff; box-shadow: inset 0 %s %s #6e6e6e,'
+            ' inset 0 -%s 0 #ffffff;' % (px(1), px(3), px(1)))
 
 
 def gauge_fill():
@@ -134,13 +135,13 @@ PIECES = [
     ('well', 64, 64, (12, 12, 8, 8), well()),
     ('tray', 96, 96, (14, 14, 8, 8), tray()),
     ('head', 96, 64, (14, 14, 8, 10), head()),
-    ('keycap', 64, 36, (18, 18, 10, 14), keycap()),
+    ('keycap', 64, 36, (12, 12, 10, 14), keycap()),
     ('gauge', 48, 12, (6, 6, 0, 0), gauge_groove()),
     ('gauge-fill', 48, 8, (6, 6, 0, 0), gauge_fill()),
     ('glow-edge', 64, 2, (0, 0, 0, 0), glow_edge()),
 ]
 for name, h, _font, cut in RUNGS:
-    PIECES.append((name, cut * 4 + 16, h, (cut + 6, cut + 6, 0, 0), button(h, cut)))
+    PIECES.append((name, cut * 4 + 16, h, (cut + 2, cut + 2, 0, 0), button(h, cut)))
 
 
 # 단추의 겉면 밖으로 나가는 그림자입니다. 클립 밖이라 여백을 둡니다.

@@ -60,7 +60,7 @@ export class ConfirmPanel implements ModalPanel {
       text: body,
       style: {
         fontSize: TEXT.copy, fill: UI.ink, wordWrap: true, wordWrapWidth: WIDTH - 72,
-        align: 'center', lineHeight: 21,
+        align: 'center',
       },
     })
     text.anchor.set(0.5, 0)
