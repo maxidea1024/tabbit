@@ -280,7 +280,7 @@ export const HELD_EDGE = 10
  * 올라가고, 단추는 바닥에 그대로 있습니다 — 고를 때마다 단추가 다른 높이에 서면 두 번째
  * 누름이 매번 다른 자리입니다.
  */
-export const HELD_H = 32
+export const HELD_H = 36
 
 /**
  * 고른 상점 칸이 밀려 올라가는 거리.
@@ -520,12 +520,17 @@ export const PACK_TITLE_Y = PACK_CARDS_Y - PACK_CARD_H / 2 - 108
  * 낸다와 버린다 사이의 취소를 잘못 누릅니다 — 키운 만큼 줄이 위로 올라오고, 손패와 지시문도
  * 그만큼 비켜섭니다.
  */
-export const BUTTON_Y = 728
+export const BUTTON_Y = 712
 
-/** 낸다·버린다의 크기. */
+/**
+ * 낸다·버린다의 크기.
+ *
+ * **높이 계단의 `xl` 입니다.** 판을 움직이는 단추라서 가장 큽니다 — 매번 누르는 것이고,
+ * 화면에서 이 칸을 쓰는 것은 이 줄뿐입니다.
+ */
 export const PLAY_W = 148
 
-export const PLAY_H = 56
+export const PLAY_H = 72
 
 /**
  * 정렬 단추 하나의 크기.
@@ -535,7 +540,8 @@ export const PLAY_H = 56
  */
 export const SORT_W = 112
 
-export const SORT_H = 42
+/** 곁단추입니다 — 높이 계단의 `sm`. */
+export const SORT_H = 36
 
 /** 정렬 단추가 숨을 때 내려가는 거리. 화면 아래 밖까지입니다. */
 export const SORT_HIDE = 120
@@ -550,13 +556,21 @@ export const SORT_HIDE = 120
 export const BLIND_MUSIC_DIM = 0.5
 
 /**
- * 판의 밑단에 서는 단추의 높이.
+ * 왼쪽 판의 밑단에 서는 단추의 높이.
  *
- * **낸다·버린다와 같습니다.** 왼쪽 판의 런 정보·메뉴와 상점의 리롤·다음 블라인드가
- * 그것들입니다 — 34픽셀짜리들이 56픽셀짜리 줄과 한 화면에 있으면 아래 변에 높이가 다른
- * 단추 줄이 여럿 있는 것이 되고, 손가락으로 누르는 크기도 그만큼 갈립니다.
+ * **높이 계단의 기본 칸입니다.** 런 정보와 메뉴는 그 밖의 단추이고, 그 밖의 단추는 48
+ * 입니다. 낸다·버린다(`xl`)와 같이 두었던 것을 걷었습니다 — 판을 움직이는 것과 판을
+ * 읽는 것이 같은 크기이면 무엇이 매번 누르는 것인지가 크기로 드러나지 않습니다.
  */
-export const FOOT_BTN_H = PLAY_H
+export const FOOT_BTN_H = 48
+
+/**
+ * 상점 밑단의 단추 둘 — 리롤과 다음 블라인드.
+ *
+ * **나아가는 줄이므로 `lg` 입니다.** 그 줄의 단추는 갈래가 달라도 전부 같은 높이이고,
+ * 금색은 그 안에 하나입니다.
+ */
+export const SHOP_FOOT_H = 60
 
 /**
  * 왼쪽 판의 밑단에 서는 단추 둘 — 런 정보와 메뉴.
@@ -705,10 +719,10 @@ export const PANEL_GROOVES = [278, 407, 549] as const
  * 나란히 놓이고, 그 사이에 곱셈표가 놓입니다. 파랑과 붉음은 값이 움직이는 동안에만 들고,
  * 조용할 때의 왼쪽 판은 같은 색의 칸들입니다.
  */
-export const CHIPS_H = 58
+export const CHIPS_H = 60
 
-/** 두 상자의 모서리. **판의 다른 칸과 같습니다** — 바탕색을 맞추었으므로 모서리도 같습니다. */
-export const CHIPS_R = 6
+/** 두 상자의 모서리. **0 입니다** — 화면에 둥근 모서리가 없습니다. */
+export const CHIPS_R = 0
 
 /** 두 상자 사이. **곱셈표가 그 사이에 놓입니다.** */
 export const CHIPS_GAP = 34

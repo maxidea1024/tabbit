@@ -10,13 +10,17 @@ import { NUMERALS, outline, outlined, outlineOf, outlineWidth } from '../ui/font
 import { type Anchor, type Box, box, BOTTOM, inset, pointOf, putText, splitY }
   from '../ui/layout'
 import { richLeading, richStyle, richBlock, rowsOf, type RichStyle } from '../ui/rich'
-import { mix, plate, slotStyle } from './skin'
+import { mix, plate, slotStyle, wellTint } from './skin'
+import { piece } from '../ui/chrome'
 import { Spring } from './motion'
 import { UI, TEXT, WEIGHT } from './theme'
 
 /** 값 하나가 들어가는 칸. */
 /** 이름이 앉는 띠의 높이. 숫자는 그 아래의 남은 자리를 씁니다. */
 const CAPTION_H = 22
+
+/** 딱지의 머리 판 높이. 이름(24)이 앉는 띠입니다. */
+const HEAD_H = 40
 /**
  * 한 줄 칸의 좌우 여백. 이름은 왼쪽 끝, 값은 오른쪽 끝에서 이만큼 들어옵니다.
  */
@@ -279,6 +283,8 @@ class Digits extends Container {
 
 export class Slot extends Container {
   private readonly plate = new Graphics()
+  /** 구워 둔 칸. 없으면 `plate` 가 그립니다. */
+  private skin?: Container
   private readonly caption_ = new Text({
     text: '', style: { fontSize: TEXT.small, fill: UI.inkDim, fontWeight: WEIGHT.normal },
   })
@@ -369,7 +375,7 @@ export class Slot extends Container {
 
   constructor(caption: string, private readonly boxWidth: number,
               private readonly boxHeight: number, private readonly ink: number,
-              valueSize = 23, pull = 0.5, bare = false, wave = false) {
+              valueSize = 24, pull = 0.5, bare = false, wave = false) {
     super()
     this.pull = pull
     this.bare = bare
@@ -386,6 +392,12 @@ export class Slot extends Container {
       ? new Digits(this.valueStyle, pull)
       : new Text({ text: '0', style: this.valueStyle })
     this.addChild(this.plate, this.caption_, this.value)
+    // **칸은 구워 둔 그림입니다.** 판 안으로 눌린 자리 — 위 안쪽의 그늘과 아래의 밝은
+    // 줄이 그 안에 있습니다. 그림이 없으면 지금까지의 길로 그립니다.
+    if (!bare) {
+      this.skin = piece('well', boxWidth, boxHeight, wellTint(UI.cell))
+      if (this.skin !== undefined) this.addChildAt(this.skin, 0)
+    }
     this.caption_.text = caption
     // 이름은 위 가운데, 숫자는 그 아래의 남은 자리에. **기울기는 `pull` 이 정합니다** —
     // 칩은 오른쪽으로, 배수는 왼쪽으로 붙습니다.
@@ -526,6 +538,14 @@ export class Slot extends Container {
     this.plateInk = this.glowInk
     const style = slotStyle(this.ink)
     this.plate.clear()
+    if (this.skin !== undefined) {
+      // 빛나는 것은 바탕뿐입니다. 그림을 물들이는 색에 그 빛을 섞습니다.
+      const top = step > 0
+        ? mix(style.top, this.glowInk, step * (this.signed ? 0.42 : 0.22))
+        : style.top
+      ;(this.skin as { tint: number }).tint = wellTint(top)
+      return
+    }
     // **빛나는 것은 바탕뿐입니다.** 테를 굵히면 그 칸만 다른 문법으로 그려진 것이 되고,
     // 값이 굴러가는 동안 판 왼쪽에서 테 하나가 자랐다 줄어듭니다.
     plate(this.plate, this.boxWidth, this.boxHeight, {
@@ -880,9 +900,9 @@ export class BlindBadge extends Container {
                lineHeight: number, top: number): number {
     into.removeChildren().forEach(child => child.destroy({ children: true }))
     if (lines.length === 0 || lines.every(one => one === '')) return 0
-    const block = richBlock(lines, style, lineHeight, this.boxWidth - 22, 'center')
+    const block = richBlock(lines, style, lineHeight, this.boxWidth - 10, 'center')
     into.addChild(block)
-    into.position.set(11, top)
+    into.position.set(5, top)
     return rowsOf(block)
   }
 
@@ -935,11 +955,28 @@ export class BlindBadge extends Container {
    * **안쪽 칸에는 따로 그린 테가 필요합니다.** 볼트가 없고 더 얇은 것입니다. 그것이
    * 생기기 전까지는 파인 줄과 얇은 테로 둡니다.
    */
-  private dressPlate(height: number): void {
-    plate(this.plate, this.boxWidth, height, {
-      top: UI.cell, bottom: UI.cell, border: UI.hairline, radius: 6, weight: 1,
-    })
+  private dressPlate(height: number, mark = UI.mark): void {
+    this.skin?.destroy()
+    this.band?.destroy()
+    this.skin = piece('well', this.boxWidth, height, wellTint(UI.cell))
+    if (this.skin === undefined) {
+      plate(this.plate, this.boxWidth, height, {
+        top: UI.cell, bottom: UI.cell, border: UI.hairline, radius: 0, weight: 1,
+      })
+      return
+    }
+    const home = this.plate.parent ?? this
+    home.addChildAt(this.skin, 0)
+    // **머리 판.** 판의 폭을 다 쓰고, 색은 채움과 글자에 듭니다 — 스몰은 파랑, 빅은
+    // 보라, 보스는 붉음. 밑줄의 번짐까지 그림 한 장에 있습니다.
+    this.band = piece('head', this.boxWidth, HEAD_H, mix(mark, UI.cell, 0.62))
+    if (this.band !== undefined) home.addChildAt(this.band, 1)
+    this.title.style.fill = mix(mark, UI.ink, 0.35)
   }
+
+  /** 구워 둔 몸통과 머리 판. 없으면 `plate` 가 그립니다. */
+  private skin?: Container
+  private band?: Container
 
   setInfo(name: string, lead: string, lines: string[], mark: number, seal?: Container,
           tags: Container[] = []): void {
@@ -948,15 +985,14 @@ export class BlindBadge extends Container {
     this.boxHeight = height
 
     this.plate.clear()
-    this.dressPlate(height)
-    this.plate.rect(1, 38, this.boxWidth - 2, 1).fill(UI.hairline)
-    if (!seal) this.plate.circle(20, 19, 5).stroke({ color: mark, width: 2 })
+    this.dressPlate(height, mark)
+    if (!seal) this.plate.circle(20, HEAD_H / 2, 5).stroke({ color: mark, width: 2 })
 
     this.seal?.destroy()
     this.seal = undefined
     if (seal) {
       this.seal = seal
-      seal.position.set(20, 19)
+      seal.position.set(20, HEAD_H / 2)
       this.body.addChild(seal)
     }
 
@@ -965,7 +1001,7 @@ export class BlindBadge extends Container {
     this.title.scale.set(1)
     const room = this.boxWidth - 40 * 2
     if (this.title.width > room) this.title.scale.set(room / this.title.width)
-    this.title.position.set(this.boxWidth / 2, 19)
+    this.title.position.set(this.boxWidth / 2, HEAD_H / 2)
 
     // 요구 점수 쪽은 비웁니다. 자리는 그대로이고 글만 없습니다.
     this.caption.text = ''
@@ -973,9 +1009,10 @@ export class BlindBadge extends Container {
     this.reward.text = ''
     this.fill(this.note, [], BlindBadge.infoRich(), richLeading('note'), 0)
 
-    const rows = this.fill(this.lead, [lead], BlindBadge.leadRich(), richLeading('body'), 50)
+    const rows = this.fill(this.lead, [lead], BlindBadge.leadRich(), richLeading('body'), HEAD_H + 12)
     // 굵은 줄 바로 아래입니다. 굵은 줄이 두 줄이면 그만큼 내려섭니다.
-    this.fill(this.info, lines, BlindBadge.infoRich(), richLeading('note'), 50 + rows * richLeading('body') + 10)
+    this.fill(this.info, lines, BlindBadge.infoRich(), richLeading('note'),
+              HEAD_H + 12 + rows * richLeading('body') + 10)
 
     this.setTags(tags)
   }
@@ -1010,13 +1047,11 @@ export class BlindBadge extends Container {
     const mark = boss ? UI.red : big ? UI.legendary : UI.bar
 
     this.plate.clear()
-    this.dressPlate(height)
-    // 이름이 앉는 줄. 띠가 아니라 아래에 선 하나입니다.
-    this.plate.rect(1, 38, this.boxWidth - 2, 1).fill(UI.hairline)
+    this.dressPlate(height, mark)
     // **문양은 하나입니다.** 화면이 넘겨주는 딱지가 그 문양이므로 여기서 또 그리면 같은
     // 것이 둘이고, 그중 하나는 색만 같은 다른 그림입니다. 넘겨주지 않는 판(상점)은
     // 문양이 없습니다 — `mark` 는 그 딱지가 없을 때의 자리 표시입니다.
-    if (!seal) this.plate.circle(20, 19, 5).stroke({ color: mark, width: 2 })
+    if (!seal) this.plate.circle(20, HEAD_H / 2, 5).stroke({ color: mark, width: 2 })
 
     // 앞의 표시를 걷고 새것을 답니다. **그대로 두면 보스가 바뀌어도 앞의 것이 남습니다.**
     this.seal?.destroy()
@@ -1033,28 +1068,28 @@ export class BlindBadge extends Container {
     // 따라 이름의 길이가 배로 달라집니다.
     const room = this.boxWidth - 40 * 2
     if (this.title.width > room) this.title.scale.set(room / this.title.width)
-    this.title.position.set(this.boxWidth / 2, 19)
+    this.title.position.set(this.boxWidth / 2, HEAD_H / 2)
 
     if (seal) {
       this.seal = seal
-      seal.position.set(20, 19)
+      seal.position.set(20, HEAD_H / 2)
       this.body.addChild(seal)
     }
 
     // 요구 점수. **바와 같은 색입니다** — 채워야 하는 것으로 읽힙니다.
     this.caption.text = t('ui.label.target')
     this.caption.anchor.set(0.5, 0)
-    this.caption.position.set(this.boxWidth / 2, 52)
+    this.caption.position.set(this.boxWidth / 2, HEAD_H + 10)
 
     this.need.text = target.toLocaleString('en-US')
     this.need.anchor.set(0.5, 0)
-    this.need.position.set(this.boxWidth / 2, 66)
+    this.need.position.set(this.boxWidth / 2, HEAD_H + 24)
 
     this.reward.text = tf('ui.blind.reward', { n: reward })
     this.reward.anchor.set(0.5, 0)
-    this.reward.position.set(this.boxWidth / 2, 104)
+    this.reward.position.set(this.boxWidth / 2, HEAD_H + 66)
 
-    this.fill(this.note, [note], BlindBadge.infoRich(), richLeading('note'), 126)
+    this.fill(this.note, [note], BlindBadge.infoRich(), richLeading('note'), HEAD_H + 82)
 
     this.setTags(tags)
   }

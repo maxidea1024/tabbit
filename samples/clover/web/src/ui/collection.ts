@@ -684,8 +684,8 @@ export class CollectionPanel implements ModalPanel {
     const h = SIZE.jokerHeight
     const node = new Container()
     const paper = new Graphics()
-    paper.roundRect(0, 0, w, h, 9).fill(COLOR.slip)
-    paper.roundRect(1, 1, w - 2, h - 2, 8).stroke({ color: UI.outline, width: 2 })
+    paper.rect(0, 0, w, h).fill(COLOR.slip)
+    paper.rect(1, 1, w - 2, h - 2).stroke({ color: UI.outline, width: 2 })
     const label = new Text({
       text: name,
       style: {

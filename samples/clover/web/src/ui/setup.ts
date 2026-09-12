@@ -304,11 +304,11 @@ export class SetupBody {
       // **칸의 바탕은 겉면의 것입니다.** 색을 손으로 적어 두었더니 겉면을 갈아입어도 이
       // 격자만 앞 겉면의 색으로 남았습니다 — 고른 것의 파랑만 약속된 색이므로 고정입니다.
       const board = new Graphics()
-      board.roundRect(0, 0, CELL_W - 10, CELL_H - 10, 8)
+      board.rect(0, 0, CELL_W - 10, CELL_H - 10)
         .fill({ color: UI.cell })
         .stroke({ color: here ? UI.pick : UI.hairline, width: here ? 2 : 1.5 })
       if (here) {
-        board.roundRect(0, 0, CELL_W - 10, CELL_H - 10, 8)
+        board.rect(0, 0, CELL_W - 10, CELL_H - 10)
           .fill({ color: UI.pick, alpha: 0.22 })
       }
       cell.addChild(board)
@@ -376,16 +376,16 @@ export class SetupBody {
       cell.position.set(cx, STAKE_Y)
 
       const board = new Graphics()
-      board.roundRect(0, 0, STAKE_W - 10, STAKE_H, 8)
+      board.rect(0, 0, STAKE_W - 10, STAKE_H)
         .fill({ color: UI.cell })
         .stroke({ color: here ? UI.pick : UI.hairline, width: here ? 2 : 1.5 })
       if (here) {
-        board.roundRect(0, 0, STAKE_W - 10, STAKE_H, 8)
+        board.rect(0, 0, STAKE_W - 10, STAKE_H)
           .fill({ color: UI.pick, alpha: 0.22 })
       }
       // 색 조각 하나. **글자에 색을 입히지 않습니다** — 검은색과 흰색이 글자로는 배경에
       // 묻히고, 조각으로 두면 여덟이 같은 밝기로 읽힙니다.
-      board.roundRect((STAKE_W - 10) / 2 - 13, 8, 26, 16, 4)
+      board.rect((STAKE_W - 10) / 2 - 13, 8, 26, 16)
         .fill({ color: tint })
         .stroke({ color: UI.outline, width: 1 })
       cell.addChild(board)

@@ -97,8 +97,13 @@ interface Level {
  * 밝기면 테 하나로만 갈립니다 — 그 테도 흐렸습니다(판 대비 1.05~1.24 였습니다).
  */
 const SURFACES: Record<string, Ratio> = {
-  /** 판 뒤. 배경이 셰이더로 덮이지 않는 자리에 보입니다. */
-  ground: { ratio: 0.58 },
+  /**
+   * 판 뒤. 배경이 셰이더로 덮이지 않는 자리에 보입니다.
+   *
+   * **바닥은 검정입니다.** 기본 겉면이 검정이고 나머지 겉면은 여기서 갈라져 나옵니다.
+   * 바닥에 색을 섞으면 화면 전체가 한 색으로 물들고 강조색이 설 자리가 없어집니다.
+   */
+  ground: { ratio: 0.25, tint: 0.5 },
   /** 값 칸 · 입력 · 물건 칸. 판 대비 1.35 입니다. */
   cell: { ratio: 0.741 },
   /** 진행 바의 바탕. 칸보다 한 단 더 팹니다. */
@@ -151,29 +156,28 @@ const LINES: Record<string, Ratio> = {
  */
 const CONTROLS: Record<string, Ratio> = {
   /**
-   * 보통 단추의 채움. **판에 거의 붙어 있습니다.**
+   * 그 밖의 단추의 채움. **판과 같은 색상각에 채도만 두 배, 확실히 밝습니다.**
    *
-   * 판보다 두 배 밝게 두었더니 회색 판때기가 되었습니다. 잘 만든 웹의 어두운 화면을 재어
-   * 보면 반대입니다 — GitHub 의 어두운 단추는 바탕 대비 1.24 이고 Radix 의 단추 단계는
-   * 1.12 입니다. **단추를 단추로 보이게 하는 것은 채움이 아니라 테입니다.**
+   * 판에 붙여 두었던 동안(1.24) 단추가 비활성으로 읽혔습니다 — 회색은 아무리 밝혀도
+   * 꺼진 것으로 보입니다. 그렇다고 판과 다른 색상각을 쓰면 판 위에 놓였을 때 다른 재질로
+   * 보입니다. 그래서 판의 색상각에 채도를 올리고 판 대비 3.2 로 둡니다 — 언어의
+   * `#5D7290` 이 그 값이고, 판에 속하면서 켜져 있는 자리입니다. 「갈래 다섯」이 정본입니다.
    */
-  btn: { ratio: 1.24, tint: 2.0 },
-  btnHover: { ratio: 1.58, tint: 2.0 },
-  btnPress: { ratio: 1.12, tint: 2.0 },
+  btn: { ratio: 3.2, tint: 2.8 },
+  btnHover: { ratio: 4.0, tint: 2.8 },
+  btnPress: { ratio: 2.7, tint: 2.8 },
   /**
-   * 보통 단추의 테. **단추에서 가장 밝은 부분입니다.**
-   *
-   * 잉크색으로 두르던 동안 어두운 판 위의 검은 테는 테가 아니라 틈으로 보였고, 그 안의
-   * 회색 채움이 떠 있는 판때기가 되었습니다. GitHub 는 1.55, Radix 는 1.53~1.92 입니다.
+   * 그 밖의 단추의 테. 지금은 그림이 실루엣을 따라가는 테를 들고 있어 그리지 않습니다.
+   * 대비 게이트가 단추와의 관계를 확인하므로 값은 남겨 둡니다.
    */
-  btnEdge: { ratio: 2.00, tint: 2.6 },
-  btnEdgeHover: { ratio: 2.75, tint: 2.6 },
-  /** 잠긴 단추. **판 쪽으로 당기고 채도를 걷습니다.** */
-  locked: { ratio: 1.08, tint: 0.4 },
-  lockedEdge: { ratio: 1.38, tint: 0.5 },
-  /** 판 위에 조용히 놓이는 단추. 보통 단추보다 한 단 낮습니다. */
-  quiet: { ratio: 1.14, tint: 2.0 },
-  quietHover: { ratio: 1.40, tint: 2.0 },
+  btnEdge: { ratio: 4.8, tint: 2.6 },
+  btnEdgeHover: { ratio: 6.0, tint: 2.6 },
+  /** 잠긴 단추. **채도를 걷습니다.** 글의 알파만 내리면 켜진 것과 같아 보입니다. */
+  locked: { ratio: 1.5, tint: 0.35 },
+  lockedEdge: { ratio: 2.0, tint: 0.4 },
+  /** 판 위에 조용히 놓이는 단추. 그 밖의 단추보다 한 단 낮습니다. */
+  quiet: { ratio: 2.4, tint: 2.4 },
+  quietHover: { ratio: 3.0, tint: 2.4 },
   quietPress: { ratio: 1.06, tint: 2.0 },
   quietEdge: { ratio: 1.62, tint: 2.4 },
   /** 스크롤 막대의 홈. */
@@ -215,8 +219,13 @@ const INTENTS: Record<string, Ratio> = {
   green: { ratio: 8.0, chroma: 0.132, hue: 160, max: 0.88 },
   /** 된 것. */
   good: { ratio: 7.2, chroma: 0.147, hue: 154, max: 0.86 },
-  /** 되돌릴 수 없는 것 · 버리기. */
-  red: { ratio: 3.8, chroma: 0.190, hue: 29, max: 0.70 },
+  /**
+   * 되돌릴 수 없는 것 · 버리기.
+   *
+   * **짙은 붉음 채움입니다.** 글은 밝은 붉음(`bad`)으로 얹습니다 — 밝은 붉음 채움에 흰
+   * 글은 경고판이고, 짙은 채움에 밝은 글이 이 화면의 문법입니다.
+   */
+  red: { ratio: 2.0, chroma: 0.150, hue: 29, max: 0.56 },
   /** 안 된 것 · 모자란 값. */
   bad: { ratio: 5.4, chroma: 0.163, hue: 22, max: 0.82 },
   /** 걸어 보는 것. 블라인드를 건너뜁니다. */
@@ -236,7 +245,7 @@ const INTENTS: Record<string, Ratio> = {
    * **붉음의 어두운 쪽입니다.** 두 번 눌러야 지워지는 단추가 처음부터 붉으면 그 판에서
    * 가장 먼저 보이는 것이 「지운다」가 됩니다 — 두 번째 누름에서 `danger` 로 갑니다.
    */
-  caution: { ratio: 2.3, chroma: 0.115, hue: 29, max: 0.62 },
+  caution: { ratio: 2.7, chroma: 0.115, hue: 40, max: 0.64 },
   /** 글 속의 수. 칩과 같은 계열입니다. */
   accentNumber: { ratio: 7.0, chroma: 0.11, hue: 246, max: 0.86 },
   /** 글 속의 이름. */
@@ -571,21 +580,17 @@ export const CONTRAST_GATE: {
   // 두 선을 가르는 데 필요한 값이 아닙니다.
   { what: '구획선과 가르는 줄', a: 'rule', b: 'groove', least: 1.20 },
 
-  { what: '판과 단추', a: 'btn', b: 'panel', least: 1.15 }
-  // **단추를 단추로 보이게 하는 것은 테입니다.** 채움이 아니라 이 줄이 요점입니다.
-  ,{ what: '판과 단추의 테', a: 'btnEdge', b: 'panel', least: 1.85 }
-  ,{ what: '단추와 그 테', a: 'btnEdge', b: 'btn', least: 1.50 }
-  ,{ what: '가리킨 단추와 그 테', a: 'btnEdgeHover', b: 'btnHover', least: 1.35 }
-  ,{ what: '잠긴 단추와 그 테', a: 'lockedEdge', b: 'locked', least: 1.20 }
-  ,{ what: '단추의 테와 잠긴 단추의 테', a: 'btnEdge', b: 'lockedEdge', least: 1.35 }
-  ,{ what: '판과 조용한 단추의 테', a: 'quietEdge', b: 'panel', least: 1.45 },
+  // **그 밖의 단추는 판보다 확실히 밝습니다.** 판에 붙어 있으면 비활성으로 읽힙니다.
+  // 단추의 테는 구운 그림이 실루엣을 따라 들고 있으므로 토큰의 테는 그리지 않고, 그
+  // 관계를 확인하던 줄도 걷었습니다.
+  { what: '판과 단추', a: 'btn', b: 'panel', least: 2.6 },
   { what: '단추와 잠긴 단추', a: 'btn', b: 'locked', least: 1.12 },
   { what: '단추와 가리킨 단추', a: 'btnHover', b: 'btn', least: 1.22 },
   { what: '단추와 눌린 단추', a: 'btn', b: 'btnPress', least: 1.08 },
   { what: '판과 잠긴 단추', a: 'locked', b: 'panel', least: 1.04 },
   { what: '판과 조용한 단추', a: 'quiet', b: 'panel', least: 1.10 },
-  { what: '조용한 단추의 테와 잠긴 단추의 테', a: 'quietEdge', b: 'lockedEdge', least: 1.12 },
-  { what: '단추와 밝은 단추', a: 'light', b: 'btn', least: 4.50 },
+  // 밝은 단추는 고른 것입니다. 그 밖의 단추가 밝아졌으므로 간격은 두 배 남짓입니다.
+  { what: '단추와 밝은 단추', a: 'light', b: 'btn', least: 2.20 },
   { what: '밝은 단추와 가리킨 것', a: 'lightHover', b: 'light', least: 1.10 },
   { what: '밝은 단추와 그 위의 글', a: 'light', b: 'onLight', least: 7.00 },
 
@@ -610,14 +615,17 @@ export const CONTRAST_GATE: {
   { what: '칸과 고른 것', a: 'pick', b: 'cell', least: 3.65, line: true },
   { what: '판과 승리', a: 'green', b: 'panel', least: 6.20 },
   { what: '판과 된 것', a: 'good', b: 'panel', least: 5.60 },
-  { what: '판과 붉음', a: 'red', b: 'panel', least: 3.60 },
+  // **붉음은 짙은 채움입니다.** 글이 밝은 붉음으로 얹히므로 채움은 판에서 조금만 뜹니다.
+  { what: '판과 붉음', a: 'red', b: 'panel', least: 1.80 },
   { what: '판과 안 된 것', a: 'bad', b: 'panel', least: 4.80 },
   { what: '판과 걸어 보는 것', a: 'dare', b: 'panel', least: 3.70 },
   { what: '판과 남은 버리기', a: 'discard', b: 'panel', least: 5.20 },
   { what: '남은 버리기와 걸어 보는 것', a: 'discard', b: 'dare', least: 1.20 },
   { what: '판과 그렇게 합니다', a: 'confirm', b: 'panel', least: 3.25 },
   { what: '판과 첫 누름', a: 'caution', b: 'panel', least: 2.15 },
-  { what: '첫 누름과 붉음', a: 'red', b: 'caution', least: 1.50 },
+  // **첫 누름이 붉음보다 밝습니다.** 붉음이 짙은 채움이 되었으므로 차례가 뒤집혔습니다 —
+  // 첫 누름은 주황이고, 두 번째가 짙은 붉음으로 내려앉습니다.
+  { what: '첫 누름과 붉음', a: 'caution', b: 'red', least: 1.25 },
   { what: '판과 글 속의 수', a: 'accentNumber', b: 'panel', least: 6.30 },
   { what: '판과 글 속의 이름', a: 'accentTerm', b: 'panel', least: 7.40 },
 

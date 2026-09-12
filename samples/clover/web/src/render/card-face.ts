@@ -255,17 +255,19 @@ function bakedFace(width: number, height: number, radius: number,
  */
 export function drawCardFaceVector(node: Container, width: number, height: number,
                                    radius: number, look: FaceLook, ink: number): void {
+  // 모서리는 0 입니다. 부르는 쪽의 인자 순서를 지키기 위해 매개변수만 남깁니다.
+  void radius
   // **자기 Graphics 를 만들어 담습니다.** 부르는 쪽의 `Graphics` 에 자식을 붙이면 Pixi 가
   // 예고 폐기로 알립니다.
   const g = new Graphics()
   node.addChild(g)
 
   // 1. 종이.
-  g.roundRect(0, 0, width, height, radius).fill(look.paper)
-  g.roundRect(3, 3, width - 6, height - 6, radius - 3)
+  g.rect(0, 0, width, height).fill(look.paper)
+  g.rect(3, 3, width - 6, height - 6)
     .stroke({ color: PAINT.sheen, width: 1, alpha: 0.5 })
   if (look.debuffed) {
-    g.roundRect(0, 0, width, height, radius).fill({ color: DEBUFF_VEIL, alpha: 0.55 })
+    g.rect(0, 0, width, height).fill({ color: DEBUFF_VEIL, alpha: 0.55 })
   }
 
   // 2. 얼굴.
@@ -298,7 +300,7 @@ export function drawCardFaceVector(node: Container, width: number, height: numbe
   // 3. 테두리. **얼굴 위에 그립니다** — 종이에 그으면 그림에 가려집니다.
   const line = new Graphics()
   node.addChild(line)
-  line.roundRect(0.5, 0.5, width - 1, height - 1, radius)
+  line.rect(0.5, 0.5, width - 1, height - 1)
     .stroke({ color: look.debuffed ? DEBUFF_EDGE : COLOR.cardEdge, width: 2 })
 
   // 4. 모서리. 랭크 하나와 그 아래의 작은 무늬 하나이고, 아래쪽은 거꾸로입니다 — 손에

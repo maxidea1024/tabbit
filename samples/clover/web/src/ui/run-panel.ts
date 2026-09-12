@@ -40,7 +40,8 @@ const WIDTH = 760
 
 /** 탭 줄. 제목 아래에 놓입니다. */
 const TAB_Y = TITLE_BAR + 12
-const TAB_H = 40
+/** 갈래 단추. 높이 계단의 기본 칸입니다. */
+const TAB_H = 48
 const TAB_W = 168
 const TAB_GAP = 6
 
@@ -290,32 +291,11 @@ export class RunPanel implements ModalPanel {
 
     for (const row of rows) {
       const here = row.key === this.tab
-      const cell = new Container()
+      // **갈래는 단추 줄입니다.** 고른 것은 밝은 단추이고, 잠긴 것도 눌러서 그 안의 잠긴
+      // 20칸을 볼 수 있으므로 잠긴 단추가 아니라 그 밖의 단추입니다.
+      const cell = new Button(row.label, TAB_W, TAB_H, here ? 'select' : 'neutral',
+                              () => this.show(row.key))
       cell.position.set(x, TAB_Y)
-
-      const plate = new Graphics()
-      plate.roundRect(0, 0, TAB_W, TAB_H, 9)
-        .fill({ color: here ? UI.cell : UI.well })
-        .stroke({ color: here ? UI.pick : UI.hairline, width: here ? 2 : 1.5 })
-      cell.addChild(plate)
-
-      // **고른 탭은 잠겨 있어도 또렷합니다.** 지금 보고 있는 것이 무엇인지가 먼저이고,
-      // 잠긴 것은 그 안의 20칸이 잠긴 채로 보이는 것으로 이미 읽힙니다.
-      const label = new Text({
-        text: row.label,
-        style: {
-          fontSize: TEXT.base,
-          fill: here ? UI.ink : row.locked ? UI.locked : UI.inkDim,
-          fontWeight: WEIGHT.bold,
-        },
-      })
-      label.anchor.set(0.5)
-      label.position.set(TAB_W / 2, TAB_H / 2)
-      cell.addChild(label)
-
-      cell.eventMode = 'static'
-      cell.cursor = 'pointer'
-      cell.on('pointertap', () => this.show(row.key))
       this.tabRow.addChild(cell)
       this.toolNodes.set(`tab:${row.key}`, { node: cell, cx: TAB_W / 2, cy: TAB_H / 2 })
 
@@ -386,7 +366,7 @@ class ResumeBody {
     if (!saved) return
 
     const plate = new Graphics()
-    plate.roundRect(0, 0, CARD_W, CARD_H, 12)
+    plate.rect(0, 0, CARD_W, CARD_H)
       .fill({ color: UI.cell })
       .stroke({ color: UI.hairline, width: 2 })
     this.body.addChild(plate)

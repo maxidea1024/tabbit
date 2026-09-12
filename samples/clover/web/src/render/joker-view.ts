@@ -48,17 +48,17 @@ function drawCardFrame(g: Graphics, w: number, h: number, edge: number): void {
   g.clear()
 
   // 바깥 윤곽. **이 화풍의 그림이 굵은 어두운 윤곽을 가지므로 카드도 같아야 합니다.**
-  g.roundRect(0.75, 0.75, w - 1.5, h - 1.5, insetRadius(RADIUS, 0.75))
+  g.rect(0.75, 0.75, w - 1.5, h - 1.5)
     .stroke({ color: FRAME_INK, width: 1.5 })
 
   // 금속 테. 어두운 쪽이 바깥, 밝은 쪽이 안쪽입니다.
-  g.roundRect(2.75, 2.75, w - 5.5, h - 5.5, insetRadius(RADIUS, 2.75))
+  g.rect(2.75, 2.75, w - 5.5, h - 5.5)
     .stroke({ color: shade(edge, 0.58), width: 2.5 })
-  g.roundRect(4.5, 4.5, w - 9, h - 9, insetRadius(RADIUS, 4.5))
+  g.rect(4.5, 4.5, w - 9, h - 9)
     .stroke({ color: tintUp(edge, 0.32), width: 1.5 })
 
   // 안쪽 선. 테와 그림을 갈라 줍니다 — 없으면 밝은 그림에서 테가 그림에 섞입니다.
-  g.roundRect(5.75, 5.75, w - 11.5, h - 11.5, insetRadius(RADIUS, 5.75))
+  g.rect(5.75, 5.75, w - 11.5, h - 11.5)
     .stroke({ color: FRAME_INK, width: 1, alpha: 0.75 })
 
   // 네 귀의 리벳. **이 하나가 웹 테두리와 게임 테두리를 가릅니다.**
@@ -98,11 +98,11 @@ const BACK_EDGE = 0xc9a25e
  */
 function drawJokerBack(ground: Graphics, frame: Graphics, w: number, h: number): void {
   ground.clear()
-  ground.roundRect(0, 0, w, h, RADIUS).fill(BACK_GROUND)
+  ground.rect(0, 0, w, h).fill(BACK_GROUND)
 
   // 안쪽 판. 무늬는 이 안에서만 그려집니다.
   const pad = 8
-  ground.roundRect(pad, pad, w - pad * 2, h - pad * 2, insetRadius(RADIUS, pad))
+  ground.rect(pad, pad, w - pad * 2, h - pad * 2)
     .fill(tintUp(BACK_GROUND, 0.16))
     .stroke({ color: BACK_EDGE, width: 1, alpha: 0.55 })
 
@@ -318,14 +318,14 @@ export class JokerView extends Container {
     const edge = rarityColor(look.rarity)
 
     this.shadow.clear()
-    this.shadow.roundRect(3, 5, w, h, RADIUS).fill({ color: PAINT.veil, alpha: 0.4 })
+    this.shadow.rect(3, 5, w, h).fill({ color: PAINT.veil, alpha: 0.4 })
 
     // 카드의 바탕. **그림이 덮으므로 보이는 것은 모서리뿐입니다** — 그림이 아직 안 닿았을
     // 때는 이것이 보이는 전부이므로, 흰 자리가 번쩍이지 않게 어두운 색을 깝니다.
     // **조커마다의 색조를 걷었습니다.** 그림의 배경이 이제 소재마다 다른 색이므로, 판까지
     // 색을 돌리면 두 색이 겹쳐 부딪칩니다. 중립으로 둡니다.
     this.plate.clear()
-    this.plate.roundRect(0, 0, w, h, RADIUS).fill(FRAME_INK)
+    this.plate.rect(0, 0, w, h).fill(FRAME_INK)
 
     // 그림이 앉을 자리를 오려 냅니다. 카드의 둥근 모서리를 그림도 따릅니다.
     // **그림이 있을 때만 채웁니다** — 마스크로 쓰이지 않는 동안에는 이것이 그대로 흰
@@ -341,7 +341,7 @@ export class JokerView extends Container {
       this.art.destroy()
       this.art = undefined
     }
-    if (texture) this.clip.roundRect(0, 0, w, h, RADIUS).fill(PAINT.sheen)
+    if (texture) this.clip.rect(0, 0, w, h).fill(PAINT.sheen)
     if (texture && !this.art) {
       const sprite = new Sprite(texture)
       // 넓이에 맞추고 남는 세로를 가운데에서 자릅니다. 그림에 테두리가 있으므로 조금
@@ -368,7 +368,7 @@ export class JokerView extends Container {
     const bandTop = h - BAND
     const bandH = BAND - FRAME_IN
     const bandRadius = insetRadius(RADIUS, FRAME_IN)
-    this.band.roundRect(bandX, bandTop, bandW, bandH, bandRadius)
+    this.band.rect(bandX, bandTop, bandW, bandH)
       .fill({ color: COLOR.band, alpha: 0.92 })
     this.band.rect(bandX, bandTop, bandW, bandH - bandRadius)
       .fill({ color: COLOR.band, alpha: 0.92 })
@@ -405,7 +405,7 @@ export class JokerView extends Container {
     if (this.counter.text !== '') {
       const pad = 6
       const width = this.counter.width + pad * 2
-      this.counterPlate.roundRect((w - width) / 2, 5, width, 18, 6)
+      this.counterPlate.rect((w - width) / 2, 5, width, 18)
         .fill({ color: COLOR.band, alpha: 0.85 })
     }
     this.counter.anchor.set(0.5, 0)

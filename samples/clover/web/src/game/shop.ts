@@ -18,7 +18,7 @@ import { Button } from '../ui/widgets'
 import { panelFrame, TITLE_BAR } from '../ui/modal'
 import { cellPlate, hairline, priceText, SECTION_H, sectionHead } from '../ui/parts'
 import {
-  BUY_LINGER, CELL_GAP, CELL_H, CELL_W, DECK_PEEK, FOOT_BTN_H, GIFT_CHIP, GROUP_GAP, LAND_AT,
+  BUY_LINGER, CELL_GAP, CELL_H, CELL_W, DECK_PEEK, SHOP_FOOT_H, GIFT_CHIP, GROUP_GAP, LAND_AT,
   PAY_BEAT, POPUP_X, REVEAL_RISE, REVEAL_SPAN, REVEAL_STEP, SHOP_BOTTOM, SHOP_LIFT, SHOP_RISE,
   STOCK_DROP,
 } from './metrics'
@@ -407,7 +407,7 @@ export class ShopPart {
     const headY = TITLE_BAR + 16
     const cellY = headY + SECTION_H + 10
     const footY = cellY + CELL_H * fit + 14
-    const height = footY + 12 + FOOT_BTN_H + 16
+    const height = footY + 12 + SHOP_FOOT_H + 16
 
     // **바닥에 맞춰 놓입니다.** 높이가 고정이므로 윗변도 고정입니다.
     const x = popupLeft(width)
@@ -422,17 +422,17 @@ export class ShopPart {
     // 생깁니다.
     const rerollW = 140
     const leaveW = 190
-    const reroll = new Button(tf('ui.shop.reroll_cost', { n: cost }), rerollW, FOOT_BTN_H,
+    const reroll = new Button(tf('ui.shop.reroll_cost', { n: cost }), rerollW, SHOP_FOOT_H,
       'select', () => this.reroll())
-    const leave = new Button(t('ui.button.next_blind'), leaveW, FOOT_BTN_H, 'primary',
+    const leave = new Button(t('ui.button.next_blind'), leaveW, SHOP_FOOT_H, 'primary',
       () => this.game.chrome.primary())
     const rule = hairline(width - 48)
     rule.position.set(24, footY)
     reroll.position.set(24, footY + 12)
     leave.position.set(width - 24 - leaveW, footY + 12)
     foot.addChild(rule, reroll, leave)
-    this.game.spotNodes.set('reroll', { node: reroll, cx: rerollW / 2, cy: FOOT_BTN_H / 2 })
-    this.game.spotNodes.set('nextBlind', { node: leave, cx: leaveW / 2, cy: FOOT_BTN_H / 2 })
+    this.game.spotNodes.set('reroll', { node: reroll, cx: rerollW / 2, cy: SHOP_FOOT_H / 2 })
+    this.game.spotNodes.set('nextBlind', { node: leave, cx: leaveW / 2, cy: SHOP_FOOT_H / 2 })
 
     // **틀과 몸통이 갈립니다.** 틀은 판이 올라오는 동안 자리만 따라가고, 몸통은 한 번 그립니다.
     const inner = new Container()

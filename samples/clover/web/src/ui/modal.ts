@@ -15,7 +15,7 @@ import { plate, plateTint, floatingStyle } from '../render/skin'
 import { UI, SIZE, popupLeft, TEXT, WEIGHT } from '../render/theme'
 import { fraction } from '../render/motion'
 import { Button } from './widgets'
-import { piece } from './chrome'
+import { glowEdge, piece } from './chrome'
 
 /** 쌓을 수 있는 판 하나. */
 export interface ModalPanel {
@@ -314,9 +314,46 @@ export class Modals extends Container {
 export const PANEL_BOTTOM = SIZE.height - 14
 
 /** 판 머리의 높이. **모든 판이 같습니다** — 제목이 판마다 다른 자리에 있으면 한 벌로 보이지 않습니다. */
-export const TITLE_BAR = 46
-/** 판 밑단의 높이. 머리와 같은 띠이고, 닫기가 여기 있습니다. */
-export const FOOTER_BAR = 56
+export const TITLE_BAR = 56
+/** 판 밑단의 높이. 나아가는 줄(`lg`, 60)이 여기 앉습니다. */
+export const FOOTER_BAR = 84
+
+/** ESC 키캡의 크기. 구운 그림과 같습니다. */
+const KEY_W = 64
+const KEY_H = 36
+/** 키캡에 적히는 글. 어느 말에서나 같은 키 이름이므로 고정입니다. */
+const ESC_KEY = 'ESC'
+
+/**
+ * ESC 키캡.
+ *
+ * **닫기 단추를 따로 두지 않습니다.** 오른쪽 위의 키캡이 그것이고, 무엇을 누르면 닫히는지를
+ * 글자가 직접 알립니다.
+ */
+export function escKey(onClose: () => void): Container {
+  const node = new Container()
+  const cap = piece('keycap', KEY_W, KEY_H, plateTint(UI.btn))
+  if (cap !== undefined) node.addChild(cap)
+  else {
+    const g = new Graphics()
+    g.rect(0, 0, KEY_W, KEY_H).fill(UI.btn)
+    node.addChild(g)
+  }
+  const label = new Text({
+    text: ESC_KEY,
+    style: { fontSize: TEXT.small, fill: UI.ink, fontWeight: WEIGHT.bold, letterSpacing: 1 },
+  })
+  label.anchor.set(0.5)
+  label.position.set(KEY_W / 2, KEY_H / 2)
+  node.addChild(label)
+  node.eventMode = 'static'
+  node.hitArea = new Rectangle(-8, -8, KEY_W + 16, KEY_H + 16)
+  node.cursor = 'pointer'
+  node.on('pointerover', () => { if (cap !== undefined) cap.tint = plateTint(UI.btnHover) })
+  node.on('pointerout', () => { if (cap !== undefined) cap.tint = plateTint(UI.btn) })
+  node.on('pointertap', () => onClose())
+  return node
+}
 
 /**
  * 판 하나의 껍데기.
@@ -338,14 +375,16 @@ export function panelFrame(width: number, height: number, title: string,
   const frame = piece('plate', width, height, plateTint(style.top))
   if (frame === undefined) plate(board, width, height, style)
 
-  // 머리. **띠가 아니라 선 하나입니다.** 제목 아래의 선이 머리와 몸통을 가르고, 밑단은
-  // 단추가 있을 때만 그 위에 선 하나가 놓입니다 — 띠 둘로 위아래를 물리던 것을 걷었습니다.
+  // 머리. **제목은 왼쪽 위이고 그 아래가 테두리의 빛입니다** — 왼쪽에서 밝게 시작해
+  // 오른쪽으로 사라집니다. 밑단은 단추가 있을 때만 그 위에 선 하나가 놓입니다.
   const bars = new Graphics()
-  bars.rect(1.5, TITLE_BAR, width - 3, 1.5).fill(UI.rule)
+  const headGlow = glowEdge(width - 48, UI.rule)
+  if (headGlow !== undefined) headGlow.position.set(24, TITLE_BAR - 2)
+  else bars.rect(24, TITLE_BAR - 2, width - 48, 1).fill(UI.rule)
 
   // **밑단이 없는 판도 있습니다.** 누를 것이 그 판의 내용뿐이면 밑단은 빈 띠일 뿐입니다 —
-  // 머리의 `✕` 와 바깥 누르기와 `Esc` 로 닫히므로 닫기를 또 둘 이유가 없습니다.
-  const footTop = height - FOOTER_BAR - 1.5
+  // 오른쪽 위의 ESC 와 바깥 누르기로 닫히므로 닫기를 또 둘 이유가 없습니다.
+  const footTop = height - FOOTER_BAR
   if (foot) {
     bars.rect(24, footTop, width - 48, 1).fill(UI.hairline)
   }
@@ -354,48 +393,29 @@ export function panelFrame(width: number, height: number, title: string,
     text: title,
     style: { fontSize: TEXT.big, fill: UI.ink, fontWeight: WEIGHT.bold, letterSpacing: 1 },
   })
-  heading.anchor.set(0.5, 0.5)
-  heading.position.set(width / 2, TITLE_BAR / 2)
+  heading.anchor.set(0, 0.5)
+  heading.position.set(24, TITLE_BAR / 2 - 2)
 
   node.addChild(board)
   if (frame !== undefined) node.addChild(frame)
+  if (headGlow !== undefined) node.addChild(headGlow)
   node.addChild(bars, heading)
 
   // **닫을 수 없는 판도 있습니다.** 상점이 그렇습니다 — 닫으면 갈 곳이 없으므로 닫기가
   // 없고, 밑단에는 그 판이 할 일이 대신 놓입니다.
   if (onClose === undefined) {
     if (extra) {
-      extra.position.set((width - extra.width) / 2, footTop + (FOOTER_BAR - 40) / 2)
+      extra.position.set((width - extra.width) / 2, footTop + (FOOTER_BAR - 60) / 2)
       node.addChild(extra)
     }
     node.eventMode = 'static'
     return node
   }
 
-  // 머리의 `✕`. **밑단에 닫기가 있으면 둘 다 둡니다** — 창을 닫는 두 손버릇이 다르고,
-  // 둘 다 같은 자리에 있으면 어느 쪽으로도 닫힙니다.
-  const shutMark = new Container()
-  const mark = new Graphics()
-  const paint = (lit: boolean) => {
-    mark.clear()
-    mark.roundRect(0, 0, 28, 28, 6)
-      .fill({ color: lit ? UI.btn : UI.cell })
-    mark.roundRect(0.75, 0.75, 26.5, 26.5, 6)
-      .stroke({ color: UI.rule, width: 1.5 })
-    const ink = lit ? UI.ink : UI.inkDim
-    mark.moveTo(9.5, 9.5).lineTo(18.5, 18.5).stroke({ color: ink, width: 2 })
-    mark.moveTo(18.5, 9.5).lineTo(9.5, 18.5).stroke({ color: ink, width: 2 })
-  }
-  paint(false)
-  shutMark.addChild(mark)
-  shutMark.position.set(width - 40, TITLE_BAR / 2 - 14)
-  shutMark.eventMode = 'static'
-  shutMark.hitArea = new Rectangle(0, 0, 28, 28)
-  shutMark.cursor = 'pointer'
-  shutMark.on('pointerover', () => paint(true))
-  shutMark.on('pointerout', () => paint(false))
-  shutMark.on('pointertap', () => onClose())
-
+  // 오른쪽 위의 ESC 키캡. **밑단에 닫기가 있으면 둘 다 둡니다** — 창을 닫는 두 손버릇이
+  // 다르고, 둘 다 같은 자리에 있으면 어느 쪽으로도 닫힙니다.
+  const shutMark = escKey(onClose)
+  shutMark.position.set(width - 24 - KEY_W, (TITLE_BAR - KEY_H) / 2 - 2)
   node.addChild(shutMark)
 
   if (!foot) {
@@ -407,17 +427,18 @@ export function panelFrame(width: number, height: number, title: string,
   //
   // 부르는 쪽은 닫기를 만들지 않습니다 — 여기서 답니다. `extra` 는 그 판이 할 일이고,
   // 닫는 것이 아닙니다.
-  const shut = new Button(t('ui.button.close'), 132, 34, 'neutral', onClose)
+  // **나아가는 줄입니다 — 전부 `lg`.** 갈래가 달라도 그 줄의 높이는 하나입니다.
+  const shut = new Button(t('ui.button.close'), 144, 60, 'neutral', onClose)
   const extraWidth = extra ? extra.width + 12 : 0
-  const row = 132 + extraWidth
+  const row = 144 + extraWidth
   // **판보다 넓어지지 않게 잡습니다.** 넘치면 버튼이 판의 좌우로 삐져나가고, 그것은
   // 판이 아니라 부서진 것으로 보입니다.
   const left = Math.max(14, (width - row) / 2)
   if (extra) {
-    extra.position.set(left, footTop + (FOOTER_BAR - 34) / 2)
+    extra.position.set(left, footTop + (FOOTER_BAR - 60) / 2)
     node.addChild(extra)
   }
-  shut.position.set(left + extraWidth, footTop + (FOOTER_BAR - 34) / 2)
+  shut.position.set(left + extraWidth, footTop + (FOOTER_BAR - 60) / 2)
   node.addChild(shut)
 
   node.eventMode = 'static'

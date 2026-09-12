@@ -127,7 +127,7 @@ export class Toasts extends Container {
 
     // 왼쪽에 색 띠 하나. 무엇에 관한 것인지가 색으로 먼저 읽힙니다.
     const stripe = new Graphics()
-    stripe.roundRect(8, 10, 5, height - 20, 3).fill(tint)
+    stripe.rect(8, 10, 5, height - 20).fill(tint)
 
     box.addChild(board, stripe, heading, body)
     box.pivot.set(WIDTH / 2, 0)

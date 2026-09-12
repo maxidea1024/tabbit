@@ -21,13 +21,15 @@ import { setLookOf, setsOf, type SetLook } from '../render/card-set'
 import { cardArtId, drawFace, drawSuit } from '../render/pips'
 import { SuitKind } from '../generated/enums/suit-kind'
 import { hapticsAvailable } from '../feedback/haptics'
-import { RADIUS, SIZE, STROKE, TEXT, UI, UI_THEMES, UI_THEME_KEYS, WEIGHT }
+import { SIZE, STROKE, TEXT, UI, UI_THEMES, UI_THEME_KEYS, WEIGHT }
   from '../render/theme'
 import type { ToolSpot } from './layout'
 import { FOOTER_BAR, panelFrame, TITLE_BAR, type ModalPanel } from './modal'
 import { richLeading, richStyle, richLine, type RichStyle } from './rich'
 import { Fling } from './scroll'
 import { Tooltip } from './tooltip'
+import { piece } from './chrome'
+import { wellTint } from '../render/skin'
 import { Button } from './widgets'
 import { randomSeed } from './title'
 
@@ -333,7 +335,6 @@ const TAB_Y = TITLE_BAR + 14
  * 고른 탭이 같은 색이라 둘이 한 장으로 보입니다.
  */
 const body = (): number => UI.cell
-const edge = (): number => UI.rule
 /** 값을 고르는 줄 하나의 높이. */
 const ROW = 52
 /** 시드를 적을 수 있는 길이. 주소에 실려 나가므로 길게 둘 이유가 없습니다. */
@@ -956,95 +957,40 @@ export class OptionsPanel implements ModalPanel {
     const ruleY = TAB_Y + TAB_H + 10
     const pageL = 24
     const pageR = WIDTH - 24
-    // 탭 줄은 본문과 같은 폭입니다. 그 안에서 고르게 나눕니다.
-    const left = pageL
+    // 갈래 줄은 본문과 같은 폭입니다. 그 안에서 고르게 나눕니다.
     const step = (pageR - pageL) / names.length
     const pageB = ruleY + (this.height - FOOTER_BAR - ruleY - 16)
-    // 탭 위의 모서리와 본문 아래의 모서리.
-    const tr = 9
-    const pr = 10
-    const tabW = step - 4
+    const tabW = step - 8
 
-    const g = new Graphics()
-
-    // 1. 고르지 않은 탭. 한 단 내려가 있고, 아랫단은 곧 본문에 덮입니다.
-    names.forEach((_name, index) => {
-      if (index === this.tab) return
-      const x = left + index * step + 2
-      const top = TAB_Y + 6
-      g.moveTo(x, ruleY + 4)
-        .lineTo(x, top + tr)
-        .quadraticCurveTo(x, top, x + tr, top)
-        .lineTo(x + tabW - tr, top)
-        .quadraticCurveTo(x + tabW, top, x + tabW, top + tr)
-        .lineTo(x + tabW, ruleY + 4)
-        .closePath()
-        .fill(UI.panel)
-      g.moveTo(x, ruleY + 4)
-        .lineTo(x, top + tr)
-        .quadraticCurveTo(x, top, x + tr, top)
-        .lineTo(x + tabW - tr, top)
-        .quadraticCurveTo(x + tabW, top, x + tabW, top + tr)
-        .lineTo(x + tabW, ruleY + 4)
-        .stroke({ color: UI.hairline, width: 1.5 })
-    })
-
-    // 2. 고른 탭과 본문. **길 하나입니다.**
-    const sx = left + this.tab * step + 2
-    const merged = (target: Graphics) => {
-      target.moveTo(pageL, ruleY)
-        .lineTo(sx, ruleY)
-        .lineTo(sx, TAB_Y + tr)
-        .quadraticCurveTo(sx, TAB_Y, sx + tr, TAB_Y)
-        .lineTo(sx + tabW - tr, TAB_Y)
-        .quadraticCurveTo(sx + tabW, TAB_Y, sx + tabW, TAB_Y + tr)
-        .lineTo(sx + tabW, ruleY)
-        .lineTo(pageR, ruleY)
-        .lineTo(pageR, pageB - pr)
-        .quadraticCurveTo(pageR, pageB, pageR - pr, pageB)
-        .lineTo(pageL + pr, pageB)
-        .quadraticCurveTo(pageL, pageB, pageL, pageB - pr)
-        .closePath()
+    // **본문은 판 안으로 눌린 칸입니다.** 구운 그림 한 장이고, 그림이 없으면 채움 하나로
+    // 갑니다. 고른 갈래와 본문을 한 길로 잇던 것을 걷었습니다 — 그것은 브라우저 탭의
+    // 문법이고, 이 화면의 갈래는 단추 줄입니다.
+    const page = piece('well', pageR - pageL, pageB - ruleY, wellTint(body()))
+    if (page !== undefined) {
+      page.position.set(pageL, ruleY)
+      this.tabRow.addChild(page)
+    } else {
+      const g = new Graphics()
+      g.rect(pageL, ruleY, pageR - pageL, pageB - ruleY).fill(body())
+      this.tabRow.addChild(g)
     }
-    merged(g)
-    g.fill(body())
-    merged(g)
-    g.stroke({ color: edge(), width: 1.5 })
 
-    this.tabRow.addChild(g)
-
+    // **갈래는 곁단추 줄입니다.** 고른 것만 밝은 단추이고, 나머지는 그 밖의 단추입니다.
     names.forEach((name, index) => {
-      const x = left + index * step + 2
+      const x = pageL + index * step + 4
       const chosen = index === this.tab
-      const top = TAB_Y + (chosen ? 0 : 6)
-      const label = new Text({
-        text: name,
-        style: {
-          fontSize: TEXT.copy, fill: chosen ? UI.ink : UI.inkDim,
-          fontWeight: chosen ? '800' : '700',
-        },
-      })
-      label.anchor.set(0.5, 0.5)
-      label.position.set(x + tabW / 2, top + TAB_H / 2)
-
-      const hit = new Container()
-      hit.addChild(label)
-      hit.eventMode = 'static'
-      hit.hitArea = new Rectangle(x, top, tabW, ruleY - top)
-      hit.cursor = 'pointer'
-      hit.on('pointertap', () => {
+      const button = new Button(name, tabW, TAB_H, chosen ? 'select' : 'neutral', () => {
         if (this.rolled || this.tab === index) return
         this.tab = index
         this.buildTabs()
         this.draw()
       })
-      this.tabRow.addChild(hit)
-      // 도구가 짚을 자리. **누르는 칸의 가운데입니다** — 고른 탭과 그렇지 않은 탭이 한 단
-      // 어긋나 있으므로, 위쪽 끝이 아니라 가운데를 넘겨야 둘 다 맞습니다.
+      button.position.set(x, TAB_Y)
+      this.tabRow.addChild(button)
       const id = all[index]?.id
       if (id !== undefined) {
         this.tabNodes.set(`tab:${id}`,
-                          { node: this.tabRow, cx: x + tabW / 2, cy: top + TAB_H / 2 })
+                          { node: this.tabRow, cx: x + tabW / 2, cy: TAB_Y + TAB_H / 2 })
       }
     })
   }
@@ -1086,9 +1032,9 @@ export class OptionsPanel implements ModalPanel {
     const height = Math.max(34, track * (this.windowHeight / content))
     const held = Math.min(this.over, Math.max(0, -this.scroll))
     const at = this.over === 0 ? 0 : (held / this.over) * (track - height)
-    this.bar.roundRect(WIDTH - 16, this.windowTop + 4, 4, track, 2)
+    this.bar.rect(WIDTH - 16, this.windowTop + 4, 4, track)
       .fill({ color: PAINT.sheen, alpha: 0.07 })
-    this.bar.roundRect(WIDTH - 16, this.windowTop + 4 + at, 4, height, 2)
+    this.bar.rect(WIDTH - 16, this.windowTop + 4 + at, 4, height)
       .fill({ color: PAINT.sheen, alpha: 0.30 })
   }
 
@@ -1166,9 +1112,9 @@ export class OptionsPanel implements ModalPanel {
     const height = 38
 
     const plate = new Graphics()
-    plate.roundRect(44, top, fieldW, height, 8)
+    plate.rect(44, top, fieldW, height)
       .fill({ color: UI.cell, alpha: this.seedEditable ? 0.92 : 0.5 })
-    plate.roundRect(44.5, top + 0.5, fieldW - 1, height - 1, 8)
+    plate.rect(44.5, top + 0.5, fieldW - 1, height - 1)
       .stroke({
         color: this.editing ? UI.pick : UI.hairline,
         width: 1.5, alpha: this.seedEditable ? 0.9 : 0.4,
@@ -1265,8 +1211,8 @@ export class OptionsPanel implements ModalPanel {
       const frame = new Graphics()
       // **비치지 않게 채웁니다.** 판의 알파를 그대로 쓰면 뒤에 깔린 이 판의 색이 섞여
       // 넷의 차이가 그만큼 줄어듭니다 — 미리보기는 그 테마의 색을 보이는 자리입니다.
-      frame.roundRect(0, 0, width, THEME_H, 8).fill(look.panel)
-      frame.roundRect(0.75, 0.75, width - 1.5, THEME_H - 1.5, 8)
+      frame.rect(0, 0, width, THEME_H).fill(look.panel)
+      frame.rect(0.75, 0.75, width - 1.5, THEME_H - 1.5)
         .stroke({ color: here ? UI.pick : look.panelEdge, width: here ? 2 : 1.5 })
       cell.addChild(frame)
 
@@ -1278,21 +1224,21 @@ export class OptionsPanel implements ModalPanel {
       bits.rect(pad, 25, inner, STROKE.base).fill(look.rule)
       // 값 칸 둘. 하나에는 돈의 노랑이, 하나에는 진행 바가 들어갑니다.
       const cellW = Math.floor((inner - 6) / 2)
-      bits.roundRect(pad, 33, cellW, 20, RADIUS.tight).fill(look.cell)
-      bits.roundRect(pad + 0.5, 33.5, cellW - 1, 19, RADIUS.tight)
+      bits.rect(pad, 33, cellW, 20).fill(look.cell)
+      bits.rect(pad + 0.5, 33.5, cellW - 1, 19)
         .stroke({ color: look.hairline, width: STROKE.hair })
       bits.rect(pad + 6, 41, 14, 5).fill(look.inkDim)
       bits.rect(pad + cellW - 20, 40, 14, 6).fill(look.money)
-      bits.roundRect(pad + cellW + 6, 33, cellW, 20, RADIUS.tight).fill(look.cell)
-      bits.roundRect(pad + cellW + 6.5, 33.5, cellW - 1, 19, RADIUS.tight)
+      bits.rect(pad + cellW + 6, 33, cellW, 20).fill(look.cell)
+      bits.rect(pad + cellW + 6.5, 33.5, cellW - 1, 19)
         .stroke({ color: look.hairline, width: STROKE.hair })
-      bits.roundRect(pad + cellW + 12, 41, cellW - 12, 5, 2.5).fill(look.well)
-      bits.roundRect(pad + cellW + 12, 41, (cellW - 12) * 0.6, 5, 2.5).fill(look.bar)
+      bits.rect(pad + cellW + 12, 41, cellW - 12, 5).fill(look.well)
+      bits.rect(pad + cellW + 12, 41, (cellW - 12) * 0.6, 5).fill(look.bar)
       // 밑단의 단추 셋. 나아가는 것과 그 밖의 것과 잠긴 것입니다.
       const btnW = Math.round(inner * 0.30)
-      bits.roundRect(pad, 60, btnW, 14, RADIUS.tight).fill(look.btn)
-      bits.roundRect(pad + (inner - btnW) / 2, 60, btnW, 14, RADIUS.tight).fill(look.locked)
-      bits.roundRect(pad + inner - btnW, 60, btnW, 14, RADIUS.tight).fill(look.yellow)
+      bits.rect(pad, 60, btnW, 14).fill(look.btn)
+      bits.rect(pad + (inner - btnW) / 2, 60, btnW, 14).fill(look.locked)
+      bits.rect(pad + inner - btnW, 60, btnW, 14).fill(look.yellow)
       cell.addChild(bits)
 
       const name = new Text({
@@ -1347,7 +1293,7 @@ export class OptionsPanel implements ModalPanel {
                         top + Math.floor(index / columns) * (CARD_ROW_H + gap))
 
       const board = new Graphics()
-      board.roundRect(0, 0, width, CARD_ROW_H, 8)
+      board.rect(0, 0, width, CARD_ROW_H)
         .fill({ color: here ? UI.confirm : UI.quiet })
         .stroke({ color: here ? UI.pick : UI.hairline, width: here ? 2 : 1.5 })
       cell.addChild(board)
@@ -1404,8 +1350,8 @@ export class OptionsPanel implements ModalPanel {
     const node = new Container()
     const ink = look?.ink[suit] ?? COLOR.black
     const paper = new Graphics()
-    paper.roundRect(0, 0, CARD_W, CARD_H, 4).fill(look?.paper ?? COLOR.cardFace)
-    paper.roundRect(0.5, 0.5, CARD_W - 1, CARD_H - 1, 4)
+    paper.rect(0, 0, CARD_W, CARD_H).fill(look?.paper ?? COLOR.cardFace)
+    paper.rect(0.5, 0.5, CARD_W - 1, CARD_H - 1)
       .stroke({ color: COLOR.cardEdge, width: 1 })
     node.addChild(paper)
 

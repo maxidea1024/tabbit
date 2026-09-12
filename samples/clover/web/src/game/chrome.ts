@@ -1,10 +1,11 @@
 import { Container, Graphics, Text } from 'pixi.js'
 import { t } from '../core/strings'
 import { outlined } from '../ui/font'
+import { piece } from '../ui/chrome'
 import { ScoreWave } from '../shader/wave'
 import { Slot } from '../render/hud'
 import { Spring } from '../render/motion'
-import { insetRadius, slotStyle } from '../render/skin'
+import { slotStyle, wellTint } from '../render/skin'
 import { TEXT, UI, WEIGHT } from '../render/theme'
 import { type Box } from '../ui/layout'
 import { Button, Panel } from '../ui/widgets'
@@ -112,10 +113,10 @@ export class ChromePart {
    * 그 색이면 밝은 동안 색만 남고 수가 흐려집니다.
    */
   readonly chips =
-    new Slot('', (PANEL_W - CHIPS_GAP) / 2, CHIPS_H, UI.ink, 34, 1, true, true)
+    new Slot('', (PANEL_W - CHIPS_GAP) / 2, CHIPS_H, UI.ink, 36, 1, true, true)
 
   readonly mult =
-    new Slot('', (PANEL_W - CHIPS_GAP) / 2, CHIPS_H, UI.ink, 34, 0, true, true)
+    new Slot('', (PANEL_W - CHIPS_GAP) / 2, CHIPS_H, UI.ink, 36, 0, true, true)
 
   /**
    * 왼쪽 판의 칸들이 마지막으로 보여 준 수.
@@ -256,15 +257,19 @@ export class ChromePart {
     this.scoreWave.ink(UI.chips, UI.mult)
     const g = this.scoreBox
     g.clear()
+    g.removeChildren().forEach(child => child.destroy())
     const style = slotStyle(UI.ink)
     for (const area of [chipsBox, multBox]) {
-      // **판의 다른 칸과 같은 채움과 같은 테입니다.** `plate()` 가 그리는 것과 같은 것을
-      // 절대 좌표에 그립니다 — 그 함수는 원점에서 그리고, 이 둘은 한 `Graphics` 안의 서로
-      // 다른 자리에 있습니다.
-      g.roundRect(area.x, area.y, area.width, area.height, CHIPS_R)
+      // **판의 다른 칸과 같은 구운 칸입니다.** 그림이 없으면 지금까지의 길로 그립니다.
+      const skin = piece('well', area.width, area.height, wellTint(style.top))
+      if (skin !== undefined) {
+        skin.position.set(area.x, area.y)
+        g.addChild(skin)
+        continue
+      }
+      g.rect(area.x, area.y, area.width, area.height)
         .fill(style.top)
-      g.roundRect(area.x + 0.5, area.y + 0.5, area.width - 1, area.height - 1,
-        insetRadius(CHIPS_R, 0.5))
+      g.rect(area.x + 0.5, area.y + 0.5, area.width - 1, area.height - 1)
         .stroke({ color: style.border, width: 1 })
     }
     this.flashChips = -1
@@ -299,7 +304,7 @@ export class ChromePart {
     ] as const) {
       if (lit <= 0) continue
       // 짙게 눌러 씁니다. **원색 그대로는 흰 숫자가 눌러앉지 못합니다.**
-      g.roundRect(area.x, area.y, area.width, area.height, CHIPS_R)
+      g.rect(area.x, area.y, area.width, area.height)
         .fill({ color: boxInk(tint), alpha: lit })
       // **테는 건드리지 않습니다.** 색을 얹으면 밝은 동안 그 상자만 다른 문법으로 그려진
       // 것이 되고, 값이 굴러가는 내내 테 하나가 색을 바꾸며 굵어졌다 가늘어집니다 —
@@ -324,9 +329,17 @@ export class ChromePart {
     // **바탕만 깔고 테는 두지 않습니다.** 이 자리에 서는 것은 카드이고 카드마다 자기 테가
     // 있으므로, 자리에도 테를 두르면 테가 두 겹으로 겹칩니다 — 비어 있는 자리를 알리는 데는
     // 한 단 밝은 바탕으로 족합니다.
+    g.removeChildren().forEach(child => child.destroy())
     for (const tray of [JOKER_TRAY, CONSUMABLE_TRAY]) {
-      g.roundRect(tray.x, tray.y, tray.width, tray.height, 6)
-        .fill({ color: UI.panel, alpha: 0.5 })
+      // **칸을 하나씩 그리지 않습니다. 고정된 영역 하나입니다** — 칸 수를 덱·바우처·
+      // 챌린지가 바꾸므로, 칸마다 그리면 줄의 너비가 규칙을 따라 달라집니다.
+      const skin = piece('tray', tray.width, tray.height, wellTint(UI.panel))
+      if (skin !== undefined) {
+        skin.position.set(tray.x, tray.y)
+        g.addChild(skin)
+        continue
+      }
+      g.rect(tray.x, tray.y, tray.width, tray.height).fill({ color: UI.panel, alpha: 0.5 })
     }
   }
 

@@ -23,16 +23,27 @@ import type { Provider } from '../net/session'
 import { UI, SIZE, TEXT, WEIGHT } from '../render/theme'
 import { providerTint } from './provider'
 import { Button } from './widgets'
+import { glowEdge } from './chrome'
 import { sceneArt } from './scene-art'
 import { Wordmark } from './wordmark'
 
 /** 이름과 그 아래 한 줄. **타이틀보다 위입니다** — 아래에 단추가 더 놓입니다. */
 const LOGO_Y = 132
+
+/** 저작권 줄. 아래 변에서 한 줄 위입니다. */
+const OWNER = 'Tabbit'
+const YEAR = 2026
+
+/** 화면 가장자리에서 띄우는 거리. 전면 화면의 여백입니다. */
+const EDGE = 64
 const WHY_Y = 276
 
 /** 제공자 단추의 크기. */
 const BUTTON_W = 320
-const BUTTON_H = 52
+/** 제공자 단추. 높이 계단의 기본 칸입니다. */
+const BUTTON_H = 48
+/** 나아가는 단추 — 로그인 없이 시작. 높이 계단의 `lg` 입니다. */
+const GO_H = 60
 const GAP = 12
 
 /**
@@ -134,7 +145,7 @@ export class LoginScene extends Container {
     // **배경 그림이 맨 아래입니다.** 타이틀과 같은 그림 한 장을 씁니다(`ui/scene-art.ts`).
     // 이 통은 띠 뒤에서 흐려지므로 그림도 함께 흐려집니다 — 로그인 띠에 초점이 갑니다.
     // **0.34로 눌러 깝니다.** 글이 여섯 줄이므로 타이틀보다 더 낮춥니다.
-    const art = sceneArt(0.34)
+    const art = sceneArt(0.30)
     if (art !== undefined) this.under.addChild(art)
     this.under.addChild(this.mark, this.body)
     this.addChild(this.under, this.band)
@@ -298,9 +309,18 @@ export class LoginScene extends Container {
   private redraw(): void {
     this.body.removeChildren().forEach(child => child.destroy({ children: true }))
 
+    // 이름 아래의 가르는 줄과 한 줄 소개. **그림 위의 글에는 그림자가 집니다.**
+    const rule = glowEdge(520, UI.rule)
+    if (rule !== undefined) {
+      rule.position.set(SIZE.width / 2 - 260, WHY_Y - 18)
+      this.body.addChild(rule)
+    }
     const why = new Text({
       text: t('ui.account.why'),
-      style: { fontSize: TEXT.base, fill: UI.light, fontWeight: WEIGHT.normal },
+      style: {
+        fontSize: TEXT.small, fill: UI.light, fontWeight: WEIGHT.normal,
+        dropShadow: { color: UI.outline, alpha: 0.85, blur: 0, distance: 1, angle: Math.PI / 2 },
+      },
     })
     why.anchor.set(0.5, 0)
     why.position.set(SIZE.width / 2, WHY_Y)
@@ -309,7 +329,7 @@ export class LoginScene extends Container {
     let y = WHY_Y + 44
     for (const provider of this.list) {
       const button = new Button(tf('ui.account.continueWith', { name: provider.label }),
-                                BUTTON_W, BUTTON_H, 'quiet', () => {
+                                BUTTON_W, BUTTON_H, 'neutral', () => {
         // **넘어가기 전에 띠를 띄웁니다.** 제공자로 가는 데 한두 박자가 걸리는데, 그동안
         // 아무 표시가 없으면 눌리지 않은 것으로 보입니다.
         this.showBand(t('ui.account.signingIn'))
@@ -319,8 +339,8 @@ export class LoginScene extends Container {
       // **제공자의 색은 작은 네모 하나에만 듭니다.** 단추 넷을 저마다의 색으로 칠하면
       // 어느 것을 고르라는 화면인지가 색으로 정해지지 않고, 화면에 채도가 넷 늘어납니다.
       const chip = new Graphics()
-      chip.roundRect(0, 0, 16, 16, 4).fill(providerTint(provider.id))
-      chip.position.set(16, (BUTTON_H - 16) / 2)
+      chip.rect(0, 0, 12, 12).fill(providerTint(provider.id))
+      chip.position.set(18, (BUTTON_H - 12) / 2)
       button.addChild(chip)
       this.body.addChild(button)
       y += BUTTON_H + GAP
@@ -330,11 +350,11 @@ export class LoginScene extends Container {
     // 동안 매번 제공자를 지나지 않기 위한 것이고, `import.meta.env.DEV` 안에 있으므로
     // 배포 빌드에는 이 코드가 없습니다.
     if (import.meta.env.DEV && this.dev) {
-      const fake = new Button(t('ui.account.devLogin'), BUTTON_W, BUTTON_H - 6, 'neutral',
+      const fake = new Button(t('ui.account.devLogin'), BUTTON_W, BUTTON_H, 'neutral',
                               () => void this.signInAsDev())
       fake.position.set(SIZE.width / 2 - BUTTON_W / 2, y)
       this.body.addChild(fake)
-      y += BUTTON_H - 6 + GAP
+      y += BUTTON_H + GAP
     }
 
     // **싱글플레이는 자리가 고정입니다.** 제공자가 몇이든 같은 자리에 있어야 합니다 —
@@ -346,8 +366,9 @@ export class LoginScene extends Container {
       const note = new Text({
         text: this.note,
         style: {
-          fontSize: TEXT.body, fill: UI.inkDim, wordWrap: true,
+          fontSize: TEXT.small, fill: UI.inkDim, wordWrap: true,
           wordWrapWidth: BUTTON_W + 80, align: 'center',
+          dropShadow: { color: UI.outline, alpha: 0.85, blur: 0, distance: 1, angle: Math.PI / 2 },
         },
       })
       // **위가 비었으면 아래에 붙습니다.** 서버가 없으면 제공자 단추가 하나도 서지
@@ -355,8 +376,10 @@ export class LoginScene extends Container {
       // 채로 남습니다 — 이 글이 말하는 것은 「위에 아무것도 없는 까닭」이므로 그 빈자리가
       // 아니라 다음에 누를 것 위에 있어야 합니다.
       const alone = this.list.length === 0 && !(import.meta.env.DEV && this.dev)
+      // **홀로 남으면 화면 가운데쯤입니다.** 다음에 누를 것 바로 위에 두면 단추의 설명으로
+      // 읽히고, 그 글은 「위에 아무것도 없는 까닭」입니다.
       note.anchor.set(0.5, alone ? 1 : 0)
-      note.position.set(SIZE.width / 2, alone ? singleY - 26 : y + 2)
+      note.position.set(SIZE.width / 2, alone ? singleY - 120 : y + 2)
       this.body.addChild(note)
       y += note.height + 14
     }
@@ -382,7 +405,8 @@ export class LoginScene extends Container {
     }
     void y
 
-    const single = new Button(t('ui.account.guestStart'), BUTTON_W, BUTTON_H, 'select',
+    // **나아가는 단추는 금색입니다.** 크림과 하늘은 눌리지 않은 종이로 보입니다.
+    const single = new Button(t('ui.account.guestStart'), BUTTON_W, GO_H, 'primary',
                               () => void this.startWithoutAccount())
     single.position.set(SIZE.width / 2 - BUTTON_W / 2, singleY)
     this.body.addChild(single)
@@ -392,28 +416,29 @@ export class LoginScene extends Container {
       style: {
         fontSize: TEXT.small, fill: UI.inkDim, wordWrap: true,
         wordWrapWidth: BUTTON_W + 120, align: 'center',
+        dropShadow: { color: UI.outline, alpha: 0.85, blur: 0, distance: 1, angle: Math.PI / 2 },
       },
     })
     singleNote.anchor.set(0.5, 0)
-    singleNote.position.set(SIZE.width / 2, singleY + BUTTON_H + 10)
+    singleNote.position.set(SIZE.width / 2, singleY + GO_H + 14)
     this.body.addChild(singleNote)
 
     // 나가기. **이 화면의 마지막 줄입니다** — 로그인도 하지 않고 게임도 하지 않겠다는
     // 것이므로 목록의 끝입니다.
-    const quitW = 132
-    const quit = new Button(t('ui.button.quit'), quitW, 38, 'neutral',
+    const quitW = 144
+    const quit = new Button(t('ui.button.quit'), quitW, 48, 'neutral',
                             () => this.onQuit?.())
-    quit.position.set(SIZE.width / 2 - quitW / 2, singleY + BUTTON_H + 44)
+    quit.position.set(SIZE.width / 2 - quitW / 2, singleY + GO_H + 52)
     this.body.addChild(quit)
 
-    // 판 번호. **왼쪽 아래 구석입니다.**
-    const version = new Text({
-      text: `v${__APP_VERSION__}`,
-      style: { fontSize: TEXT.small, fill: UI.inkFaint, fontWeight: WEIGHT.normal },
+    // 저작권. **아래 변의 가운데, 한 줄 위입니다.** 판 번호가 여기 함께 적힙니다.
+    const copyright = new Text({
+      text: `\u00a9 ${YEAR} ${OWNER} \u00b7 v${__APP_VERSION__}`,
+      style: { fontSize: TEXT.small, fill: UI.inkFaint, fontWeight: WEIGHT.normal, letterSpacing: 1 },
     })
-    version.anchor.set(0, 1)
-    version.position.set(30, SIZE.height - 20)
-    this.body.addChild(version)
+    copyright.anchor.set(0.5, 1)
+    copyright.position.set(SIZE.width / 2, SIZE.height - 24)
+    this.body.addChild(copyright)
 
     this.drawLanguage()
 
@@ -426,7 +451,7 @@ export class LoginScene extends Container {
       },
     })
     legal.anchor.set(0.5, 1)
-    legal.position.set(SIZE.width / 2, SIZE.height - 44)
+    legal.position.set(SIZE.width / 2, SIZE.height - 68)
     this.body.addChild(legal)
 
     const keep = new Text({
@@ -437,7 +462,7 @@ export class LoginScene extends Container {
       },
     })
     keep.anchor.set(0.5, 1)
-    keep.position.set(SIZE.width / 2, SIZE.height - 26)
+    keep.position.set(SIZE.width / 2, SIZE.height - 50)
     this.body.addChild(keep)
   }
 
@@ -448,58 +473,26 @@ export class LoginScene extends Container {
    */
   private drawLanguage(): void {
     const now = nowLanguage()
-    const width = 132
-    const height = 34
-    const x = SIZE.width - 30 - width
-    const y = 30
+    const width = 144
+    const height = 36
+    const x = SIZE.width - EDGE - width
+    const y = 40
 
-    const chip = new Container()
-    const plate = new Graphics()
-    plate.roundRect(0, 0, width, height, 8)
-      .fill({ color: UI.cell, alpha: 0.92 })
-      .stroke({ color: this.langOpen ? UI.pick : UI.hairline, width: 1.5 })
-    const label = new Text({
-      text: LANGUAGE_NAMES[now],
-      style: { fontSize: TEXT.body, fill: UI.ink, fontWeight: WEIGHT.normal },
-    })
-    label.anchor.set(0.5)
-    label.position.set(width / 2, height / 2)
-    chip.addChild(plate, label)
-    chip.position.set(x, y)
-    chip.eventMode = 'static'
-    chip.cursor = 'pointer'
-    chip.on('pointertap', () => {
+    // **곁단추 하나입니다.** 높이 계단의 `sm` 이고, 펼치면 그 아래로 같은 크기의 단추가
+    // 말마다 하나씩 내려옵니다. 고른 말은 밝은 단추입니다.
+    const chip = new Button(LANGUAGE_NAMES[now], width, height, this.langOpen ? 'select' : 'neutral',
+                            () => {
       this.langOpen = !this.langOpen
       this.dirty = true
     })
+    chip.position.set(x, y)
     this.body.addChild(chip)
 
     if (!this.langOpen) return
 
-    const list = new Container()
-    for (let at = 0; at < LANGUAGES.length; at++) {
-      const code = LANGUAGES[at]
+    LANGUAGES.forEach((code, at) => {
       const on = code === now
-      const rowY = (height + 6) + at * (height - 2)
-
-      const row = new Container()
-      const back = new Graphics()
-      back.roundRect(0, rowY, width, height - 4, 7)
-        .fill({ color: on ? UI.quiet : UI.cell, alpha: 0.96 })
-        .stroke({ color: on ? UI.pick : UI.hairline, width: 1 })
-      const text = new Text({
-        text: LANGUAGE_NAMES[code],
-        style: {
-          fontSize: TEXT.body, fill: on ? UI.ink : UI.inkDim,
-          fontWeight: on ? '700' : '400',
-        },
-      })
-      text.anchor.set(0.5)
-      text.position.set(width / 2, rowY + (height - 4) / 2)
-      row.addChild(back, text)
-      row.eventMode = 'static'
-      row.cursor = 'pointer'
-      row.on('pointertap', () => {
+      const row = new Button(LANGUAGE_NAMES[code], width, height, on ? 'select' : 'neutral', () => {
         this.langOpen = false
         this.dirty = true
         if (code !== now) {
@@ -509,10 +502,9 @@ export class LoginScene extends Container {
           this.onLanguage?.(code)
         }
       })
-      list.addChild(row)
-    }
-    list.position.set(x, y)
-    this.body.addChild(list)
+      row.position.set(x, y + (height + 8) * (at + 1))
+      this.body.addChild(row)
+    })
   }
 
   /**

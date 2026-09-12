@@ -34,7 +34,7 @@ export function roundedMask(width: number, height: number, radius: number,
 
   ctx.fillStyle = '#ffffff'
   ctx.beginPath()
-  ctx.roundRect(0, 0, canvas.width, canvas.height, radius * density)
+  ctx.rect(0, 0, canvas.width, canvas.height)
   ctx.fill()
 
   const texture = Texture.from(canvas)

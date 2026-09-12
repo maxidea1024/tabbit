@@ -185,7 +185,7 @@ export class ChallengeBody {
       cell.position.set(cx, cy)
 
       const board = new Graphics()
-      board.roundRect(0, 0, CELL_W - 10, CELL_H - 10, 8)
+      board.rect(0, 0, CELL_W - 10, CELL_H - 10)
         .fill({ color: UI.cell })
         .stroke({
           color: here ? UI.pick : beaten ? UI.green : UI.hairline,

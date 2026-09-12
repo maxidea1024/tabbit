@@ -462,7 +462,7 @@ export class ScrollView extends Container {
     if (!this.trackDrawn) {
       this.trackDrawn = true
       this.track.clear()
-      this.track.roundRect(this.width_ - BAR_W - 2, 0, BAR_W, this.height_, BAR_W / 2)
+      this.track.rect(this.width_ - BAR_W - 2, 0, BAR_W, this.height_)
         .fill({ color: UI.track })
       this.grip.clear()
       this.grip.rect(this.width_ - BAR_GRIP, 0, BAR_GRIP, this.height_)
@@ -472,7 +472,7 @@ export class ScrollView extends Container {
     bar.clear()
     shade.clear()
     this.barDrawn = true
-    bar.roundRect(this.width_ - BAR_W - 2, at, BAR_W, barH, BAR_W / 2)
+    bar.rect(this.width_ - BAR_W - 2, at, BAR_W, barH)
       .fill({ color: this.gripAt === undefined ? UI.grip : UI.gripHot })
 
     const fade = 22

@@ -65,7 +65,7 @@ export function drawGlyph(g: Graphics, name: GlyphName,
         .lineTo(cx + r * 0.92, cy + r * 0.54)
         .closePath()
         .fill(fill).stroke(stroke)
-      g.roundRect(cx - r * 0.92, cy + r * 0.54, r * 1.84, r * 0.28, r * 0.1)
+      g.rect(cx - r * 0.92, cy + r * 0.54, r * 1.84, r * 0.28)
         .fill({ color: line })
       break
     }
@@ -77,8 +77,8 @@ export function drawGlyph(g: Graphics, name: GlyphName,
         .quadraticCurveTo(cx - r * 0.52, cy + r * 0.30, cx - r * 0.66, cy - r * 0.62)
         .closePath()
         .fill(fill).stroke(stroke)
-      g.roundRect(cx - r * 0.08, cy + r * 0.30, r * 0.16, r * 0.40, r * 0.05).fill(fill)
-      g.roundRect(cx - r * 0.44, cy + r * 0.70, r * 0.88, r * 0.18, r * 0.07).fill(fill).stroke(stroke)
+      g.rect(cx - r * 0.08, cy + r * 0.30, r * 0.16, r * 0.40).fill(fill)
+      g.rect(cx - r * 0.44, cy + r * 0.70, r * 0.88, r * 0.18).fill(fill).stroke(stroke)
       break
     }
 
@@ -90,8 +90,8 @@ export function drawGlyph(g: Graphics, name: GlyphName,
         .lineTo(cx - r * 0.20, cy - r * 0.62)
         .closePath()
         .fill(fill).stroke(stroke)
-      g.roundRect(cx - r * 0.52, cy + r * 0.36, r * 1.04, r * 0.16, r * 0.06).fill({ color: line })
-      g.roundRect(cx - r * 0.10, cy + r * 0.52, r * 0.20, r * 0.42, r * 0.07).fill({ color: line })
+      g.rect(cx - r * 0.52, cy + r * 0.36, r * 1.04, r * 0.16).fill({ color: line })
+      g.rect(cx - r * 0.10, cy + r * 0.52, r * 0.20, r * 0.42).fill({ color: line })
       break
     }
 

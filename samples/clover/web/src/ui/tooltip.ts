@@ -9,8 +9,7 @@
 
 import { Container, Graphics, Text } from 'pixi.js'
 
-import { insetRadius } from '../render/skin'
-import { RADIUS, SPACE, STROKE, TEXT, UI, WEIGHT, rarityColor } from '../render/theme'
+import { SPACE, STROKE, TEXT, UI, WEIGHT, rarityColor } from '../render/theme'
 import { richLeading, richStyle, richBlock, type RichStyle } from './rich'
 
 /**
@@ -80,7 +79,7 @@ function chip(label: string, color: number): Container {
   })
   const width = Math.ceil(text.width) + 16
   const plate = new Graphics()
-  plate.roundRect(0, 0, width, CHIP_H, CHIP_H / 2)
+  plate.rect(0, 0, width, CHIP_H)
     .fill({ color, alpha: 0.14 })
     .stroke({ color, width: 1, alpha: 0.75 })
   text.position.set(8, (CHIP_H - text.height) / 2)
@@ -185,10 +184,9 @@ export class Tooltip extends Container {
     // 희귀도는 뜻이 있는 색이고, 그것이 없는 쪽지까지 한 가지 색으로 두르면 그 색이
     // 뜻을 잃습니다.
     this.plate.clear()
-    this.plate.roundRect(0, 0, width, height, RADIUS.base)
+    this.plate.rect(0, 0, width, height)
       .fill({ color: UI.tipBack, alpha: 0.96 })
-    this.plate.roundRect(0.5, 0.5, width - 1, height - 1,
-                         insetRadius(RADIUS.base, 0.5))
+    this.plate.rect(0.5, 0.5, width - 1, height - 1)
       .stroke({ color: rarityValue > 0 ? rarityColor(rarityValue) : UI.tipEdge,
                 width: STROKE.base })
 

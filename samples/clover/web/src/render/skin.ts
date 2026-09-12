@@ -77,7 +77,6 @@ function gradient(width: number, height: number, top: number, bottom: number): F
  * `gloss` 는 부르는 쪽이 아직 넘기므로 받되 쓰지 않습니다.
  */
 export function plate(g: Graphics, width: number, height: number, style: PlateStyle): void {
-  const radius = style.radius ?? RADIUS.base
   const weight = style.weight ?? STROKE.base
   const alpha = style.alpha ?? 1
   const half = weight / 2
@@ -88,11 +87,11 @@ export function plate(g: Graphics, width: number, height: number, style: PlateSt
   const fill = style.top === style.bottom
     ? { color: style.top, alpha }
     : { fill: faceFill(height, style.top, style.bottom), alpha }
-  g.roundRect(0, 0, width, height, radius).fill(fill)
+  g.rect(0, 0, width, height).fill(fill)
   // **테를 그리지 않는 경우가 있습니다.** 금속 테 그림이 판 경계에 걸쳐 놓이면 이 선이 그
   // 안쪽에 한 줄 더 그려지고, 강조색의 얇은 선이 곧 웹 화면의 인상입니다.
   if (style.border !== NO_BORDER) {
-    g.roundRect(half, half, width - weight, height - weight, insetRadius(radius, half))
+    g.rect(half, half, width - weight, height - weight)
       .stroke({ color: style.border, width: weight })
   }
 }
@@ -271,6 +270,16 @@ export function plateTint(base: number): number {
   return mix(base, PAINT.sheen, 0.34)
 }
 
+/**
+ * 구워 둔 칸과 자리를 물들이는 색.
+ *
+ * 칸의 그림은 눌린 자리라 회색 0.24 안팎으로 구워져 있습니다. 칸의 색이 그 자리에 오도록
+ * 절반 남짓 올려 둡니다.
+ */
+export function wellTint(base: number): number {
+  return mix(base, PAINT.sheen, 0.55)
+}
+
 export function floatingStyle(): PlateStyle {
   return {
     top: UI.panel, bottom: UI.panel, border: UI.panelEdge, alpha: UI.panelAlpha, radius: RADIUS.base,
@@ -339,8 +348,8 @@ export function pressable(g: Graphics, width: number, height: number,
   // 층이 넷입니다 — 아래의 턱 · 얼굴 · 얼굴 위의 밝은 줄 · 테.
   const faceH = height - LIP
   const top = pushed ? LIP : 0
-  g.roundRect(0, 0, width, height, radius).fill(shade(look.face, -0.13))
-  g.roundRect(0, top, width, faceH, radius)
+  g.rect(0, 0, width, height).fill(shade(look.face, -0.13))
+  g.rect(0, top, width, faceH)
     .fill(faceFill(faceH, shade(look.face, 0.05), look.face))
   g.moveTo(radius, top + 1.5).lineTo(width - radius, top + 1.5)
     .stroke({ color: shade(look.face, 0.13), width: STROKE.hair, alpha: 0.7 })

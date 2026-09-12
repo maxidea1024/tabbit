@@ -458,14 +458,14 @@ export class Game {
     // 세게 되고, 그 둘 사이를 눈이 오갑니다.
     this.chrome.clearButton = new Button('-', CLEAR_W, PLAY_H, 'neutral',
       () => this.cards.clearSelection())
-    this.chrome.primaryButton = new Button(t('ui.button.select_blind'), 210, 50, 'primary',
+    this.chrome.primaryButton = new Button(t('ui.button.select_blind'), 210, 48, 'primary',
       () => this.chrome.primary())
-    this.chrome.skipButton = new Button(t('ui.button.skip'), 150, 38, 'dare',
+    this.chrome.skipButton = new Button(t('ui.button.skip'), 150, 36, 'dare',
       () => {
         this.audio.play('blind_skip')
         this.act({ t: 'skip_blind' })
       })
-    this.chrome.rerollButton = new Button(t('ui.button.reroll'), 128, 44, 'select',
+    this.chrome.rerollButton = new Button(t('ui.button.reroll'), 128, 48, 'select',
       () => this.shop.reroll())
     this.chrome.sortRankButton = new Button(t('ui.button.sort_rank'), SORT_W, SORT_H, 'neutral',
       () => this.cards.sortHand('rank'))

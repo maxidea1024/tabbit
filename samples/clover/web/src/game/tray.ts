@@ -1172,12 +1172,12 @@ export class TrayPart {
     })
     paid.position.set(left, 66)
 
-    const cancel = new Button(t('ui.focus.cancel'), 100, 34, 'neutral', () => {
+    const cancel = new Button(t('ui.focus.cancel'), 100, 36, 'neutral', () => {
       if (this.game.input.ate()) return
       this.leaveFocus()
     })
-    cancel.position.set(width - 24 - 100, (height - 34) / 2)
-    this.game.spotNodes.set('focus:cancel', { node: cancel, cx: 50, cy: 17 })
+    cancel.position.set(width - 24 - 100, (height - 36) / 2)
+    this.game.spotNodes.set('focus:cancel', { node: cancel, cx: 50, cy: 18 })
 
     panel.addChild(lead, how, paid, cancel)
     this.focusLayer.addChild(panel)

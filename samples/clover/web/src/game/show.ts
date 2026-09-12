@@ -19,7 +19,7 @@ import { Motion, Spring } from '../render/motion'
 import { Particles } from '../render/particles'
 import { MotesLayer } from '../render/motes-layer'
 import { packInk, packInkLit, packName } from '../render/faces'
-import { burst, groove } from '../render/skin'
+import { burst } from '../render/skin'
 import { SIZE, TEXT, UI, WEIGHT } from '../render/theme'
 import { box, CENTER, pointOf, putText, splitX } from '../ui/layout'
 import { Button, Panel } from '../ui/widgets'
@@ -27,7 +27,7 @@ import { RuleBanner, type RuleNote } from '../ui/rule-banner'
 import {
   ACTIVE_GLOW, BLIND_MUSIC_DIM, BLUR_BACK_PX, BLUR_PX, BOARD_X, BUTTON_Y, CHIPS_GAP, CHIPS_H,
   CHIPS_Y, CONSUMABLE_TRAY, DEALER, DECK_X, DECK_Y, DELTA_LIFE, DELTA_POOL, EMBER, HAND_Y,
-  JOKER_TRAY, JOKER_Y, LAND_AT, LEFT, PACK_TITLE_Y, PACK_X, PANEL_GROOVES, PANEL_ROWS, PANEL_W,
+  JOKER_TRAY, JOKER_Y, LAND_AT, LEFT, PACK_TITLE_Y, PACK_X, PANEL_ROWS, PANEL_W,
   PLAY_H, PLAY_W, PLAY_Y, RIGHT_COL, RISER_HOLD, RISER_LIFT, RISER_ON_CARD, RISER_SPAN,
   SELL_WAIT, TRAY_PAD_X, within,
 } from './metrics'
@@ -312,11 +312,8 @@ export class ShowPart {
     this.game.chrome.money.position.set(LEFT, PANEL_ROWS.money)
     this.game.chrome.anteSlot.position.set(RIGHT_COL, PANEL_ROWS.money)
 
-    // 무리를 가르는 줄 셋. **각 사이의 한가운데입니다.**
-    //
-    // 아래 버튼 앞에는 두지 않습니다 — 적용 중이 넷까지 차면 남는 자리가 20픽셀뿐이라,
-    // 거기에 줄이 서면 그 줄이 목록에 딸린 것으로 보입니다.
-    for (const at of PANEL_GROOVES) groove(this.game.chrome.panelGrooves, LEFT, at, PANEL_W)
+    // **무리를 가르는 줄을 두지 않습니다.** 무리는 사이의 넓이가 가릅니다 — 줄까지 두면
+    // 판 안에 선이 셋 늘고, 그 선들이 웹 화면의 인상을 만듭니다.
 
     // **상자 둘과 그 사이의 곱셈표입니다.** 원작의 배치이고, 붙여 놓는 것보다 이 편이
     // 「칩 곱하기 배수」 라는 식으로 읽힙니다.
@@ -327,18 +324,16 @@ export class ShowPart {
     this.game.chrome.chips.position.set(chipsBox.x, chipsBox.y)
     this.game.chrome.mult.position.set(multBox.x, multBox.y)
 
-    // **곱셈표는 글자가 아니라 그림입니다.** 글꼴마다 `×` 의 굵기와 세로 자리가 달라서,
-    // 글자로 두면 말을 바꿀 때마다 두 칸 사이에서 비뚤어집니다.
+    // **곱셈표는 글자입니다.** 물마루가 `×` 를 들고 있고, 말마다 글꼴이 갈리던 자리에서
+    // 한글·라틴은 한 글꼴이 되었습니다 — 그림으로 그리면 두 칸의 숫자와 획의 굵기가
+    // 다른 물건이 됩니다.
     //
     // **두 상자 사이의 한가운데입니다.** 식의 연산자이므로 어느 상자에도 속하지 않는
     // 것이 맞습니다.
-    const times = new Graphics()
-    for (const angle of [Math.PI / 4, -Math.PI / 4]) {
-      const dx = Math.cos(angle) * 8.5
-      const dy = Math.sin(angle) * 8.5
-      times.moveTo(-dx, -dy).lineTo(dx, dy)
-        .stroke({ color: UI.ink, width: 4, cap: 'round' })
-    }
+    const times = new Text({
+      text: '\u00d7', style: { fontSize: TEXT.head, fill: UI.ink, fontWeight: WEIGHT.bold },
+    })
+    times.anchor.set(0.5)
     const seam = pointOf(gapBox, CENTER)
     times.position.set(seam.x, seam.y)
 
@@ -1569,7 +1564,7 @@ export class ShowPart {
       if (this.panelTint !== this.panelKey) {
         this.panelKey = this.panelTint
         this.game.chrome.panelFlash.clear()
-        this.game.chrome.panelFlash.roundRect(LEFT - 12, 22, PANEL_W + 24, SIZE.height - 44, 12)
+        this.game.chrome.panelFlash.rect(LEFT - 12, 22, PANEL_W + 24, SIZE.height - 44)
           .fill({ color: this.panelTint, alpha: 0.3 })
       }
       this.game.chrome.panelFlash.alpha = ease
@@ -1672,6 +1667,8 @@ export class ShowPart {
   }
 
   syncMood(): void {
+    /** 바닥 `#06070A` 를 0..1 로 적은 것. 어느 국면에서나 같습니다. */
+    const GROUND: [number, number, number] = [0.024, 0.027, 0.039]
     const state = this.game.state
 
     // **판 밖의 두 화면은 프랙탈이 아닙니다.** 색을 정할 것이 없습니다 — `syncBackdrop`
@@ -1685,28 +1682,31 @@ export class ShowPart {
     // 배경도 연출이 끝난 뒤에 갑니다. 득점 중에 색이 바뀌면 무엇이 끝난 것인지 흐려집니다.
     if (!this.game.presented) return
 
+    // **바닥은 검정입니다.** 국면의 색은 바닥에 섞지 않고 무늬에만 듭니다 — 바닥에
+    // 섞으면 화면 전체가 한 색으로 물들고 강조색이 설 자리가 없어집니다. 디자인 언어의
+    // 「바닥과 장면」이 정본이고, 바닥의 값은 `#06070A` 입니다.
     if (state.phase === 'lost') {
-      this.setMood([0.05, 0.05, 0.058], [0.55, 0.5, 0.55])
+      this.setMood(GROUND, [0.07, 0.07, 0.08])
       return
     }
     if (state.phase === 'won') {
-      this.setMood([0.075, 0.062, 0.026], [1, 0.82, 0.34])
+      this.setMood(GROUND, [0.15, 0.12, 0.05])
       return
     }
     if (state.phase === 'shop') {
-      this.setMood([0.032, 0.062, 0.072], [0.32, 0.86, 0.82])
+      this.setMood(GROUND, [0.05, 0.12, 0.11])
       return
     }
 
     switch (state.blind) {
       case BlindKind.Boss:
-        this.setMood([0.082, 0.024, 0.04], [1, 0.26, 0.33])
+        this.setMood(GROUND, [0.15, 0.04, 0.05])
         break
       case BlindKind.Big:
-        this.setMood([0.062, 0.042, 0.082], [0.72, 0.42, 0.98])
+        this.setMood(GROUND, [0.10, 0.06, 0.15])
         break
       default:
-        this.setMood([0.042, 0.052, 0.086], [0.30, 0.52, 0.98])
+        this.setMood(GROUND, [0.04, 0.07, 0.14])
         break
     }
   }
@@ -1762,14 +1762,16 @@ export class ShowPart {
     // **판 아래 단추 줄입니다.** 라운드에서 낸다·취소·버린다가 놓이는 그 줄이고, 그 크기입니다 —
     // 팩에서 고르는 것은 손패를 한 번 더 치는 것이므로 단추도 그 자리에 놓입니다.
     // 블라인드를 건너뛰는 것과 같은 소리입니다. 소리 없이 판이 걷히던 유일한 자리였습니다.
-    const skip = new Button(t('ui.button.skip'), PLAY_W, PLAY_H, 'neutral', () => {
+    // **건너뛰기는 `lg` 입니다.** 판을 움직이는 낸다·버린다만 `xl` 이고, 이것은 그 줄의
+    // 자리를 잠깐 빌려 쓰는 나아가는 단추입니다 — 줄의 세로 가운데에 앉습니다.
+    const skip = new Button(t('ui.button.skip'), PLAY_W, 60, 'neutral', () => {
       this.game.audio.play('blind_skip')
       this.game.act({ t: 'skip_pack' })
     })
-    skip.position.set(PACK_X - PLAY_W / 2, BUTTON_Y)
+    skip.position.set(PACK_X - PLAY_W / 2, BUTTON_Y + (PLAY_H - 60) / 2)
     this.game.pack.packSkip = skip
     // 도구가 팩을 건너뛰는 자리입니다. 걷을 때 함께 지웁니다.
-    this.game.spotNodes.set('packSkip', { node: skip, cx: PLAY_W / 2, cy: PLAY_H / 2 })
+    this.game.spotNodes.set('packSkip', { node: skip, cx: PLAY_W / 2, cy: 30 })
 
     this.game.pack.packTitle = title
 

@@ -144,7 +144,7 @@ export class HandlePanel implements ModalPanel {
     // 입력 칸.
     const wobble = Math.sin(this.shake * 24) * this.shake * 6
     const box = new Graphics()
-    box.roundRect(60 + wobble, 122, WIDTH - 120, 46, 8)
+    box.rect(60 + wobble, 122, WIDTH - 120, 46)
       .fill({ color: UI.cell })
       .stroke({ color: this.shake > 0 ? UI.red : UI.hairline, width: 1.5 })
     this.body.addChild(box)
@@ -278,7 +278,7 @@ export class ProfilePanel implements ModalPanel {
         label.anchor.set(1, 0)
         label.position.set(px, 74)
         const dot = new Graphics()
-        dot.roundRect(0, 0, 10, 10, 3).fill(providerTint(id))
+        dot.rect(0, 0, 10, 10).fill(providerTint(id))
         dot.position.set(px - label.width - 12, 76)
         this.body.addChild(dot, label)
         px -= label.width + 26

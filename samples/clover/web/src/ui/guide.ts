@@ -6,7 +6,7 @@
 // 내용은 손으로 적습니다 — 데이터에서 뽑을 수 있는 것은 족보 목록 쪽이고, 여기 있는 것은
 // 「무엇을 하는 게임인가」라서 표에 없습니다.
 
-import { Container, Graphics, Text } from 'pixi.js'
+import { Container, Text } from 'pixi.js'
 
 import { UI, TEXT, WEIGHT } from '../render/theme'
 import { FOOTER_BAR, panelFrame, TITLE_BAR, type ModalPanel } from './modal'
@@ -104,14 +104,13 @@ export class Guide implements ModalPanel {
   private column(into: Container, sections: Section[], x: number): number {
     let y = TITLE_BAR + 58
     for (const section of sections) {
-      const rule = new Graphics()
-      rule.roundRect(x, y + 6, 4, 17, 2).fill(UI.chips)
-
+      // **왼쪽에 색 띠를 세우지 않습니다.** 상자의 왼쪽에 강조색 한 줄을 세우는 것은 웹
+      // 알림 상자의 문법입니다. 머리는 글 하나입니다.
       const head = new Text({
         text: section.head,
         style: { fontSize: TEXT.big, fill: UI.ink, fontWeight: WEIGHT.bold },
       })
-      head.position.set(x + 14, y)
+      head.position.set(x, y)
 
       // **수와 이름은 다른 색입니다.** 「안테 8까지」에서 찾는 것은 8 이고, 그것이 문장과
       // 같은 색이면 문장을 처음부터 읽어야 찾습니다.
@@ -120,7 +119,7 @@ export class Guide implements ModalPanel {
       const text = richBlock([section.body], rich(), richLeading('lead'), WIDTH / 2 - 72)
       text.position.set(x + 14, y + 30)
 
-      into.addChild(rule, head, text)
+      into.addChild(head, text)
       // 접힌 줄만큼 아래가 밀립니다. 줄 수로 세면 긴 줄 하나가 다음 자리를 덮습니다.
       y += 30 + text.height + 20
     }

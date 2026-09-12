@@ -17,7 +17,7 @@ import { Container, Graphics, Text } from 'pixi.js'
 
 import { fraction } from '../render/motion'
 import { plate, panelStyle } from '../render/skin'
-import { RADIUS, TEXT, UI, WEIGHT } from '../render/theme'
+import { TEXT, UI, WEIGHT } from '../render/theme'
 import { outlined } from './font'
 import { richLine, richStyle } from './rich'
 
@@ -172,7 +172,7 @@ export class RuleBanner extends Container {
     plate(this.board, WIDTH, this.tall, panelStyle())
     // **위 변에 밝은 줄 하나.** 판이 무엇을 알리려고 선 것이라는 표시이고, 색이 곧
     // 갈래입니다 — 규칙은 값의 색을 씁니다.
-    this.board.roundRect(0, 0, WIDTH, 3, RADIUS.small)
+    this.board.rect(0, 0, WIDTH, 3)
       .fill({ color: UI.money, alpha: 0.9 })
   }
 
@@ -204,7 +204,7 @@ export class RuleBanner extends Container {
     const left = Math.max(0, 1 - Math.max(0, this.life - RISE) / HOLD)
     this.timer.clear()
     if (left > 0) {
-      this.timer.roundRect(PAD, this.tall - 5, (WIDTH - PAD * 2) * left, 2, 1)
+      this.timer.rect(PAD, this.tall - 5, (WIDTH - PAD * 2) * left, 2)
         .fill({ color: UI.money, alpha: 0.5 })
     }
   }

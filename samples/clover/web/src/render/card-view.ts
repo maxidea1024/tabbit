@@ -233,7 +233,7 @@ export class CardView extends Container {
     this.faceSprite.setSize(SIZE.cardWidth, SIZE.cardHeight)
     // **그림자는 한 번만 그립니다.** 카드가 무엇이든 같은 사각형이고, 바뀌는 것은 이 통의
     // 자리와 알파뿐입니다.
-    this.shadow.roundRect(3, 6, SIZE.cardWidth, SIZE.cardHeight, SIZE.cardRadius)
+    this.shadow.rect(3, 6, SIZE.cardWidth, SIZE.cardHeight)
       .fill({ color: PAINT.veil, alpha: 0.35 })
     // **넓이를 고정합니다.** 그리는 것에 따라 재면 획이 삐져나온 만큼 사각형이 커지고,
     // 그만큼 모양 그림이 밀립니다. **필터 사각형도 함께 고정합니다** — 이 통에 에디션과
@@ -390,7 +390,7 @@ export class CardView extends Container {
       const cy = h - 21
       this.mark.position.set(w / 2, cy)
       this.markPlate
-        .roundRect(Math.round((w - chipW) / 2), cy - chipH / 2, chipW, chipH, chipH / 2)
+        .rect(Math.round((w - chipW) / 2), cy - chipH / 2, chipW, chipH)
         .fill({ color: COLOR.slate, alpha: 0.86 })
         .stroke({ color: ink, width: 1, alpha: card.debuffed ? 0.3 : 0.75 })
     }
@@ -405,7 +405,7 @@ export class CardView extends Container {
     // **덧붙은 칩은 강화 칩의 왼쪽입니다.** 가운데는 강화가 쓰므로, 아래 변에 가로로
     // 길게 두면 그 둘이 겹칩니다 — 둘 다 붙는 카드가 드물지 않습니다.
     if (card.bonusChips > 0) {
-      this.seal.roundRect(8, h - 27, 12, 12, 3).fill({ color: UI.chips, alpha: 0.9 })
+      this.seal.rect(8, h - 27, 12, 12).fill({ color: UI.chips, alpha: 0.9 })
     }
 
     this.applyEdition(card.edition, look)

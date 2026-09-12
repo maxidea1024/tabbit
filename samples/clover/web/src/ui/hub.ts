@@ -440,7 +440,7 @@ export class MyCard extends Container {
     if (!profile) return
 
     const plate = new Graphics()
-    plate.roundRect(0, 0, CARD_W, CARD_H, 10)
+    plate.rect(0, 0, CARD_W, CARD_H)
       .fill({ color: UI.cell, alpha: 0.9 })
       .stroke({ color: UI.hairline, width: 1.5 })
     this.body.addChild(plate)
@@ -477,7 +477,7 @@ export class MyCard extends Container {
       label.anchor.set(1, 0.5)
       label.position.set(CARD_W - 14, 20)
       const dot = new Graphics()
-      dot.roundRect(0, 0, 9, 9, 2).fill(providerTint(first))
+      dot.rect(0, 0, 9, 9).fill(providerTint(first))
       dot.position.set(CARD_W - 14 - label.width - 12, 20 - 4.5)
       this.body.addChild(dot, label)
     }

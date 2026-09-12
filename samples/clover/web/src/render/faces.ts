@@ -28,7 +28,7 @@ import { shade } from './glyph'
 import { pinBox } from './pin'
 import { skeletonCard, skeletonCircle } from './skeleton'
 import { cardArtId, drawFace } from './pips'
-import { insetRadius, mix } from './skin'
+import { mix } from './skin'
 import { UI, SIZE } from './theme'
 
 /** 카드 한 장을 작게 적을 때의 글자. */
@@ -306,7 +306,7 @@ export function itemFace(data: Data, item: ItemFace,
   // 함께 번쩍여서, 카드 옆에 빛나는 얼룩 하나가 따로 남습니다. `joker-view.ts` 와 같은
   // 이유이고, `faceOf` 가 이 둘째 아이를 찾아 씁니다.
   const shadow = new Graphics()
-  shadow.roundRect(3, 5, w, h, 9).fill({ color: PAINT.veil, alpha: 0.4 })
+  shadow.rect(3, 5, w, h).fill({ color: PAINT.veil, alpha: 0.4 })
   const paper = new Container()
   node.addChild(shadow, paper)
 
@@ -330,7 +330,7 @@ export function itemFace(data: Data, item: ItemFace,
   paper.addChild(body, text)
 
   const plate = new Graphics()
-  plate.roundRect(0, 0, w, h, 9).fill(COLOR.slate)
+  plate.rect(0, 0, w, h).fill(COLOR.slate)
   body.addChild(plate)
 
   /**
@@ -341,7 +341,7 @@ export function itemFace(data: Data, item: ItemFace,
    */
   const cutout = (): Graphics => {
     const clip = new Graphics()
-    clip.roundRect(0, 0, w, h, 9).fill(PAINT.sheen)
+    clip.rect(0, 0, w, h).fill(PAINT.sheen)
     body.addChild(clip)
     return clip
   }
@@ -359,7 +359,7 @@ export function itemFace(data: Data, item: ItemFace,
         body.addChild(picture)
       } else {
         const face = new Graphics()
-        face.roundRect(0, 0, w, h, 9).fill(COLOR.cardFace)
+        face.rect(0, 0, w, h).fill(COLOR.cardFace)
         drawFace(face, row.suit, row.rank, w, h, suitInk(row.suit))
         body.addChild(face)
       }
@@ -388,7 +388,7 @@ export function itemFace(data: Data, item: ItemFace,
 
   const tint = item.kind === ShopItemKind.PlayingCard ? COLOR.cardEdge : SHOP_JOKER
   const band = new Graphics()
-  band.roundRect(0, h - 26, w, 26, 9).fill({ color: COLOR.band, alpha: 0.88 })
+  band.rect(0, h - 26, w, 26).fill({ color: COLOR.band, alpha: 0.88 })
   band.rect(0, h - 26, w, 17).fill({ color: COLOR.band, alpha: 0.88 })
   band.rect(0, h - 26, w, 1.5).fill({ color: tint, alpha: 0.9 })
   band.visible = caption.nameless !== true
@@ -407,7 +407,7 @@ export function itemFace(data: Data, item: ItemFace,
   text.addChild(label)
 
   const frame = new Graphics()
-  frame.roundRect(1.25, 1.25, w - 2.5, h - 2.5, insetRadius(9, 1.25))
+  frame.rect(1.25, 1.25, w - 2.5, h - 2.5)
     .stroke({ color: tint, width: 2.5 })
   text.addChild(frame)
 
@@ -451,8 +451,8 @@ export function voucherFace(data: Data, voucherId: string, note: string): Contai
 
   const face = new Container()
   const paper = new Graphics()
-  paper.roundRect(0, 0, w, h, 9).fill(COLOR.slip)
-  paper.roundRect(1, 1, w - 2, h - 2, insetRadius(9, 1)).stroke({ color: UI.outline, width: 2 })
+  paper.rect(0, 0, w, h).fill(COLOR.slip)
+  paper.rect(1, 1, w - 2, h - 2).stroke({ color: UI.outline, width: 2 })
   const label = new Text({
     text: title,
     style: {
@@ -499,10 +499,10 @@ export function packFace(row: PackFaceRow, caption: FaceCaption = {}): Container
   const wrap = artFor('pack', packKindArt(row.kind))
   const body = new Graphics()
   if (wrap) {
-    body.roundRect(0, 0, w, h, 9).fill(shade(ink, 0.35))
+    body.rect(0, 0, w, h).fill(shade(ink, 0.35))
   } else {
-    body.roundRect(0, 0, w, h, 9).fill(shade(ink, 0.45))
-    body.roundRect(0, 0, w, h * 0.55, 9).fill({ color: ink, alpha: 0.5 })
+    body.rect(0, 0, w, h).fill(shade(ink, 0.45))
+    body.rect(0, 0, w, h * 0.55).fill({ color: ink, alpha: 0.5 })
     // **뜯는 줄.** 톱니 하나가 봉지를 봉지로 만듭니다.
     const tearY = 22
     body.rect(0, tearY - 6, w, 12).fill({ color: COLOR.band, alpha: 0.35 })
@@ -523,12 +523,12 @@ export function packFace(row: PackFaceRow, caption: FaceCaption = {}): Container
     sprite.height = wrap.height * scale
     sprite.position.set((w - sprite.width) / 2, (h - sprite.height) / 2)
     const clip = new Graphics()
-    clip.roundRect(0, 0, w, h, 9).fill(PAINT.sheen)
+    clip.rect(0, 0, w, h).fill(PAINT.sheen)
     sprite.mask = clip
     bag.addChild(sprite, clip)
   }
   const edge = new Graphics()
-  edge.roundRect(1, 1, w - 2, h - 2, insetRadius(9, 1)).stroke({ color: UI.outline, width: 2 })
+  edge.rect(1, 1, w - 2, h - 2).stroke({ color: UI.outline, width: 2 })
   bag.addChild(edge)
 
   const label = new Text({
@@ -549,7 +549,7 @@ export function packFace(row: PackFaceRow, caption: FaceCaption = {}): Container
   // **글이 앉는 자리를 어둡게 깔아 둡니다.** 포장지의 색이 무엇이든 그 위의 글이 읽혀야
   // 합니다 — 카드의 이름 띠와 같은 규칙입니다.
   const band = new Graphics()
-  band.roundRect(0, h - 42, w, 42, 9).fill({ color: COLOR.band, alpha: 0.86 })
+  band.rect(0, h - 42, w, 42).fill({ color: COLOR.band, alpha: 0.86 })
   band.rect(0, h - 42, w, 30).fill({ color: COLOR.band, alpha: 0.86 })
   // **이름만 접습니다.** 띠는 「몇 장 중 몇 장」을 받치고 있어서 함께 접으면 그 글이
   // 포장지 위에서 읽히지 않습니다.

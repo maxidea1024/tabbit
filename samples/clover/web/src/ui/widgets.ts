@@ -279,7 +279,11 @@ export class Button extends Container {
    * 크기를 9까지 내립니다.
    */
   private applyInk(): void {
-    const ink = captionInk(this.shownBase)
+    // **되돌릴 수 없는 단추의 글은 밝은 붉음입니다.** 짙은 붉음 채움 위에 흰 글을 얹으면
+    // 경고판이 됩니다. 잠긴 것은 잠긴 것의 글색입니다.
+    const ink = this.intent === 'danger' && this.enabledState && !this.held
+      ? UI.bad
+      : captionInk(this.shownBase)
     this.caption.style.fill = ink
     const size = this.caption.style.fontSize as number
     const width = ink === UI.onLight ? 0 : outlineWidth(size)
@@ -402,7 +406,9 @@ export class Button extends Container {
     const sunk = this.pushed ? SINK : 0
     this.skin = piece(this.rung, this.boxWidth, tall - sunk, this.shown.face)
     if (this.skin !== undefined) {
-      this.skin.y = sunk
+      // `piece()` 가 그림자 여백만큼 물러앉혀 두었으므로 그 위에 더합니다 — 덮어쓰면 얼굴이
+      // 여백만큼 아래로 내려가 글이 얼굴의 윗변에 붙습니다.
+      this.skin.y += sunk
       this.addChildAt(this.skin, 0)
       this.applyInk()
       return

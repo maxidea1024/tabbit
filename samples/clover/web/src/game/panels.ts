@@ -189,7 +189,7 @@ export class PanelsPart {
     const tabsX = (width - (tabs.length * tabW + (tabs.length - 1) * tabGap)) / 2
     tabs.forEach((tab, index) => {
       const here = this.runInfoTab === tab.key
-      const button = new Button(tab.label, tabW, 30, here ? 'select' : 'neutral', () => {
+      const button = new Button(tab.label, tabW, 36, here ? 'select' : 'neutral', () => {
         if (this.runInfoTab !== tab.key) this.insightScroll?.toTop()
         this.runInfoTab = tab.key
         this.drawHandList()
@@ -324,7 +324,7 @@ export class PanelsPart {
 
       if (row.here) {
         const band = new Graphics()
-        band.roundRect(16, y - 4, width - 32, rowH - 4, 6)
+        band.rect(16, y - 4, width - 32, rowH - 4)
           .fill({ color: UI.pick, alpha: 0.22 })
         layer.addChild(band)
       }
@@ -447,10 +447,10 @@ export class PanelsPart {
     node.position.set(0, y)
 
     const plate = new Graphics()
-    plate.roundRect(0, 0, width, rowH, 7).fill(UI.cell)
-    plate.roundRect(0.5, 0.5, width - 1, rowH - 1, 7)
+    plate.rect(0, 0, width, rowH).fill(UI.cell)
+    plate.rect(0.5, 0.5, width - 1, rowH - 1)
       .stroke({ color: UI.hairline, width: 1 })
-    plate.roundRect(0, 5, 4, rowH - 10, 2).fill(INSIGHT_COLOR[row.level])
+    plate.rect(0, 5, 4, rowH - 10).fill(INSIGHT_COLOR[row.level])
     node.addChild(plate)
 
     text.position.set(16, (rowH - wrapped * 17) / 2 + 1)
@@ -506,7 +506,7 @@ export class PanelsPart {
       band.clear()
       const row = this.handRows[found]
       if (row) {
-        band.roundRect(12, row.y - 4, width - 24, row.height - 2, 6)
+        band.rect(12, row.y - 4, width - 24, row.height - 2)
           .fill({ color: UI.pick, alpha: 0.32 })
       }
     }
@@ -544,8 +544,8 @@ export class PanelsPart {
     const boxH = shape ? cardH + 24 : 46
 
     const board = new Graphics()
-    board.roundRect(0, 0, boxW, boxH, 8).fill({ color: UI.panel, alpha: 0.98 })
-    board.roundRect(0.5, 0.5, boxW - 1, boxH - 1, 10)
+    board.rect(0, 0, boxW, boxH).fill({ color: UI.panel, alpha: 0.98 })
+    board.rect(0.5, 0.5, boxW - 1, boxH - 1)
       .stroke({ color: UI.panelEdge, width: 1.5 })
     into.addChild(board)
 
@@ -692,7 +692,7 @@ export class PanelsPart {
     // **나간 카드도 불투명합니다.** 반투명하면 뒤의 카드가 비쳐 겹친 자리가 지저분해지고,
     // 겹쳐 놓은 줄에서는 그 자리가 카드마다 다릅니다 — 어둡게만 두면 깔끔합니다.
     const body = new Graphics()
-    body.roundRect(0, 0, w, h, 5).fill(alive ? cardPaper() : UI.locked)
+    body.rect(0, 0, w, h).fill(alive ? cardPaper() : UI.locked)
     node.addChild(body)
 
     const ink = alive ? suitInk(card.suit) : DEAD.ink
@@ -723,7 +723,7 @@ export class PanelsPart {
 
     // **테두리는 그림 위에 그립니다.** 그림이 카드를 덮으므로 종이에 그으면 가려집니다.
     const edge = new Graphics()
-    edge.roundRect(0.5, 0.5, w - 1, h - 1, 5)
+    edge.rect(0.5, 0.5, w - 1, h - 1)
       .stroke({ color: alive ? COLOR.cardEdge : DEAD.edge, width: 1 })
     node.addChild(edge)
 
@@ -735,7 +735,7 @@ export class PanelsPart {
     }
     if (card.edition !== EditionKind.Base) {
       const spark = new Graphics()
-      spark.roundRect(3, h - 8, w - 6, 4, 2)
+      spark.rect(3, h - 8, w - 6, 4)
         .fill({ color: UI.mult, alpha: alive ? 0.9 : 0.3 })
       node.addChild(spark)
     }
@@ -920,8 +920,8 @@ export class PanelsPart {
       line.position.set(LEFT, y)
 
       const plate = new Graphics()
-      plate.roundRect(0, 0, PANEL_W, rowH - 4, 6).fill(UI.cell)
-      plate.roundRect(0.5, 0.5, PANEL_W - 1, rowH - 5, 6)
+      plate.rect(0, 0, PANEL_W, rowH - 4).fill(UI.cell)
+      plate.rect(0.5, 0.5, PANEL_W - 1, rowH - 5)
         .stroke({ color: UI.hairline, width: 1 })
       line.addChild(plate)
       // **방금 들어온 줄은 값의 색 테로 밝습니다.** 바우처가 규칙으로 들어갔다는 것이 이
@@ -929,8 +929,8 @@ export class PanelsPart {
       // 것인지가 없었습니다.
       if (glow && entry.label === glow.label) {
         const lit = new Graphics()
-        lit.roundRect(0, 0, PANEL_W, rowH - 4, 6).fill({ color: UI.money, alpha: 0.18 })
-        lit.roundRect(0.5, 0.5, PANEL_W - 1, rowH - 5, 6)
+        lit.rect(0, 0, PANEL_W, rowH - 4).fill({ color: UI.money, alpha: 0.18 })
+        lit.rect(0.5, 0.5, PANEL_W - 1, rowH - 5)
           .stroke({ color: UI.money, width: 1.5 })
         line.addChild(lit)
         glow.plate = lit
@@ -1070,25 +1070,25 @@ export class PanelsPart {
     ]
     // **밑단이 없습니다.** 머리의 `✕` 와 바깥 누르기와 `Esc` 로 닫히므로, 닫기를 또 두면
     // 같은 일을 하는 것이 판 하나에 둘입니다.
-    const height = TITLE_BAR + MENU_PAD + rows.length * 46 + 8
+    const height = TITLE_BAR + MENU_PAD + rows.length * 56 + 8
     ;(this.menu.size as { width: number; height: number }).height = height
 
     layer.addChild(panelFrame(width, height, t('ui.button.menu'),
       () => this.modals.close(this.menu), undefined, false))
 
     rows.forEach((row, index) => {
-      const button = new Button(row.label, width - 48, 38, 'neutral', () => {
+      const button = new Button(row.label, width - 48, 48, 'neutral', () => {
         // **닫고 나서 엽니다.** 이 판 위에 또 판이 서면 뒤로 물러난 것이 보이고, 그것은
         // 메뉴가 아니라 판이 쌓인 것으로 보입니다.
         this.modals.close(this.menu)
         row.press()
       })
-      button.position.set(24, TITLE_BAR + MENU_PAD + index * 46)
+      button.position.set(24, TITLE_BAR + MENU_PAD + index * 56)
       layer.addChild(button)
       // **자리는 화면이 알립니다.** 판이 닫히면 이 단추는 지워지고, 지워진 것의 자리는
       // 알리지 않습니다 — `lateSpots` 가 그것을 맡습니다.
       this.game.spotNodes.set(`menu:${row.key}`,
-                         { node: button, cx: (width - 48) / 2, cy: 19 })
+                         { node: button, cx: (width - 48) / 2, cy: 24 })
     })
 
     this.modals.open(this.menu)

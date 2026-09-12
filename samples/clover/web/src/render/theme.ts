@@ -29,9 +29,14 @@ import { buildSurface, type Surface, type SurfaceSeed } from './palette'
  * 선도 이 값에서 배수로 나오므로, 밝기를 바꾸려면 여기만 고칩니다.
  */
 const SEEDS: Record<string, SurfaceSeed> = {
-  /** 기본. 남흑에 따뜻한 갈색 테 — 참고한 카드룸의 것입니다. */
+  /**
+   * 기본. **검정 바닥에 청회색 판입니다.**
+   *
+   * 디자인 언어의 판(`#212A35 → #0D1219`)이 이 색상각입니다. 바닥은 `ground` 가 판의
+   * 1/4 로 내려 거의 검정입니다.
+   */
   slate: {
-    hue: 274, chroma: 0.018, level: 0.0165, alpha: 0.96,
+    hue: 255, chroma: 0.020, level: 0.0165, alpha: 0.96,
     accent: { hue: 62, chroma: 0.075 },
   },
   /**
@@ -46,9 +51,6 @@ const SEEDS: Record<string, SurfaceSeed> = {
     accent: { hue: 238, chroma: 0.045 },
     tune: {
       panelEdge: 4.6, rule: 3.4, groove: 2.5, hairline: 1.9,
-      btn: 1.45, btnHover: 2.05, btnPress: 1.25, btnEdge: 2.70, btnEdgeHover: 3.70,
-      quiet: 1.28, quietHover: 1.70, quietPress: 1.14, quietEdge: 2.05,
-      locked: 1.14, lockedEdge: 1.75,
       track: 1.55, grip: 3.3, tipEdge: 2.4,
     },
   },
