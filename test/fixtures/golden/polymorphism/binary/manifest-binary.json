@@ -1,8 +1,14 @@
 {
   "LastUpdatedDate": "<TIMESTAMP>",
-  "MasterHash": "dff6f396260916f4a79c52140b252a22",
-  "TotalSize": 447,
+  "MasterHash": "e62220313080805598611141d5a8c72b",
+  "TotalSize": 738,
   "Items": [
+    {
+      "Name": "Boon.tcb",
+      "Size": 145,
+      "Hash": "599a0fff11014a8a3cce5ab897cdb73d",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
     {
       "Name": "Element.tcb",
       "Size": 69,
@@ -13,6 +19,12 @@
       "Name": "Skill.tcb",
       "Size": 178,
       "Hash": "4c7cf165d858daf798c099a7053ec2ab",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Curse.tcb",
+      "Size": 146,
+      "Hash": "3ed5e76e97f98203cd246ad2f1044af2",
       "LastUpdatedDate": "<TIMESTAMP>"
     },
     {

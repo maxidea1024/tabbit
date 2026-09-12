@@ -158,7 +158,7 @@ public class PolymorphicRecordTests
 
         Assert.Equal("damage=50,pierces=True", own["Slash"]);
         Assert.Equal("damage=70,pierces=False", own["Cleave"]);
-        Assert.Equal("amount=20", own["Mend"]);
+        Assert.Equal("amount=20,band=Common", own["Mend"]);
         Assert.Equal("none", own["Feint"]);
 
         // And the array of them, where each element is its own shape. Section 5.3.
@@ -182,6 +182,79 @@ public class PolymorphicRecordTests
     /// generator emitting the union flat would produce something the harness cannot check
     /// against. spec/types/polymorphism.md section 7.
     /// </remarks>
+    /// <summary>
+    /// A variant member no row of a table uses may have no column in that table's sheet, and
+    /// the shared variant type still carries it - read as its empty value there, and as what
+    /// the sheet wrote in a table that did have the column. `Boon` is the first table the
+    /// cooking meets and lacks `Band` and `ElementId`; `Curse` comes after `Skill` and lacks
+    /// `Amount`. Before the cooking added those columns blank, the first order dropped the
+    /// members from the type and the second did not compile. spec/types/polymorphism.md
+    /// section 5.2.
+    /// </summary>
+    [Fact]
+    public void A_member_no_row_of_a_table_uses_is_still_a_member_of_the_type()
+    {
+        var conversion = TabbitRunner.Convert(Scenario);
+
+        Assert.True(conversion.Succeeded,
+            $"Converting `{Scenario}` failed.{System.Environment.NewLine}{conversion.Describe()}");
+
+        var result = CsToolchain.ReadBack(Scenario, "cs-check-polymorphism");
+
+        Assert.True(result.Succeeded,
+            $"Reading `{Scenario}` back through the generated C# failed."
+            + $"{System.Environment.NewLine}{result.Output}");
+
+        var report = JsonDocument.Parse(result.Output).RootElement;
+
+        var boon = report.GetProperty("Boon").EnumerateArray().ToDictionary(
+            row => row.GetProperty("name").GetString()!,
+            row => (row.GetProperty("kind").GetString(), row.GetProperty("own").GetString()));
+
+        // The member whose column the sheet did not write reads as its empty value.
+        Assert.Equal(("HealEffect", "amount=15,band=None"), boon["Bless"]);
+        Assert.Equal(("HealEffect", "amount=5,band=None"), boon["Renew"]);
+        Assert.Equal(("NoEffect", "none"), boon["Idle"]);
+
+        var curse = report.GetProperty("Curse").EnumerateArray().ToDictionary(
+            row => row.GetProperty("name").GetString()!,
+            row => (row.GetProperty("kind").GetString(), row.GetProperty("own").GetString()));
+
+        Assert.Equal(("HealEffect", "amount=0,band=Rare"), curse["Wither"]);
+        Assert.Equal(("DamageEffect", "damage=10,pierces=False"), curse["Hex"]);
+        Assert.Equal(("NoEffect", "none"), curse["Null"]);
+    }
+
+    /// <summary>
+    /// The column the cooking added is a column: the exports carry it, blank, in the place
+    /// the author would have put it - the end of the group.
+    /// </summary>
+    [Fact]
+    public void A_member_column_the_sheet_left_out_is_exported_blank()
+    {
+        var result = TabbitRunner.Convert(Scenario);
+
+        Assert.True(result.Succeeded,
+            $"Converting `{Scenario}` failed.{System.Environment.NewLine}{result.Describe()}");
+
+        var rows = JsonDocument.Parse(File.ReadAllText(Path.Combine(
+                RepoLayout.OutputDir(Scenario), "json-named", "Boon.json")))
+            .RootElement.EnumerateArray()
+            .ToDictionary(row => row.GetProperty("name").GetString()!, row => row);
+
+        var bless = rows["Bless"].GetProperty("effect");
+
+        Assert.Equal(15, bless.GetProperty("amount").GetInt32());
+        Assert.Equal(0, bless.GetProperty("band").GetInt32());
+        Assert.Equal(0, bless.GetProperty("elementId").GetInt32());
+
+        // After every column the sheet wrote, in declaration order.
+        string[] members = bless.EnumerateObject().Select(property => property.Name).ToArray();
+
+        Assert.Equal(
+            ["type", "chance", "damage", "pierces", "amount", "elementId", "band"], members);
+    }
+
     [Fact]
     public void The_generated_typescript_narrows_to_each_rows_variant()
     {

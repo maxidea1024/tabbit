@@ -98,6 +98,13 @@ public static class CookingMessages
     /// <summary>A reference column left blank.</summary>
     public const string ReferenceBlank = "cook.reference-blank";
 
+    /// <summary>
+    /// A reference member of a row's variant whose column the sheet did not write. The
+    /// cooking added the column blank for the rows of other variants; on a row of the
+    /// declaring variant a blank reference is what it is anywhere else - refused.
+    /// </summary>
+    public const string ReferenceColumnMissing = "cook.reference-column-missing";
+
     /// <summary>A required reference column saying it points at nothing.</summary>
     public const string ReferenceNoneButRequired = "cook.reference-none-but-required";
 

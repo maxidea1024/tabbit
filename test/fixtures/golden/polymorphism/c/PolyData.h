@@ -10,8 +10,10 @@
 #define POLY_DATA_H
 
 #include "enums/PolyData_EnumBand.h"
+#include "tables/PolyData_Boon.h"
 #include "tables/PolyData_Element.h"
 #include "tables/PolyData_Skill.h"
+#include "tables/PolyData_Curse.h"
 #include "tables/PolyData_Combo.h"
 
 #ifdef __cplusplus
@@ -20,8 +22,10 @@ extern "C" {
 
 /* Every table, loaded together so cross-table references can be resolved. */
 typedef struct PolyData_t {
+  PolyData_BoonTable_t boon;
   PolyData_ElementTable_t element;
   PolyData_SkillTable_t skill;
+  PolyData_CurseTable_t curse;
   PolyData_ComboTable_t combo;
 } PolyData_t;
 

@@ -18,9 +18,13 @@ public final class Tables {
 
     public init() {}
 
+    public private(set) var boon: BoonTable = BoonTable()
+
     public private(set) var element: ElementTable = ElementTable()
 
     public private(set) var skill: SkillTable = SkillTable()
+
+    public private(set) var curse: CurseTable = CurseTable()
 
     public private(set) var combo: ComboTable = ComboTable()
 
@@ -84,6 +88,11 @@ public final class Tables {
     ) throws {
         let base = URL(fileURLWithPath: basePath)
 
+        let loadedBoonTable = BoonTable()
+        try loadedBoonTable.read(
+            base.appendingPathComponent("Boon" + fileExtension).path,
+            key: encryptionKey, macKey: macKey, verifyMac: verifyMac)
+
         let loadedElementTable = ElementTable()
         try loadedElementTable.read(
             base.appendingPathComponent("Element" + fileExtension).path,
@@ -94,14 +103,21 @@ public final class Tables {
             base.appendingPathComponent("Skill" + fileExtension).path,
             key: encryptionKey, macKey: macKey, verifyMac: verifyMac)
 
+        let loadedCurseTable = CurseTable()
+        try loadedCurseTable.read(
+            base.appendingPathComponent("Curse" + fileExtension).path,
+            key: encryptionKey, macKey: macKey, verifyMac: verifyMac)
+
         let loadedComboTable = ComboTable()
         try loadedComboTable.read(
             base.appendingPathComponent("Combo" + fileExtension).path,
             key: encryptionKey, macKey: macKey, verifyMac: verifyMac)
 
-        Tables.solveCrossReferences(element: loadedElementTable, skill: loadedSkillTable, combo: loadedComboTable)
+        Tables.solveCrossReferences(boon: loadedBoonTable, element: loadedElementTable, skill: loadedSkillTable, curse: loadedCurseTable, combo: loadedComboTable)
+        boon = loadedBoonTable
         element = loadedElementTable
         skill = loadedSkillTable
+        curse = loadedCurseTable
         combo = loadedComboTable
     }
 
@@ -109,8 +125,18 @@ public final class Tables {
     ///
     /// The tables arrive as arguments rather than being read off the instance, which is how
     /// this resolves the load being read rather than the one already published.
-    private static func solveCrossReferences(element: ElementTable, skill: SkillTable, combo: ComboTable) {
+    private static func solveCrossReferences(boon: BoonTable, element: ElementTable, skill: SkillTable, curse: CurseTable, combo: ComboTable) {
+        for record in boon.records {
+            if let target = element.findByCode(record.effect.elementId) {
+                record.effect.elementByElementId = target
+            }
+        }
         for record in skill.records {
+            if let target = element.findByCode(record.effect.elementId) {
+                record.effect.elementByElementId = target
+            }
+        }
+        for record in curse.records {
             if let target = element.findByCode(record.effect.elementId) {
                 record.effect.elementByElementId = target
             }

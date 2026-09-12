@@ -9,8 +9,10 @@ use std::path::Path;
 use std::sync::atomic::AtomicBool;
 use std::sync::OnceLock;
 use crate::tabbit;
+use crate::boon_table::BoonTable;
 use crate::element_table::ElementTable;
 use crate::skill_table::SkillTable;
+use crate::curse_table::CurseTable;
 use crate::combo_table::ComboTable;
 
 /// The key the table files were sealed with, or unset when they were not sealed.
@@ -64,8 +66,10 @@ pub static VERIFY_MAC: AtomicBool = AtomicBool::new(true);
 /// Every table, loaded together.
 #[derive(Clone, Debug, Default)]
 pub struct Tables {
+    pub boon: BoonTable,
     pub element: ElementTable,
     pub skill: SkillTable,
+    pub curse: CurseTable,
     pub combo: ComboTable,
 }
 
@@ -87,10 +91,14 @@ impl Tables {
         &mut self, base_path: &Path, file_extension: &str) -> tabbit::Result<()> {
         let mut loaded = Tables::default();
 
+        loaded.boon.read(
+            &base_path.join(format!("Boon{}", file_extension)))?;
         loaded.element.read(
             &base_path.join(format!("Element{}", file_extension)))?;
         loaded.skill.read(
             &base_path.join(format!("Skill{}", file_extension)))?;
+        loaded.curse.read(
+            &base_path.join(format!("Curse{}", file_extension)))?;
         loaded.combo.read(
             &base_path.join(format!("Combo{}", file_extension)))?;
 

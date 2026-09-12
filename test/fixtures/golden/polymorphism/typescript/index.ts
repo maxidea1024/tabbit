@@ -10,10 +10,14 @@
 export { Band } from './enums/band'
 
 // Tables
+export { BoonRecord } from './tables/boon'
+export { BoonTable } from './tables/boon'
 export { ElementRecord } from './tables/element'
 export { ElementTable } from './tables/element'
 export { SkillRecord } from './tables/skill'
 export { SkillTable } from './tables/skill'
+export { CurseRecord } from './tables/curse'
+export { CurseTable } from './tables/curse'
 export { ComboRecord } from './tables/combo'
 export { ComboTable } from './tables/combo'
 

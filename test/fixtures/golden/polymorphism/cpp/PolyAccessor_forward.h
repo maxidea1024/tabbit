@@ -10,8 +10,10 @@
 
 #include <cstdint>
 #include <vector>
+struct BoonRecord;
 struct ElementRecord;
 struct SkillRecord;
+struct CurseRecord;
 struct ComboRecord;
 
 /// The key the table files were sealed with, or empty when they were not sealed.

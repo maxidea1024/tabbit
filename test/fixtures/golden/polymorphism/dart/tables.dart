@@ -12,16 +12,20 @@ import 'dart:typed_data';
 
 import 'tabbit/tcb_reader.dart';
 
+part 'tables/boon_table.dart';
 part 'tables/element_table.dart';
 part 'tables/skill_table.dart';
+part 'tables/curse_table.dart';
 part 'tables/combo_table.dart';
 part 'enums/band.dart';
 part 'structs/effect.dart';
 
 /// Every table, loaded together so cross-table references can be resolved.
 class Tables {
+  BoonTable boon = BoonTable();
   ElementTable element = ElementTable();
   SkillTable skill = SkillTable();
+  CurseTable curse = CurseTable();
   ComboTable combo = ComboTable();
 
   /// The key the table files were sealed with, or null when they were not sealed.
@@ -76,17 +80,23 @@ class Tables {
   /// table holding the load it already had.
   void readAll(String basePath,
       [String fileExtension = '.tcb']) {
+    final loadedBoonTable = BoonTable();
+    loadedBoonTable.read('$basePath${Platform.pathSeparator}Boon$fileExtension');
     final loadedElementTable = ElementTable();
     loadedElementTable.read('$basePath${Platform.pathSeparator}Element$fileExtension');
     final loadedSkillTable = SkillTable();
     loadedSkillTable.read('$basePath${Platform.pathSeparator}Skill$fileExtension');
+    final loadedCurseTable = CurseTable();
+    loadedCurseTable.read('$basePath${Platform.pathSeparator}Curse$fileExtension');
     final loadedComboTable = ComboTable();
     loadedComboTable.read('$basePath${Platform.pathSeparator}Combo$fileExtension');
 
-    _solveCrossReferences(loadedElementTable, loadedSkillTable, loadedComboTable);
+    _solveCrossReferences(loadedBoonTable, loadedElementTable, loadedSkillTable, loadedCurseTable, loadedComboTable);
 
+    boon = loadedBoonTable;
     element = loadedElementTable;
     skill = loadedSkillTable;
+    curse = loadedCurseTable;
     combo = loadedComboTable;
   }
 
@@ -94,8 +104,20 @@ class Tables {
   ///
   /// The tables arrive as arguments and shadow the fields of the same name, which is how
   /// this resolves the load being read rather than the one already published.
-  void _solveCrossReferences(ElementTable element, SkillTable skill, ComboTable combo) {
+  void _solveCrossReferences(BoonTable boon, ElementTable element, SkillTable skill, CurseTable curse, ComboTable combo) {
+    for (final record in boon.records) {
+      {
+        final target = element.findByCode(record.effect.elementId);
+        if (target != null) record.effect.elementByElementId = target;
+      }
+    }
     for (final record in skill.records) {
+      {
+        final target = element.findByCode(record.effect.elementId);
+        if (target != null) record.effect.elementByElementId = target;
+      }
+    }
+    for (final record in curse.records) {
       {
         final target = element.findByCode(record.effect.elementId);
         if (target != null) record.effect.elementByElementId = target;

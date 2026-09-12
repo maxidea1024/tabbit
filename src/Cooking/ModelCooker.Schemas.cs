@@ -189,7 +189,7 @@ public partial class ModelCooker
         if (declared.IsAbstract)
         {
             BindPolymorphicGroup(
-                context, table, group, naming[0], declared, declarations, diagnostics);
+                context, table, group, naming[0], declared, declarations, claimed, diagnostics);
 
             return;
         }

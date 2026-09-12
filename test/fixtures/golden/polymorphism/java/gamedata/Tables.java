@@ -11,8 +11,10 @@ import java.nio.file.Paths;
 
 /** Every table, loaded together so cross-table references can be resolved. */
 public final class Tables {
+    public BoonTable boon = new BoonTable();
     public ElementTable element = new ElementTable();
     public SkillTable skill = new SkillTable();
+    public CurseTable curse = new CurseTable();
     public ComboTable combo = new ComboTable();
 
     /**
@@ -81,17 +83,23 @@ public final class Tables {
      * <p>Safe to call on a loaded accessor. Every file is read into a set of its own and the references are linked among those, so nothing here is visible until all of it is: a failure part way through leaves the tables holding the load they already had, and no row ever points at a row from it.
      */
     public void readAll(String basePath, String fileExtension) {
+        BoonTable loadedBoonTable = new BoonTable();
+        loadedBoonTable.read(Paths.get(basePath, "Boon" + fileExtension));
         ElementTable loadedElementTable = new ElementTable();
         loadedElementTable.read(Paths.get(basePath, "Element" + fileExtension));
         SkillTable loadedSkillTable = new SkillTable();
         loadedSkillTable.read(Paths.get(basePath, "Skill" + fileExtension));
+        CurseTable loadedCurseTable = new CurseTable();
+        loadedCurseTable.read(Paths.get(basePath, "Curse" + fileExtension));
         ComboTable loadedComboTable = new ComboTable();
         loadedComboTable.read(Paths.get(basePath, "Combo" + fileExtension));
 
-        solveCrossReferences(loadedElementTable, loadedSkillTable, loadedComboTable);
+        solveCrossReferences(loadedBoonTable, loadedElementTable, loadedSkillTable, loadedCurseTable, loadedComboTable);
 
+        boon = loadedBoonTable;
         element = loadedElementTable;
         skill = loadedSkillTable;
+        curse = loadedCurseTable;
         combo = loadedComboTable;
     }
 
@@ -101,8 +109,24 @@ public final class Tables {
      * <p>The tables arrive as arguments and shadow the fields of the same name, which is
      * how this resolves the load being read rather than the one already published.
      */
-    private void solveCrossReferences(ElementTable element, SkillTable skill, ComboTable combo) {
+    private void solveCrossReferences(BoonTable boon, ElementTable element, SkillTable skill, CurseTable curse, ComboTable combo) {
+        for (BoonRecord record : boon.records()) {
+            {
+                ElementRecord target = element.findByCode(record.effect.elementId);
+                if (target != null) {
+                    record.effect.elementByElementId = target;
+                }
+            }
+        }
         for (SkillRecord record : skill.records()) {
+            {
+                ElementRecord target = element.findByCode(record.effect.elementId);
+                if (target != null) {
+                    record.effect.elementByElementId = target;
+                }
+            }
+        }
+        for (CurseRecord record : curse.records()) {
             {
                 ElementRecord target = element.findByCode(record.effect.elementId);
                 if (target != null) {

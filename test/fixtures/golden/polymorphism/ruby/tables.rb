@@ -11,9 +11,13 @@ require_relative 'enums/band'
 
 require_relative 'structs/effect'
 
+require_relative 'tables/boon_table'
+
 require_relative 'tables/element_table'
 
 require_relative 'tables/skill_table'
+
+require_relative 'tables/curse_table'
 
 require_relative 'tables/combo_table'
 
@@ -21,7 +25,7 @@ require_relative 'tables/combo_table'
 module GameData
   # Every table, loaded together so cross-table references can be resolved.
   class Tables
-    attr_reader :element, :skill, :combo
+    attr_reader :boon, :element, :skill, :curse, :combo
 
     class << self
       # The key the table files were sealed with, or nil when they were not sealed.
@@ -77,8 +81,10 @@ module GameData
     end
 
     def initialize
+      @boon = BoonTable.new
       @element = ElementTable.new
       @skill = SkillTable.new
+      @curse = CurseTable.new
       @combo = ComboTable.new
     end
 
@@ -87,17 +93,23 @@ module GameData
     # the references are linked among those, so a failure part way through leaves every
     # table holding the load it already had, and no row points at a row from it.
     def read_all(base_path, file_extension = '.tcb')
+      loaded_boon = BoonTable.new
+      loaded_boon.read(File.join(base_path, "Boon#{file_extension}"))
       loaded_element = ElementTable.new
       loaded_element.read(File.join(base_path, "Element#{file_extension}"))
       loaded_skill = SkillTable.new
       loaded_skill.read(File.join(base_path, "Skill#{file_extension}"))
+      loaded_curse = CurseTable.new
+      loaded_curse.read(File.join(base_path, "Curse#{file_extension}"))
       loaded_combo = ComboTable.new
       loaded_combo.read(File.join(base_path, "Combo#{file_extension}"))
 
-      solve_cross_references(loaded_element, loaded_skill, loaded_combo)
+      solve_cross_references(loaded_boon, loaded_element, loaded_skill, loaded_curse, loaded_combo)
 
+      @boon = loaded_boon
       @element = loaded_element
       @skill = loaded_skill
+      @curse = loaded_curse
       @combo = loaded_combo
     end
 
@@ -106,8 +118,16 @@ module GameData
     # Turns the stored indices into usable values, once every table is in memory.
     # The tables arrive as arguments rather than off the instance, which is how this
     # resolves the load being read rather than the one already published.
-    def solve_cross_references(element, skill, combo)
+    def solve_cross_references(boon, element, skill, curse, combo)
+      boon.records.each do |record|
+        target = element.find_by_code(record.effect.element_id)
+        record.effect.element_by_element_id = target unless target.nil?
+      end
       skill.records.each do |record|
+        target = element.find_by_code(record.effect.element_id)
+        record.effect.element_by_element_id = target unless target.nil?
+      end
+      curse.records.each do |record|
         target = element.find_by_code(record.effect.element_id)
         record.effect.element_by_element_id = target unless target.nil?
       end

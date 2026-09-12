@@ -7,8 +7,10 @@
 
 local _root = (...):match("^(.-)[^%.]*$")
 local tcb = require(_root .. "tabbit.tcb_reader")
+local BoonTable = require(_root .. "tables.boon_table")
 local ElementTable = require(_root .. "tables.element_table")
 local SkillTable = require(_root .. "tables.skill_table")
+local CurseTable = require(_root .. "tables.curse_table")
 local ComboTable = require(_root .. "tables.combo_table")
 
 -- Every table, loaded together so cross-table references can be resolved.
@@ -34,12 +36,14 @@ tables.macKey = nil
 -- is not a security boundary.
 tables.verifyMac = true
 
-local instanceMeta = tcb.strictInstance("a `tables` accessor", tables, { "element", "skill", "combo" })
+local instanceMeta = tcb.strictInstance("a `tables` accessor", tables, { "boon", "element", "skill", "curse", "combo" })
 
 function tables.new()
   return setmetatable({
+    boon = BoonTable.new(),
     element = ElementTable.new(),
     skill = SkillTable.new(),
+    curse = CurseTable.new(),
     combo = ComboTable.new(),
   }, instanceMeta)
 end
@@ -64,18 +68,48 @@ end
 function tables:readAll(source, fileExtension)
   fileExtension = fileExtension or ".tcb"
 
+  local loadedBoon = BoonTable.new()
+  loadedBoon:readBytes(bytesOf(source, "Boon", fileExtension))
+
   local loadedElement = ElementTable.new()
   loadedElement:readBytes(bytesOf(source, "Element", fileExtension))
 
   local loadedSkill = SkillTable.new()
   loadedSkill:readBytes(bytesOf(source, "Skill", fileExtension))
 
+  local loadedCurse = CurseTable.new()
+  loadedCurse:readBytes(bytesOf(source, "Curse", fileExtension))
+
   local loadedCombo = ComboTable.new()
   loadedCombo:readBytes(bytesOf(source, "Combo", fileExtension))
+
+  -- Turns loadedBoon's stored keys into rows, now that every table is in
+  -- memory.
+  for _, record in ipairs(loadedBoon.records) do
+    do
+      local target = loadedElement:findByCode(record.effect.elementId)
+
+      if target ~= nil then
+        record.effect.elementByElementId = target
+      end
+    end
+  end
 
   -- Turns loadedSkill's stored keys into rows, now that every table is in
   -- memory.
   for _, record in ipairs(loadedSkill.records) do
+    do
+      local target = loadedElement:findByCode(record.effect.elementId)
+
+      if target ~= nil then
+        record.effect.elementByElementId = target
+      end
+    end
+  end
+
+  -- Turns loadedCurse's stored keys into rows, now that every table is in
+  -- memory.
+  for _, record in ipairs(loadedCurse.records) do
     do
       local target = loadedElement:findByCode(record.effect.elementId)
 
@@ -98,8 +132,10 @@ function tables:readAll(source, fileExtension)
   end
 
   -- Published, now that every table read and linked.
+  self.boon = loadedBoon
   self.element = loadedElement
   self.skill = loadedSkill
+  self.curse = loadedCurse
   self.combo = loadedCombo
 end
 

@@ -406,6 +406,12 @@ public class Field
     ///
     /// A member of a declared struct is **not** this: somebody wrote that name in a `.tbs`
     /// file, and it is judged - under the spelling the declaration used.
+    ///
+    /// **A column the binding added is.** A polymorphic group may leave out the column of a
+    /// variant member no row uses, and the cooking adds it blank so that every table naming
+    /// the abstract type has the same members. Its name is the declaration's, which was judged
+    /// there; what the sheet has is no cell at all, which is also what a report about a blank
+    /// in it has to say. spec/types/polymorphism.md section 5.2.
     /// </remarks>
     public bool Synthesized { get; set; }
 

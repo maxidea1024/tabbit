@@ -36,6 +36,7 @@ public partial class ModelCooker
         Field naming,
         SchemaStruct declared,
         SchemaDeclarations declarations,
+        HashSet<Field> claimed,
         Diagnostics diagnostics)
     {
         var variants = declarations.VariantsOf(declared.Name).ToList();
@@ -72,6 +73,12 @@ public partial class ModelCooker
         foreach (var field in discriminators)
             BindDiscriminator(context, table, field, declared, variants, declarations);
 
+        // The columns this sheet did not write for members the declaration did, before the
+        // members are bound - so that what is bound below is the declaration's member list
+        // and not this sheet's subset of it.
+        SynthesizeMissingVariantMembers(
+            context, table, group, discriminators, declared, variants, claimed, diagnostics);
+
         foreach (var field in group)
         {
             if (field.IsDiscriminator)
@@ -83,6 +90,240 @@ public partial class ModelCooker
                                                  && other.NamePath[0].Index is not null));
         }
     }
+
+    /// <summary>
+    /// Adds a column, blank in every row, for each variant member the sheet left out.
+    /// </summary>
+    /// <remarks>
+    /// **A variant member is an optional column, so a sheet may leave it out - and the type
+    /// the generators write is one per declaration, not one per sheet.** Two tables naming the
+    /// same abstract type used to arrive with different member lists when one of them had no
+    /// row using some member and so no column for it. The shared variant type took its
+    /// members from whichever table was gathered first, and the other table's flat entry -
+    /// which has only its own columns - then had no field for the code that builds the variant
+    /// to read. In one order that did not compile; in the other, the member was dropped from
+    /// the type and a column the second sheet did fill was unreachable.
+    ///
+    /// The column added here is exactly the one the author would have written and left blank:
+    /// the same name, the same optional presence, the same place at the end of the group. So
+    /// the file, the entry and the variant type come out the same whether the sheet wrote it
+    /// or not, and the generators need know nothing about it. spec/types/polymorphism.md
+    /// section 5.2.
+    ///
+    /// Two cases are refused rather than filled in. A base field is present in every row by
+    /// definition, so a group with no column for one is not that type - the same report a
+    /// plain struct group gets. And a table whose sheet wrote its wire tags out has no tag to
+    /// give a column nobody wrote, and inventing one would be the very thing explicit tags
+    /// exist to rule out.
+    ///
+    /// Per element of a multi-row group, because each element's members are columns of their
+    /// own in the model and the sheet may have left one out for every element at once.
+    /// </remarks>
+    private static void SynthesizeMissingVariantMembers(
+        CookingContext context,
+        Table table,
+        List<Field> group,
+        List<Field> discriminators,
+        SchemaStruct declared,
+        List<SchemaStruct> variants,
+        HashSet<Field> claimed,
+        Diagnostics diagnostics)
+    {
+        var added = new List<(Field After, Field Field)>();
+
+        foreach (var discriminator in discriminators)
+        {
+            if (discriminator.NamePath is not { Count: > 1 } path)
+                continue;
+
+            int? element = path[0].Index;
+
+            var siblings = group
+                .Where(field => field.NamePath is { Count: > 1 }
+                                && field.NamePath[0].Index == element)
+                .ToList();
+
+            var written = siblings
+                .Select(field => field.NamePath![^1].Name)
+                .ToHashSet(System.StringComparer.Ordinal);
+
+            // A multi-row group's header is one column per member, so what one element lacks
+            // every element lacks. Said once, against the first.
+            bool reporting = ReferenceEquals(discriminator, discriminators[0]);
+
+            foreach (var member in declared.LiveFields)
+            {
+                if (written.Contains(member.Name.ToPascalCase()) || !reporting)
+                    continue;
+
+                diagnostics.Error(member.Location, Message.Of(
+                    SchemaMessages.MemberHasNoColumn,
+                    ("Table", table.Name),
+                    ("Group", discriminator.GroupName ?? ""),
+                    ("Struct", declared.Name),
+                    ("Member", member.Name)));
+            }
+
+            foreach (var variant in variants)
+            {
+                foreach (var member in variant.LiveFields)
+                {
+                    string spelled = member.Name.ToPascalCase();
+
+                    // A member two variants share is one column, so the second declaration
+                    // of it finds the first one's column - written or added just now.
+                    if (!written.Add(spelled))
+                        continue;
+
+                    if (table.HasExplicitTags)
+                    {
+                        if (reporting)
+                        {
+                            diagnostics.Error(member.Location, Message.Of(
+                                SchemaMessages.MemberHasNoColumn,
+                                ("Table", table.Name),
+                                ("Group", discriminator.GroupName ?? ""),
+                                ("Struct", variant.Name),
+                                ("Member", member.Name)));
+                        }
+
+                        continue;
+                    }
+
+                    var last = siblings[^1];
+
+                    var field = SynthesizeMemberColumn(table, discriminator, last, member.Name);
+
+                    siblings.Add(field);
+                    added.Add((last, field));
+                }
+            }
+        }
+
+        if (added.Count == 0)
+            return;
+
+        // The cells first, so that every field's index names a cell in every row. One column
+        // per added field, appended - the row is as wide as the sheet's columns and no field
+        // reads past them.
+        int width = table.Fields.Count == 0 ? 0 : table.Fields.Max(field => field.Index) + 1;
+
+        foreach (var rowSet in table.RowSets)
+        foreach (var row in rowSet.Rows)
+            width = System.Math.Max(width, row.Count);
+
+        for (int at = 0; at < added.Count; at++)
+        {
+            var field = added[at].Field;
+            field.Index = width + at;
+
+            foreach (var rowSet in table.RowSets)
+            foreach (var row in rowSet.Rows)
+            {
+                // A row is where its own cells put it. The `$type` cell of the row is the one
+                // a report about this row's group would point at, so the blank borrows its
+                // place - not its text, which is a variant's name.
+                var where = row.Count > 0
+                    ? row[System.Math.Min(row.Count - 1, discriminators[0].Index)].RawCell?.Location
+                    : null;
+
+                while (row.Count < field.Index)
+                    row.Add(BlankCell(where ?? discriminators[0].NameLocation, present: false));
+
+                row.Add(BlankCell(where ?? discriminators[0].NameLocation, present: true));
+            }
+        }
+
+        // Then the fields, each after the last column of its element, so a member the sheet
+        // left out sits where the author would have put it and the group stays in one piece.
+        foreach (var (after, field) in added)
+        {
+            table.Fields.Insert(table.Fields.IndexOf(after) + 1, field);
+            group.Add(field);
+            claimed.Add(field);
+        }
+
+        // Ordinal tags were positions in a column list that has just changed. Cleared rather
+        // than adjusted, because an ordinal tag has no identity to preserve - and a table that
+        // wrote its tags out was refused above, so none of these is one the author chose.
+        table.InvalidateDerivedColumns();
+
+        foreach (var field in table.Fields)
+            field.WireTag = null;
+
+        context.AssignTags(table);
+    }
+
+    /// <summary>
+    /// The column a sheet would have written for a variant member and left blank.
+    /// </summary>
+    /// <remarks>
+    /// Declared the way a member column whose type cell was left empty is: untyped until the
+    /// binding reads its declaration, which is what happens to it next. The header cells it
+    /// points at are the discriminator's, because that is the cell an author edits to change
+    /// what the group is.
+    /// </remarks>
+    private static Field SynthesizeMemberColumn(
+        Table table, Field discriminator, Field last, string memberName)
+    {
+        var path = discriminator.NamePath!;
+        string spelled = memberName.ToPascalCase();
+
+        var namePath = new List<FieldPathStep>(path.Take(path.Count - 1))
+        {
+            new FieldPathStep { Name = spelled, Index = null },
+        };
+
+        int dot = last.RawName.LastIndexOf('.');
+        string prefix = dot < 0 ? last.RawName : last.RawName[..dot];
+
+        return new Field
+        {
+            OwnerTable = table,
+            NameLocation = discriminator.NameLocation,
+            TypeLocation = discriminator.TypeLocation,
+            DetailTypeLocation = discriminator.DetailTypeLocation,
+            TargetSideLocation = discriminator.TargetSideLocation,
+            TargetSide = discriminator.TargetSide,
+
+            // The declaration's own spelling, for the reason a packed struct's member keeps
+            // it: the naming rules judge what somebody wrote, and this name was written in
+            // the `.tbs` file.
+            RawName = $"{prefix}.{memberName}",
+            Name = string.Concat(namePath.Select(
+                step => step.Name
+                        + (step.Index?.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                           ?? ""))),
+            NamePath = namePath,
+
+            Comment = "",
+            TypeName = "",
+            Type = CookingContext.DeferredType,
+            IsRequired = true,
+            ElementsRequired = true,
+            WireTag = null,
+            Index = 0,
+
+            // Nobody wrote this column, so the spelling rules have nothing to judge and a
+            // report about a blank in it has to say the column is missing rather than point
+            // at a cell. See `Field.Synthesized`.
+            Synthesized = true,
+        };
+    }
+
+    /// <summary>A cell the sheet did not write, in a column it did not have.</summary>
+    /// <remarks>
+    /// Present and empty, exactly as a blank cell under a written header arrives: the binding
+    /// that reads the column as its declared type is what turns an empty string in an optional
+    /// column into absence, and it has to see the same thing here that it sees there.
+    /// </remarks>
+    private static Cell BlankCell(Location where, bool present)
+        => new Cell
+        {
+            RawCell = new Models.Raw.RawCell { Location = where, Value = "" },
+            Value = "",
+            HasValue = present,
+        };
 
     /// <summary>
     /// The `$type` column: an integer carrying each row's variant number.
@@ -522,9 +763,13 @@ public partial class ModelCooker
     /// </summary>
     /// <remarks>
     /// **First group wins, and any group would do.** The declaration fixes what the members
-    /// are and the binding refuses a group whose columns disagree, so two tables using one
-    /// abstract type give the same answer - and taking the columns from one of them is what
-    /// lets every generator write the type with the machinery it already has.
+    /// are, and the binding makes every group carry all of them: a column whose type disagrees
+    /// is refused, a base field with no column is refused, and a variant member with no column
+    /// is added blank - `SynthesizeMissingVariantMembers`. So two tables using one abstract
+    /// type give the same answer, and taking the columns from one of them is what lets every
+    /// generator write the type with the machinery it already has. Without that last rule the
+    /// answer depended on which table came first, and a table whose sheet had no row using
+    /// some member got a variant builder reading a field its entry did not have.
     ///
     /// Nothing is gathered for an abstract type no sheet used. A declaration on its own is not
     /// a type in the output, the same way an enum nobody typed a column with is not.

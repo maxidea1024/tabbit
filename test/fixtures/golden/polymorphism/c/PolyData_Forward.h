@@ -16,8 +16,10 @@
 extern "C" {
 #endif
 
+typedef struct PolyData_BoonRecord_t PolyData_BoonRecord_t;
 typedef struct PolyData_ElementRecord_t PolyData_ElementRecord_t;
 typedef struct PolyData_SkillRecord_t PolyData_SkillRecord_t;
+typedef struct PolyData_CurseRecord_t PolyData_CurseRecord_t;
 typedef struct PolyData_ComboRecord_t PolyData_ComboRecord_t;
 
 /* The key the table files were sealed with, and its length - NULL and 0 when they were not

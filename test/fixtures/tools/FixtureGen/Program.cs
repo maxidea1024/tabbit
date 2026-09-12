@@ -2210,6 +2210,44 @@ internal static class Program
     private static void WritePolymorphism(string path)
     {
         var workbook = new XSSFWorkbook();
+
+        // **A table that wrote only some of the union's columns, and it comes first.** A
+        // variant member is an optional column, so a sheet with no row using one may leave it
+        // out - `Boon` has no `Band` and no `ElementId`. The abstract type is one type across
+        // every table that names it, and this table is the first one the cooking meets, so
+        // the members it lacks are the ones the type would have lost. `Curse`, on the next
+        // sheet after `Skill`, lacks `Amount` instead, which is the other order: a member the
+        // type already has and this table's entry does not. The cooking adds the missing
+        // columns blank, and both tables have to read back through every language.
+        // spec/types/polymorphism.md section 5.2.
+        var subsetSheet = new SheetBuilder(workbook.CreateSheet("PolymorphicSubset"));
+
+        var boon = new TableSpec
+        {
+            Name = "Boon",
+            Comment = "Blessings whose effect is one of several shapes, written without the columns no row uses.",
+        };
+
+        boon
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Name", "string", "plain column, outside the group"))
+            .Field(FieldSpec.Of("Effect.$type", "Effect", "which shape this row's effect is"))
+            .Field(FieldSpec.Of("Effect.Chance", "", ""))
+            .Field(FieldSpec.Of("Effect.Damage", "", ""))
+            .Field(FieldSpec.Of("Effect.Pierces", "", ""))
+            .Field(FieldSpec.Of("Effect.Amount", "", ""));
+
+        // No damaging row. `ElementId` is a reference, and a reference member of a row's own
+        // variant is refused blank wherever it is - so a table without that column can hold
+        // no row of the variant that has it. The `Damage` and `Pierces` columns stay, blank on
+        // every row, which is the other way a sheet can carry a member nobody uses.
+        boon
+            .Row("1", "Bless", "HealEffect", "80", "", "", "15")
+            .Row("2", "Idle",  "NoEffect",   "5",  "", "", "")
+            .Row("3", "Renew", "HealEffect", "40", "", "", "5");
+
+        subsetSheet.Table(1, 1, boon);
+
         var b = new SheetBuilder(workbook.CreateSheet("Polymorphism"));
 
         // The catalogue a variant member points at. First, because a reference is resolved
@@ -2274,6 +2312,31 @@ internal static class Program
         // Beside the catalogue rather than under it, which is what the other fixtures with
         // two tables on one sheet do - a blank column between is what separates them.
         b.Table(5, 1, spec);
+
+        // The other subset, after the full table: no `Amount`, so a healing row here has
+        // nothing of its own but its band. See the note on `Boon` above.
+        var curse = new TableSpec
+        {
+            Name = "Curse",
+            Comment = "Afflictions whose effect is one of several shapes, written without the columns no row uses.",
+        };
+
+        curse
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Name", "string", "plain column, outside the group"))
+            .Field(FieldSpec.Of("Effect.$type", "Effect", "which shape this row's effect is"))
+            .Field(FieldSpec.Of("Effect.Chance", "", ""))
+            .Field(FieldSpec.Of("Effect.Damage", "", ""))
+            .Field(FieldSpec.Of("Effect.Pierces", "", ""))
+            .Field(FieldSpec.Of("Effect.ElementId", "", ""))
+            .Field(FieldSpec.Of("Effect.Band", "", ""));
+
+        curse
+            .Row("1", "Hex",    "DamageEffect", "40", "10", "FALSE", "2", "")
+            .Row("2", "Wither", "HealEffect",   "70", "",   "",      "",  "Rare")
+            .Row("3", "Null",   "NoEffect",     "1",  "",   "",      "",  "");
+
+        b.Table(15, 1, curse);
 
         // **The array of them**, on a sheet of its own so its extension rows cannot be read as
         // the other tables'. Section 5.3: multi-row, and each element's own `$type` cell says

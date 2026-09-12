@@ -137,6 +137,70 @@ struct FNoEffect
 };
 
 
+// Generated from test/fixtures/xlsx/polymorphism/polymorphism.xlsx : PolymorphicSubset : B2
+/** One element of FBoonRow::Effect. */
+USTRUCT(BlueprintType)
+struct POLYMORPHISM_API FBoonEffectEntry
+{
+    GENERATED_BODY()
+
+    /** which shape this row's effect is */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boon")
+    int32 Type = 0;
+
+    /** How likely it is to land, in percent. Every variant carries it, so it is one column and */
+    /** every row fills it. */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boon")
+    int32 Chance = 0;
+
+    /** How much it takes. */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boon")
+    int32 Damage = 0;
+
+    /** Whether it ignores armour. */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boon")
+    bool bPierces = false;
+
+    /** How much it gives. */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boon")
+    int32 Amount = 0;
+
+    /** Which element it deals, as a row of that catalogue. */
+    /**  */
+    /** **A reference on a variant member is the shape a real project reaches for first** - "the */
+    /** reward is an item, or a currency, or a monster" is that shape - and it is a different */
+    /** path twice over: the blank cells of the other variants go through the reference */
+    /** conversion, and the built variant has to carry the resolved row rather than the key. */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boon")
+    int32 ElementId = 0;
+
+    /** How often it lands, as a band rather than a number. */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boon")
+    EBand Band = static_cast<EBand>(0);
+
+};
+
+/** Blessings whose effect is one of several shapes, written without the columns no row uses. */
+USTRUCT(BlueprintType)
+struct POLYMORPHISM_API FBoonRow
+{
+    GENERATED_BODY()
+
+    /** primary index */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boon")
+    int32 Index = 0;
+
+    /** plain column, outside the group */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boon")
+    FString Name;
+
+    /** which shape this row's effect is */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boon")
+    FBoonEffectEntry Effect;
+
+};
+
+
 // Generated from test/fixtures/xlsx/polymorphism/polymorphism.xlsx : Polymorphism : B2
 /** What a damaging effect is made of. */
 USTRUCT(BlueprintType)
@@ -219,6 +283,70 @@ struct POLYMORPHISM_API FSkillRow
 };
 
 
+// Generated from test/fixtures/xlsx/polymorphism/polymorphism.xlsx : Polymorphism : P2
+/** One element of FCurseRow::Effect. */
+USTRUCT(BlueprintType)
+struct POLYMORPHISM_API FCurseEffectEntry
+{
+    GENERATED_BODY()
+
+    /** which shape this row's effect is */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Curse")
+    int32 Type = 0;
+
+    /** How likely it is to land, in percent. Every variant carries it, so it is one column and */
+    /** every row fills it. */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Curse")
+    int32 Chance = 0;
+
+    /** How much it takes. */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Curse")
+    int32 Damage = 0;
+
+    /** Whether it ignores armour. */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Curse")
+    bool bPierces = false;
+
+    /** Which element it deals, as a row of that catalogue. */
+    /**  */
+    /** **A reference on a variant member is the shape a real project reaches for first** - "the */
+    /** reward is an item, or a currency, or a monster" is that shape - and it is a different */
+    /** path twice over: the blank cells of the other variants go through the reference */
+    /** conversion, and the built variant has to carry the resolved row rather than the key. */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Curse")
+    int32 ElementId = 0;
+
+    /** How often it lands, as a band rather than a number. */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Curse")
+    EBand Band = static_cast<EBand>(0);
+
+    /** How much it gives. */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Curse")
+    int32 Amount = 0;
+
+};
+
+/** Afflictions whose effect is one of several shapes, written without the columns no row uses. */
+USTRUCT(BlueprintType)
+struct POLYMORPHISM_API FCurseRow
+{
+    GENERATED_BODY()
+
+    /** primary index */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Curse")
+    int32 Index = 0;
+
+    /** plain column, outside the group */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Curse")
+    FString Name;
+
+    /** which shape this row's effect is */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Curse")
+    FCurseEffectEntry Effect;
+
+};
+
+
 // Generated from test/fixtures/xlsx/polymorphism/polymorphism.xlsx : PolymorphicArray : B2
 /** One element of FComboRow::Effects. */
 USTRUCT(BlueprintType)
@@ -280,6 +408,108 @@ struct POLYMORPHISM_API FComboRow
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combo")
     TArray<FComboEffectsEntry> Effects;
 
+};
+
+
+/** Every row of Boon. */
+class POLYMORPHISM_API FBoonTable
+{
+public:
+    const TArray<FBoonRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
+    /**
+     * The row with this Index, or nullptr when the table has none.
+     *
+     * The lookup to reach for when a missing row is an ordinary answer - an optional
+     * reference, a key that came from user input.
+     */
+    const FBoonRow* FindByIndex(int32 Key) const;
+
+    /** Whether the table holds a row with this Index. */
+    bool ContainsIndex(int32 Key) const;
+
+
+    /** Which shape a row's FEffect took. */
+    static FEffectKind EffectKind(const FBoonRow& Row)
+    {
+        return static_cast<FEffectKind>(Row.Effect.Type);
+    }
+
+
+    /** Fills Out when the row is a FDamageEffect, and answers whether it was. */
+    static bool EffectAsDamageEffect(
+        const FBoonRow& Row, FDamageEffect& Out)
+    {
+        const FBoonEffectEntry& Entry = Row.Effect;
+
+        if (Entry.Type != 1)
+        {
+            return false;
+        }
+
+        Out.Chance = Entry.Chance;
+        Out.Damage = Entry.Damage;
+        Out.Pierces = Entry.Pierces;
+        Out.ElementId = Entry.ElementId;
+        Out.ElementByElementId = Entry.ElementByElementId;
+        return true;
+    }
+
+
+    /** Fills Out when the row is a FHealEffect, and answers whether it was. */
+    static bool EffectAsHealEffect(
+        const FBoonRow& Row, FHealEffect& Out)
+    {
+        const FBoonEffectEntry& Entry = Row.Effect;
+
+        if (Entry.Type != 2)
+        {
+            return false;
+        }
+
+        Out.Chance = Entry.Chance;
+        Out.Amount = Entry.Amount;
+        Out.Band = Entry.Band;
+        return true;
+    }
+
+
+    /** Fills Out when the row is a FNoEffect, and answers whether it was. */
+    static bool EffectAsNoEffect(
+        const FBoonRow& Row, FNoEffect& Out)
+    {
+        const FBoonEffectEntry& Entry = Row.Effect;
+
+        if (Entry.Type != 3)
+        {
+            return false;
+        }
+
+        Out.Chance = Entry.Chance;
+        return true;
+    }
+    /** Loads the table from a .tcb file written by Tabbit. */
+    bool Read(const FString& Filename);
+
+private:
+    TArray<FBoonRow> RecordsStorage;
+    TMap<int32, int32> ByIndex;
 };
 
 
@@ -427,6 +657,108 @@ private:
 };
 
 
+/** Every row of Curse. */
+class POLYMORPHISM_API FCurseTable
+{
+public:
+    const TArray<FCurseRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
+    /**
+     * The row with this Index, or nullptr when the table has none.
+     *
+     * The lookup to reach for when a missing row is an ordinary answer - an optional
+     * reference, a key that came from user input.
+     */
+    const FCurseRow* FindByIndex(int32 Key) const;
+
+    /** Whether the table holds a row with this Index. */
+    bool ContainsIndex(int32 Key) const;
+
+
+    /** Which shape a row's FEffect took. */
+    static FEffectKind EffectKind(const FCurseRow& Row)
+    {
+        return static_cast<FEffectKind>(Row.Effect.Type);
+    }
+
+
+    /** Fills Out when the row is a FDamageEffect, and answers whether it was. */
+    static bool EffectAsDamageEffect(
+        const FCurseRow& Row, FDamageEffect& Out)
+    {
+        const FCurseEffectEntry& Entry = Row.Effect;
+
+        if (Entry.Type != 1)
+        {
+            return false;
+        }
+
+        Out.Chance = Entry.Chance;
+        Out.Damage = Entry.Damage;
+        Out.Pierces = Entry.Pierces;
+        Out.ElementId = Entry.ElementId;
+        Out.ElementByElementId = Entry.ElementByElementId;
+        return true;
+    }
+
+
+    /** Fills Out when the row is a FHealEffect, and answers whether it was. */
+    static bool EffectAsHealEffect(
+        const FCurseRow& Row, FHealEffect& Out)
+    {
+        const FCurseEffectEntry& Entry = Row.Effect;
+
+        if (Entry.Type != 2)
+        {
+            return false;
+        }
+
+        Out.Chance = Entry.Chance;
+        Out.Amount = Entry.Amount;
+        Out.Band = Entry.Band;
+        return true;
+    }
+
+
+    /** Fills Out when the row is a FNoEffect, and answers whether it was. */
+    static bool EffectAsNoEffect(
+        const FCurseRow& Row, FNoEffect& Out)
+    {
+        const FCurseEffectEntry& Entry = Row.Effect;
+
+        if (Entry.Type != 3)
+        {
+            return false;
+        }
+
+        Out.Chance = Entry.Chance;
+        return true;
+    }
+    /** Loads the table from a .tcb file written by Tabbit. */
+    bool Read(const FString& Filename);
+
+private:
+    TArray<FCurseRow> RecordsStorage;
+    TMap<int32, int32> ByIndex;
+};
+
+
 /** Every row of Combo. */
 class POLYMORPHISM_API FComboTable
 {
@@ -545,8 +877,10 @@ private:
 class POLYMORPHISM_API PolymorphismData
 {
 public:
+    static const FBoonTable& Boon() { return BoonStorage; }
     static const FElementTable& Element() { return ElementStorage; }
     static const FSkillTable& Skill() { return SkillStorage; }
+    static const FCurseTable& Curse() { return CurseStorage; }
     static const FComboTable& Combo() { return ComboStorage; }
 
     /**
@@ -610,8 +944,10 @@ public:
     static bool bVerifyMac;
 
 private:
+    static FBoonTable BoonStorage;
     static FElementTable ElementStorage;
     static FSkillTable SkillStorage;
+    static FCurseTable CurseStorage;
     static FComboTable ComboStorage;
 };
 
@@ -634,6 +970,34 @@ class POLYMORPHISM_API UPolymorphismDataLibrary : public UBlueprintFunctionLibra
     GENERATED_BODY()
 
 public:
+
+    /**
+     * The Boon row with the given Index.
+     *
+     * bFound rather than a pointer, because Blueprint has no null struct - a graph that
+     * ignored a failure would otherwise carry a default row it could not tell apart from
+     * a real one.
+     */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Boon",
+              meta = (DisplayName = "Get Boon Row"))
+    static FBoonRow GetBoonRow(int32 Key, bool& bFound);
+
+    /** How many Boon rows were loaded. */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Boon",
+              meta = (DisplayName = "Get Boon Row Count"))
+    static int32 GetBoonRowCount();
+
+    /**
+     * The Boon row at a position, for walking the table in order.
+     *
+     * A position and a count rather than the whole array. Blueprint takes a return value
+     * by value, so handing back a TArray would copy every row of the table on every call -
+     * and a reference return is not something Unreal Header Tool accepts. With these two a
+     * graph can loop over the table and copy one row per turn.
+     */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Boon",
+              meta = (DisplayName = "Get Boon Row At"))
+    static FBoonRow GetBoonRowAt(int32 Position, bool& bFound);
 
     /**
      * The Element row with the given Code.
@@ -690,6 +1054,34 @@ public:
     UFUNCTION(BlueprintPure, Category = "Tabbit|Skill",
               meta = (DisplayName = "Get Skill Row At"))
     static FSkillRow GetSkillRowAt(int32 Position, bool& bFound);
+
+    /**
+     * The Curse row with the given Index.
+     *
+     * bFound rather than a pointer, because Blueprint has no null struct - a graph that
+     * ignored a failure would otherwise carry a default row it could not tell apart from
+     * a real one.
+     */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Curse",
+              meta = (DisplayName = "Get Curse Row"))
+    static FCurseRow GetCurseRow(int32 Key, bool& bFound);
+
+    /** How many Curse rows were loaded. */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Curse",
+              meta = (DisplayName = "Get Curse Row Count"))
+    static int32 GetCurseRowCount();
+
+    /**
+     * The Curse row at a position, for walking the table in order.
+     *
+     * A position and a count rather than the whole array. Blueprint takes a return value
+     * by value, so handing back a TArray would copy every row of the table on every call -
+     * and a reference return is not something Unreal Header Tool accepts. With these two a
+     * graph can loop over the table and copy one row per turn.
+     */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Curse",
+              meta = (DisplayName = "Get Curse Row At"))
+    static FCurseRow GetCurseRowAt(int32 Position, bool& bFound);
 
     /**
      * The Combo row with the given Index.

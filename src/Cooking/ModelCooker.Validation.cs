@@ -601,6 +601,20 @@ public partial class ModelCooker
                 // first location, which holds the index and is never empty.
                 if (string.IsNullOrEmpty((cell.RawCell?.Value ?? "").Trim()))
                 {
+                    // A column the sheet never had, added blank by the polymorphic binding
+                    // for a member no row was expected to use. This row's variant does use
+                    // it, so the blank is refused as any other - but the report has to say
+                    // that the column is missing, since there is no cell to fill in.
+                    if (field.Synthesized && field.NamePath is not null)
+                    {
+                        diagnostics.Error(cell.RawCell?.Location ?? field.NameLocation,
+                            Message.Of(CookingMessages.ReferenceColumnMissing,
+                                ("Table", table.Name),
+                                ("Field", FieldPath.Describe(field.NamePath)),
+                                ("Target", foreignTable.Name)));
+                        continue;
+                    }
+
                     diagnostics.Error(cell.RawCell?.Location ?? field.NameLocation,
                         Message.Of(CookingMessages.ReferenceBlank,
                             ("Table", table.Name), ("Field", field.Name),

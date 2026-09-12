@@ -1,8 +1,14 @@
 {
   "LastUpdatedDate": "<TIMESTAMP>",
-  "MasterHash": "09448e028cf3c61492c9e902cfbc7017",
-  "TotalSize": 2337,
+  "MasterHash": "c7a2ff1e4ff3eab6221fde78e1a223d1",
+  "TotalSize": 3570,
   "Items": [
+    {
+      "Name": "Boon.json",
+      "Size": 617,
+      "Hash": "b22aa5b6c595451b26dc3812365b2918",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
     {
       "Name": "Element.json",
       "Size": 88,
@@ -13,6 +19,12 @@
       "Name": "Skill.json",
       "Size": 1033,
       "Hash": "7d0b1ac5b2a86c7585ed953c76269c10",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Curse.json",
+      "Size": 616,
+      "Hash": "73a2a08d61b1f1245afebc07b5eb040a",
       "LastUpdatedDate": "<TIMESTAMP>"
     },
     {

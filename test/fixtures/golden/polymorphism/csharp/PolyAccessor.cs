@@ -113,8 +113,10 @@ public partial class PolyAccessor
     /// </remarks>
     public sealed class Snapshot
     {
+        public BoonTable Boon = new BoonTable();
         public ElementTable Element = new ElementTable();
         public SkillTable Skill = new SkillTable();
+        public CurseTable Curse = new CurseTable();
         public ComboTable Combo = new ComboTable();
     }
 
@@ -128,6 +130,11 @@ public partial class PolyAccessor
     public static Snapshot Current { get; private set; }
 
     /// <summary>
+    /// Property for Boon table.
+    /// </summary>
+    public static BoonTable Boon => Current.Boon;
+
+    /// <summary>
     /// Property for Element table.
     /// </summary>
     public static ElementTable Element => Current.Element;
@@ -136,6 +143,11 @@ public partial class PolyAccessor
     /// Property for Skill table.
     /// </summary>
     public static SkillTable Skill => Current.Skill;
+
+    /// <summary>
+    /// Property for Curse table.
+    /// </summary>
+    public static CurseTable Curse => Current.Curse;
 
     /// <summary>
     /// Property for Combo table.
@@ -155,8 +167,10 @@ public partial class PolyAccessor
     {
         var snapshot = new Snapshot();
         var tasks = new List<Task>();
+        tasks.Add(snapshot.Boon.ReadAsync(System.IO.Path.Combine(basePath, $"Boon{fileExtension}")));
         tasks.Add(snapshot.Element.ReadAsync(System.IO.Path.Combine(basePath, $"Element{fileExtension}")));
         tasks.Add(snapshot.Skill.ReadAsync(System.IO.Path.Combine(basePath, $"Skill{fileExtension}")));
+        tasks.Add(snapshot.Curse.ReadAsync(System.IO.Path.Combine(basePath, $"Curse{fileExtension}")));
         tasks.Add(snapshot.Combo.ReadAsync(System.IO.Path.Combine(basePath, $"Combo{fileExtension}")));
 
         await Task.WhenAll(tasks);
@@ -201,7 +215,23 @@ public partial class PolyAccessor
     /// </summary>
     private static void SolveCrossReferences(Snapshot snapshot)
     {
+        foreach (var record in snapshot.Boon.Records)
+        {
+            if (record._effect.ElementId > 0)
+            {
+                record._effect.ElementByElementId = snapshot.Element.GetByCodeOrThrow(record._effect.ElementId);
+            }
+        }
+
         foreach (var record in snapshot.Skill.Records)
+        {
+            if (record._effect.ElementId > 0)
+            {
+                record._effect.ElementByElementId = snapshot.Element.GetByCodeOrThrow(record._effect.ElementId);
+            }
+        }
+
+        foreach (var record in snapshot.Curse.Records)
         {
             if (record._effect.ElementId > 0)
             {

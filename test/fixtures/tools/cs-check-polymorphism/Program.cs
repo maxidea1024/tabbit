@@ -62,6 +62,23 @@ internal static class Program
                         ",", r.Effects.Select(effect => effect.GetType().Name)),
                     ["own"] = string.Join(",", r.Effects.Select(Own)),
                 }).ToList(),
+
+                // **The two tables whose sheets left out columns no row of theirs used.** The
+                // same `Effect` and the same `Own`, which is the claim: a member the sheet did
+                // not write is still a member of the type, and reads as its empty value.
+                ["Boon"] = PolyAccessor.Boon.Records.Select(r => new Dictionary<string, object>
+                {
+                    ["name"] = r.Name,
+                    ["kind"] = r.Effect.GetType().Name,
+                    ["own"] = Own(r.Effect),
+                }).ToList(),
+
+                ["Curse"] = PolyAccessor.Curse.Records.Select(r => new Dictionary<string, object>
+                {
+                    ["name"] = r.Name,
+                    ["kind"] = r.Effect.GetType().Name,
+                    ["own"] = Own(r.Effect),
+                }).ToList(),
             };
 
             Console.WriteLine(JsonSerializer.Serialize(report));
@@ -85,8 +102,11 @@ internal static class Program
         if (effect is DamageEffect damage)
             return $"damage={damage.Damage},pierces={damage.Pierces}";
 
+        // The band too, because a table whose sheet had no `Band` column still has to hand
+        // back the declared member - as its empty value - and one whose sheet had it has to
+        // hand back what it wrote, whichever table the shared type was gathered from.
         if (effect is HealEffect heal)
-            return $"amount={heal.Amount}";
+            return $"amount={heal.Amount},band={heal.Band}";
 
         if (effect is NoEffect)
             return "none";

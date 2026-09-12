@@ -9,15 +9,17 @@ import enum
 import os
 
 from . import tabbit
+from .boon_table import BoonTable
 from .element_table import ElementTable
 from .skill_table import SkillTable
+from .curse_table import CurseTable
 from .combo_table import ComboTable
 
 
 class Tables:
     """Every table, loaded together so cross-table references can be resolved."""
 
-    __slots__ = ("element", "skill", "combo")
+    __slots__ = ("boon", "element", "skill", "curse", "combo")
 
     #: The key the table files were sealed with, or None when they were not sealed.
     #:
@@ -64,8 +66,10 @@ class Tables:
     verify_mac = True
 
     def __init__(self):
+        self.boon = BoonTable()
         self.element = ElementTable()
         self.skill = SkillTable()
+        self.curse = CurseTable()
         self.combo = ComboTable()
 
     def read_all(self, base_path, file_extension=".tcb"):
@@ -78,26 +82,40 @@ class Tables:
         the references are linked among those, so a failure part way through leaves every
         table holding the load it already had, and no row points at a row from it.
         """
+        loaded_boon = BoonTable()
+        loaded_boon.read(os.path.join(base_path, "Boon" + file_extension))
         loaded_element = ElementTable()
         loaded_element.read(os.path.join(base_path, "Element" + file_extension))
         loaded_skill = SkillTable()
         loaded_skill.read(os.path.join(base_path, "Skill" + file_extension))
+        loaded_curse = CurseTable()
+        loaded_curse.read(os.path.join(base_path, "Curse" + file_extension))
         loaded_combo = ComboTable()
         loaded_combo.read(os.path.join(base_path, "Combo" + file_extension))
 
-        self._solve_cross_references(loaded_element, loaded_skill, loaded_combo)
+        self._solve_cross_references(loaded_boon, loaded_element, loaded_skill, loaded_curse, loaded_combo)
 
+        self.boon = loaded_boon
         self.element = loaded_element
         self.skill = loaded_skill
+        self.curse = loaded_curse
         self.combo = loaded_combo
 
-    def _solve_cross_references(self, element, skill, combo):
+    def _solve_cross_references(self, boon, element, skill, curse, combo):
         """Turns the stored indices into usable values, once every table is in memory.
 
         The tables arrive as arguments rather than off self, which is how this resolves the
         load being read rather than the one already published.
         """
+        for record in boon.records:
+            target = element.find_by_code(record.effect.element_id)
+            if target is not None:
+                record.effect.element_by_element_id = target
         for record in skill.records:
+            target = element.find_by_code(record.effect.element_id)
+            if target is not None:
+                record.effect.element_by_element_id = target
+        for record in curse.records:
             target = element.find_by_code(record.effect.element_id)
             if target is not None:
                 record.effect.element_by_element_id = target

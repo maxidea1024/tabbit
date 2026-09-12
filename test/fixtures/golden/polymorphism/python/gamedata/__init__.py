@@ -6,18 +6,26 @@
 # ------------------------------------------------------------------------------
 
 from .enum_band import Band
+from .boon_table import BoonRecord, BoonTable, BoonEffectEntry
 from .element_table import ElementRecord, ElementTable
 from .skill_table import SkillRecord, SkillTable, SkillEffectEntry
+from .curse_table import CurseRecord, CurseTable, CurseEffectEntry
 from .combo_table import ComboRecord, ComboTable, ComboEffectsEntry
 from .polymorphism_data import Tables
 
 __all__ = [
     "Band",
+    "BoonRecord",
+    "BoonTable",
+    "BoonEffectEntry",
     "ElementRecord",
     "ElementTable",
     "SkillRecord",
     "SkillTable",
     "SkillEffectEntry",
+    "CurseRecord",
+    "CurseTable",
+    "CurseEffectEntry",
     "ComboRecord",
     "ComboTable",
     "ComboEffectsEntry",

@@ -12,14 +12,18 @@
 #include <string>
 
 #include "enums/PolyAccessor_enum_band.h"
+#include "tables/PolyAccessor_boon.h"
 #include "tables/PolyAccessor_element.h"
 #include "tables/PolyAccessor_skill.h"
+#include "tables/PolyAccessor_curse.h"
 #include "tables/PolyAccessor_combo.h"
 /// Every table, loaded together so cross-table references can be resolved.
 class PolyAccessor {
  public:
+  const BoonTable& boon() const { return boon_; }
   const ElementTable& element() const { return element_; }
   const SkillTable& skill() const { return skill_; }
+  const CurseTable& curse() const { return curse_; }
   const ComboTable& combo() const { return combo_; }
 
   /// Reads every table from `base_path`, then links the references between them.
@@ -28,17 +32,23 @@ class PolyAccessor {
   /// references are linked among those, so a read that throws part way through leaves every
   /// table holding the load it already had, and no row points at a row from it.
   void read_all(const std::string& base_path, const std::string& file_extension = ".tcb") {
+    BoonTable loaded_boon;
+    loaded_boon.read(base_path + "/Boon" + file_extension);
     ElementTable loaded_element;
     loaded_element.read(base_path + "/Element" + file_extension);
     SkillTable loaded_skill;
     loaded_skill.read(base_path + "/Skill" + file_extension);
+    CurseTable loaded_curse;
+    loaded_curse.read(base_path + "/Curse" + file_extension);
     ComboTable loaded_combo;
     loaded_combo.read(base_path + "/Combo" + file_extension);
 
-    solve_cross_references(loaded_element, loaded_skill, loaded_combo);
+    solve_cross_references(loaded_boon, loaded_element, loaded_skill, loaded_curse, loaded_combo);
 
+    boon_ = std::move(loaded_boon);
     element_ = std::move(loaded_element);
     skill_ = std::move(loaded_skill);
+    curse_ = std::move(loaded_curse);
     combo_ = std::move(loaded_combo);
   }
 
@@ -51,8 +61,20 @@ class PolyAccessor {
   /// compiler: the gate builds with `-Wextra -Werror`, and a model where nothing
   /// references anything - which is most of them - otherwise fails to compile on the
   /// unused parameters.
-  void solve_cross_references([[maybe_unused]] ElementTable& loaded_element, [[maybe_unused]] SkillTable& loaded_skill, [[maybe_unused]] ComboTable& loaded_combo) {
+  void solve_cross_references([[maybe_unused]] BoonTable& loaded_boon, [[maybe_unused]] ElementTable& loaded_element, [[maybe_unused]] SkillTable& loaded_skill, [[maybe_unused]] CurseTable& loaded_curse, [[maybe_unused]] ComboTable& loaded_combo) {
+    for (auto& record : loaded_boon.records_) {
+      {
+        const auto* target = loaded_element.find_by_code(record.effect.element_id);
+        if (target != nullptr) record.effect.element_by_element_id = target;
+      }
+    }
     for (auto& record : loaded_skill.records_) {
+      {
+        const auto* target = loaded_element.find_by_code(record.effect.element_id);
+        if (target != nullptr) record.effect.element_by_element_id = target;
+      }
+    }
+    for (auto& record : loaded_curse.records_) {
       {
         const auto* target = loaded_element.find_by_code(record.effect.element_id);
         if (target != nullptr) record.effect.element_by_element_id = target;
@@ -66,8 +88,10 @@ class PolyAccessor {
     }
   }
 
+  BoonTable boon_;
   ElementTable element_;
   SkillTable skill_;
+  CurseTable curse_;
   ComboTable combo_;
 };
 

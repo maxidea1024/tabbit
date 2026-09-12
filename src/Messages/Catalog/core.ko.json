@@ -17,6 +17,7 @@
   "cook.index-absent": "`{Table}.{Field}`이 행을 지목하는데, 이 행은 그 자리에 값이 없다고 말합니다. 값을 적으십시오 — 인덱스는 없을 수 없습니다.",
   "cook.reference-enum-key": "`{Table}.{Field}`이 `{Target}`을 가리키는데, 그 테이블의 인덱스가 enum입니다. 다른 모든 키 타입은 참조할 수 있지만 이것만 아직 안 됩니다 — enum은 자기만의 인코딩으로 실리고, 생성된 리더가 여기서 그것을 다룰 일이 없습니다. `{Target}`을 enum의 기반 `int`로 키를 잡거나, 값을 여기서 그 enum으로 들고 `{Target}`의 인덱스로 행을 찾으십시오.",
   "cook.reference-blank": "필드 `{Table}.{Field}`이 `{Target}`을 가리키는데 이 행은 셀을 비워 두었습니다. 가리킬 행의 키를 적거나, 이 행은 아무것도 가리키지 않는다는 뜻으로 `-`를 적으십시오.",
+  "cook.reference-column-missing": "테이블 `{Table}`에 `{Field}` 컬럼이 없는데, 이 행의 변종은 그것을 `{Target}`을 가리키는 참조로 선언합니다. 시트가 적지 않은 참조는 그 멤버를 가진 모든 행에서 빈 참조입니다. 컬럼을 적고, 그 안에 가리킬 행의 키나 `-`를 적으십시오.",
   "cook.reference-none-but-required": "필드 `{Table}.{Field}`이 `{Target}`을 가리키고 이 행은 아무것도 가리키지 않는다고 말하는데, 컬럼이 필수로 선언되어 있습니다. 가리킬 행을 주거나, 컬럼을 옵셔널로 선언하십시오.",
   "cook.reference-missing-row": "필드 `{Table}.{Field}`이 `{Target}`의 행 `{Value}`를 가리키는데, 그 행이 없습니다.",
   "cook.reference-excluded-by-side": "`{Side}` 빌드에서 필드 `{Table}.{Field}`이 테이블 `{Target}`을 가리키는데, 그 빌드는 타깃 사이드 때문에 그 테이블을 제외합니다.",

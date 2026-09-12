@@ -14,8 +14,10 @@ namespace Tabbit\Fixtures\Polymorphism;
 require_once __DIR__ . '/tabbit/TcbReader.php';
 require_once __DIR__ . '/enums/Band.php';
 require_once __DIR__ . '/structs/Effect.php';
+require_once __DIR__ . '/tables/BoonTable.php';
 require_once __DIR__ . '/tables/ElementTable.php';
 require_once __DIR__ . '/tables/SkillTable.php';
+require_once __DIR__ . '/tables/CurseTable.php';
 require_once __DIR__ . '/tables/ComboTable.php';
 
 use Tabbit\TcbReader;
@@ -26,14 +28,18 @@ use Tabbit\Uuid;
 /** Every table, loaded together so cross-table references can be resolved. */
 final class PolymorphismAccessor
 {
+    public BoonTable $boon;
     public ElementTable $element;
     public SkillTable $skill;
+    public CurseTable $curse;
     public ComboTable $combo;
 
     public function __construct()
     {
+        $this->boon = new BoonTable();
         $this->element = new ElementTable();
         $this->skill = new SkillTable();
+        $this->curse = new CurseTable();
         $this->combo = new ComboTable();
     }
 
@@ -94,17 +100,23 @@ final class PolymorphismAccessor
      */
     public function readAll(string $basePath, string $fileExtension = '.tcb'): void
     {
+        $loadedBoonTable = new BoonTable();
+        $loadedBoonTable->read($basePath . \DIRECTORY_SEPARATOR . 'Boon' . $fileExtension);
         $loadedElementTable = new ElementTable();
         $loadedElementTable->read($basePath . \DIRECTORY_SEPARATOR . 'Element' . $fileExtension);
         $loadedSkillTable = new SkillTable();
         $loadedSkillTable->read($basePath . \DIRECTORY_SEPARATOR . 'Skill' . $fileExtension);
+        $loadedCurseTable = new CurseTable();
+        $loadedCurseTable->read($basePath . \DIRECTORY_SEPARATOR . 'Curse' . $fileExtension);
         $loadedComboTable = new ComboTable();
         $loadedComboTable->read($basePath . \DIRECTORY_SEPARATOR . 'Combo' . $fileExtension);
 
-        $this->solveCrossReferences($loadedElementTable, $loadedSkillTable, $loadedComboTable);
+        $this->solveCrossReferences($loadedBoonTable, $loadedElementTable, $loadedSkillTable, $loadedCurseTable, $loadedComboTable);
 
+        $this->boon = $loadedBoonTable;
         $this->element = $loadedElementTable;
         $this->skill = $loadedSkillTable;
+        $this->curse = $loadedCurseTable;
         $this->combo = $loadedComboTable;
     }
 
@@ -114,9 +126,23 @@ final class PolymorphismAccessor
      * The tables arrive as arguments rather than off $this, which is how this resolves the
      * load being read rather than the one already published.
      */
-    private function solveCrossReferences(ElementTable $element, SkillTable $skill, ComboTable $combo): void
+    private function solveCrossReferences(BoonTable $boon, ElementTable $element, SkillTable $skill, CurseTable $curse, ComboTable $combo): void
     {
+        foreach ($boon->records as $record) {
+            $target = $element->findByCode($record->effect->elementId);
+
+            if ($target !== null) {
+                $record->effect->elementByElementId = $target;
+            }
+        }
         foreach ($skill->records as $record) {
+            $target = $element->findByCode($record->effect->elementId);
+
+            if ($target !== null) {
+                $record->effect->elementByElementId = $target;
+            }
+        }
+        foreach ($curse->records as $record) {
             $target = $element->findByCode($record->effect->elementId);
 
             if ($target !== null) {

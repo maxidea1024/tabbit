@@ -593,15 +593,15 @@ tbody [data-pick] { cursor: pointer; }
 <div class="page">
 <main>
 <h1>참조</h1>
-<p class="lead">그래프의 테이블 3개 · 참조 2개. 끌어서 이동하고, 휠로 확대하고, 테이블을 누르면 그 테이블의 참조만 봅니다.</p>
+<p class="lead">그래프의 테이블 5개 · 참조 4개. 끌어서 이동하고, 휠로 확대하고, 테이블을 누르면 그 테이블의 참조만 봅니다.</p>
 
 <div class="graphrow">
 <div class="picker">
-<h2><svg class="i"><use href="#i-table"></use></svg>연결 정도<span class="count">3</span></h2>
+<h2><svg class="i"><use href="#i-table"></use></svg>연결 정도<span class="count">5</span></h2>
 <div data-table>
 <div class="tools">
 <input type="search" data-filter="rows" placeholder="테이블 필터">
-<span class="hint" data-shown>3행 중 3행</span>
+<span class="hint" data-shown>5행 중 5행</span>
 </div>
 <div class="scroll">
 <table data-sortable>
@@ -611,8 +611,10 @@ tbody [data-pick] { cursor: pointer; }
 </tr>
 </thead>
 <tbody>
-<tr data-pick="Element"><td class="pick"><button type="button" title="Element의 참조를 그립니다"><svg class="i"><use href="#i-graph"></use></svg></button></td><td><a href="tables/element.html"><svg class="i"><use href="#i-table"></use></svg>Element</a></td><td class="num">0</td><td class="num">2</td></tr>
+<tr data-pick="Element"><td class="pick"><button type="button" title="Element의 참조를 그립니다"><svg class="i"><use href="#i-graph"></use></svg></button></td><td><a href="tables/element.html"><svg class="i"><use href="#i-table"></use></svg>Element</a></td><td class="num">0</td><td class="num">4</td></tr>
+<tr data-pick="Boon"><td class="pick"><button type="button" title="Boon의 참조를 그립니다"><svg class="i"><use href="#i-graph"></use></svg></button></td><td><a href="tables/boon.html"><svg class="i"><use href="#i-table"></use></svg>Boon</a></td><td class="num">1</td><td class="num">0</td></tr>
 <tr data-pick="Combo"><td class="pick"><button type="button" title="Combo의 참조를 그립니다"><svg class="i"><use href="#i-graph"></use></svg></button></td><td><a href="tables/combo.html"><svg class="i"><use href="#i-table"></use></svg>Combo</a></td><td class="num">1</td><td class="num">0</td></tr>
+<tr data-pick="Curse"><td class="pick"><button type="button" title="Curse의 참조를 그립니다"><svg class="i"><use href="#i-graph"></use></svg></button></td><td><a href="tables/curse.html"><svg class="i"><use href="#i-table"></use></svg>Curse</a></td><td class="num">1</td><td class="num">0</td></tr>
 <tr data-pick="Skill"><td class="pick"><button type="button" title="Skill의 참조를 그립니다"><svg class="i"><use href="#i-graph"></use></svg></button></td><td><a href="tables/skill.html"><svg class="i"><use href="#i-table"></use></svg>Skill</a></td><td class="num">1</td><td class="num">0</td></tr>
 </tbody>
 </table>
@@ -638,26 +640,38 @@ tbody [data-pick] { cursor: pointer; }
 </marker>
 </defs>
 <g id="viewport">
-<g id="all" data-width="324" data-height="100">
+<g id="all" data-width="324" data-height="184">
 <g id="edges">
-<path class="edge" d="M98,23 C146,23 146,23 194,23" data-from="Combo" data-to="Element" marker-end="url(#arrow)"><title>Combo → Element (Effects0ElementId, Effects1ElementId, Effects2ElementId)</title></path>
-<path class="edge" d="M98,65 C146,65 146,23 194,23" data-from="Skill" data-to="Element" marker-end="url(#arrow)"><title>Skill → Element (EffectElementId)</title></path>
+<path class="edge" d="M98,23 C146,23 146,23 194,23" data-from="Boon" data-to="Element" marker-end="url(#arrow)"><title>Boon → Element (EffectElementId)</title></path>
+<path class="edge" d="M98,65 C146,65 146,23 194,23" data-from="Combo" data-to="Element" marker-end="url(#arrow)"><title>Combo → Element (Effects0ElementId, Effects1ElementId, Effects2ElementId)</title></path>
+<path class="edge" d="M98,107 C146,107 146,23 194,23" data-from="Curse" data-to="Element" marker-end="url(#arrow)"><title>Curse → Element (EffectElementId)</title></path>
+<path class="edge" d="M98,149 C146,149 146,23 194,23" data-from="Skill" data-to="Element" marker-end="url(#arrow)"><title>Skill → Element (EffectElementId)</title></path>
 </g>
 <g id="lit"></g>
-<g class="node" data-node="Combo" data-href="tables/combo.html">
+<g class="node" data-node="Boon" data-href="tables/boon.html">
 <rect x="8" y="8" width="90" height="30" rx="6"></rect>
-<text x="18" y="28">Combo</text>
+<text x="18" y="28">Boon</text>
+<title>Boon — 가리킴 1, 가리켜짐 0</title>
+</g>
+<g class="node" data-node="Combo" data-href="tables/combo.html">
+<rect x="8" y="50" width="90" height="30" rx="6"></rect>
+<text x="18" y="70">Combo</text>
 <title>Combo — 가리킴 1, 가리켜짐 0</title>
 </g>
+<g class="node" data-node="Curse" data-href="tables/curse.html">
+<rect x="8" y="92" width="90" height="30" rx="6"></rect>
+<text x="18" y="112">Curse</text>
+<title>Curse — 가리킴 1, 가리켜짐 0</title>
+</g>
 <g class="node" data-node="Skill" data-href="tables/skill.html">
-<rect x="8" y="50" width="90" height="30" rx="6"></rect>
-<text x="18" y="70">Skill</text>
+<rect x="8" y="134" width="90" height="30" rx="6"></rect>
+<text x="18" y="154">Skill</text>
 <title>Skill — 가리킴 1, 가리켜짐 0</title>
 </g>
 <g class="node" data-node="Element" data-href="tables/element.html">
 <rect x="194" y="8" width="90" height="30" rx="6"></rect>
 <text x="204" y="28">Element</text>
-<title>Element — 가리킴 0, 가리켜짐 2</title>
+<title>Element — 가리킴 0, 가리켜짐 4</title>
 </g>
 </g>
 <g id="focus"></g>
@@ -673,7 +687,7 @@ tbody [data-pick] { cursor: pointer; }
 <text data-proto="label" class="glyph"></text>
 </svg>
 
-<div id="adjacency" hidden>{&quot;Combo&quot;:{&quot;in&quot;:[],&quot;out&quot;:[[&quot;Element&quot;,&quot;Effects0ElementId, Effects1ElementId, Effects2ElementId&quot;]]},&quot;Element&quot;:{&quot;in&quot;:[[&quot;Combo&quot;,&quot;Effects0ElementId, Effects1ElementId, Effects2ElementId&quot;],[&quot;Skill&quot;,&quot;EffectElementId&quot;]],&quot;out&quot;:[]},&quot;Skill&quot;:{&quot;in&quot;:[],&quot;out&quot;:[[&quot;Element&quot;,&quot;EffectElementId&quot;]]}}</div>
+<div id="adjacency" hidden>{&quot;Boon&quot;:{&quot;in&quot;:[],&quot;out&quot;:[[&quot;Element&quot;,&quot;EffectElementId&quot;]]},&quot;Element&quot;:{&quot;in&quot;:[[&quot;Boon&quot;,&quot;EffectElementId&quot;],[&quot;Combo&quot;,&quot;Effects0ElementId, Effects1ElementId, Effects2ElementId&quot;],[&quot;Curse&quot;,&quot;EffectElementId&quot;],[&quot;Skill&quot;,&quot;EffectElementId&quot;]],&quot;out&quot;:[]},&quot;Combo&quot;:{&quot;in&quot;:[],&quot;out&quot;:[[&quot;Element&quot;,&quot;Effects0ElementId, Effects1ElementId, Effects2ElementId&quot;]]},&quot;Curse&quot;:{&quot;in&quot;:[],&quot;out&quot;:[[&quot;Element&quot;,&quot;EffectElementId&quot;]]},&quot;Skill&quot;:{&quot;in&quot;:[],&quot;out&quot;:[[&quot;Element&quot;,&quot;EffectElementId&quot;]]}}</div>
 </main>
 </div>
 <script>

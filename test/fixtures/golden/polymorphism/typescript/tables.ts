@@ -5,8 +5,10 @@
 // regenerated.
 // ------------------------------------------------------------------------------
 
+import { BoonTable } from './tables/boon'
 import { ElementTable } from './tables/element'
 import { SkillTable } from './tables/skill'
+import { CurseTable } from './tables/curse'
 import { ComboTable } from './tables/combo'
 
 /** Tables */
@@ -62,6 +64,10 @@ export class Tables {
    */
   public static verifyMac = true
 
+  /** Peroperty for table Boon */
+  public get boon(): BoonTable { return this._boon }
+  private _boon: BoonTable = new BoonTable()
+
   /** Peroperty for table Element */
   public get element(): ElementTable { return this._element }
   private _element: ElementTable = new ElementTable()
@@ -69,6 +75,10 @@ export class Tables {
   /** Peroperty for table Skill */
   public get skill(): SkillTable { return this._skill }
   private _skill: SkillTable = new SkillTable()
+
+  /** Peroperty for table Curse */
+  public get curse(): CurseTable { return this._curse }
+  private _curse: CurseTable = new CurseTable()
 
   /** Peroperty for table Combo */
   public get combo(): ComboTable { return this._combo }
@@ -86,26 +96,34 @@ export class Tables {
    * data files were renamed after export.
    */
   public async readAll(load: (fileName: string) => Promise<string>, fileExtension: string = '.json'): Promise<void> {
+    const boon = new BoonTable()
+    boon.readJsonFrom(await load(`Boon${fileExtension}`))
     const element = new ElementTable()
     element.readJsonFrom(await load(`Element${fileExtension}`))
     const skill = new SkillTable()
     skill.readJsonFrom(await load(`Skill${fileExtension}`))
+    const curse = new CurseTable()
+    curse.readJsonFrom(await load(`Curse${fileExtension}`))
     const combo = new ComboTable()
     combo.readJsonFrom(await load(`Combo${fileExtension}`))
 
-    this.publish(element, skill, combo)
+    this.publish(boon, element, skill, curse, combo)
   }
 
   /** Read all tables from the JSON export, synchronously. `load` returns a file's text. */
   public readAllSync(load: (fileName: string) => string, fileExtension: string = '.json'): void {
+    const boon = new BoonTable()
+    boon.readJsonFrom(load(`Boon${fileExtension}`))
     const element = new ElementTable()
     element.readJsonFrom(load(`Element${fileExtension}`))
     const skill = new SkillTable()
     skill.readJsonFrom(load(`Skill${fileExtension}`))
+    const curse = new CurseTable()
+    curse.readJsonFrom(load(`Curse${fileExtension}`))
     const combo = new ComboTable()
     combo.readJsonFrom(load(`Combo${fileExtension}`))
 
-    this.publish(element, skill, combo)
+    this.publish(boon, element, skill, curse, combo)
   }
 
   /**
@@ -119,26 +137,34 @@ export class Tables {
    * Asynchronous because that is what a fetch and an engine's asset loader are.
    */
   public async readAllBinary(load: (fileName: string) => Promise<Uint8Array>, fileExtension: string = '.tcb'): Promise<void> {
+    const boon = new BoonTable()
+    boon.readBinaryFrom(await load(`Boon${fileExtension}`))
     const element = new ElementTable()
     element.readBinaryFrom(await load(`Element${fileExtension}`))
     const skill = new SkillTable()
     skill.readBinaryFrom(await load(`Skill${fileExtension}`))
+    const curse = new CurseTable()
+    curse.readBinaryFrom(await load(`Curse${fileExtension}`))
     const combo = new ComboTable()
     combo.readBinaryFrom(await load(`Combo${fileExtension}`))
 
-    this.publish(element, skill, combo)
+    this.publish(boon, element, skill, curse, combo)
   }
 
   /** Read all tables from the binary export, synchronously. `load` returns a file's bytes. */
   public readAllBinarySync(load: (fileName: string) => Uint8Array, fileExtension: string = '.tcb'): void {
+    const boon = new BoonTable()
+    boon.readBinaryFrom(load(`Boon${fileExtension}`))
     const element = new ElementTable()
     element.readBinaryFrom(load(`Element${fileExtension}`))
     const skill = new SkillTable()
     skill.readBinaryFrom(load(`Skill${fileExtension}`))
+    const curse = new CurseTable()
+    curse.readBinaryFrom(load(`Curse${fileExtension}`))
     const combo = new ComboTable()
     combo.readBinaryFrom(load(`Combo${fileExtension}`))
 
-    this.publish(element, skill, combo)
+    this.publish(boon, element, skill, curse, combo)
   }
 
   /**
@@ -149,9 +175,11 @@ export class Tables {
    * what it held, which is the answer a running program wants: the data it already had, and
    * an exception saying why the new data was not taken.
    */
-  private publish(element: ElementTable, skill: SkillTable, combo: ComboTable): void {
+  private publish(boon: BoonTable, element: ElementTable, skill: SkillTable, curse: CurseTable, combo: ComboTable): void {
+    this._boon = boon
     this._element = element
     this._skill = skill
+    this._curse = curse
     this._combo = combo
 
     this.solveCrossReferences()
@@ -165,7 +193,19 @@ export class Tables {
    * table's own read. A zero means the sheet left the cell empty and is left unresolved.
    */
   private solveCrossReferences(): void {
+    for (const record of this._boon.records) {
+      if (record._effect.elementId > 0) {
+        record._effect.elementByElementId = this._element.getByCodeOrThrow(record._effect.elementId)
+      }
+    }
+
     for (const record of this._skill.records) {
+      if (record._effect.elementId > 0) {
+        record._effect.elementByElementId = this._element.getByCodeOrThrow(record._effect.elementId)
+      }
+    }
+
+    for (const record of this._curse.records) {
       if (record._effect.elementId > 0) {
         record._effect.elementByElementId = this._element.getByCodeOrThrow(record._effect.elementId)
       }

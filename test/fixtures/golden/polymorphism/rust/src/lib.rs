@@ -22,10 +22,14 @@ pub use struct_effect::HealEffect;
 pub use struct_effect::NoEffect;
 
 // A record and a table type per table.
+mod boon_table;
+pub use boon_table::{BoonRecord, BoonTable, BoonEffectEntry};
 mod element_table;
 pub use element_table::{ElementRecord, ElementTable};
 mod skill_table;
 pub use skill_table::{SkillRecord, SkillTable, SkillEffectEntry};
+mod curse_table;
+pub use curse_table::{CurseRecord, CurseTable, CurseEffectEntry};
 mod combo_table;
 pub use combo_table::{ComboRecord, ComboTable, ComboEffectsEntry};
 
