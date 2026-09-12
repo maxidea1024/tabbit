@@ -16,9 +16,9 @@
 // 규격은 `design-data/tools/ui.py` 가 굽고 `atlas.ts` 에 적습니다. 여기서 다시 적지
 // 않습니다.
 
-import { Assets, NineSliceSprite, Texture } from 'pixi.js'
+import { Assets, NineSliceSprite, Sprite, Texture } from 'pixi.js'
 
-import { ATLAS, BAKE_SCALE, RUNG, type RungName, type Slice } from './atlas'
+import { ATLAS, BAKE_SCALE, RUNG, TORN_COUNT, type RungName, type Slice } from './atlas'
 
 /** 쓰는 그림들. 파일 이름 그대로입니다. */
 export type ChromeName = keyof typeof ATLAS
@@ -106,5 +106,31 @@ export function rungOf(name: RungName): { height: number; font: number; cut: num
 export function glowEdge(width: number, tint: number): NineSliceSprite | undefined {
   const sprite = piece('glow-edge', width, ATLAS['glow-edge'].h, tint)
   if (sprite !== undefined) sprite.blendMode = 'add'
+  return sprite
+}
+
+/**
+ * 카드의 뜯긴 가장자리 마스크 한 장. 없으면 `undefined` 입니다.
+ *
+ * **둥근 모서리 대신 뜯긴 변입니다.** 넷을 돌려 쓰므로 카드가 몇 장이든 비용이 같습니다 —
+ * 어느 것을 쓸지는 그 카드를 가리키는 수에서 고릅니다. 같은 카드는 늘 같은 변입니다.
+ */
+export function tornTexture(pick: number): Texture | undefined {
+  const index = ((Math.abs(Math.floor(pick)) % TORN_COUNT) + 1)
+  return ready.get(`card-torn-${index}`)
+}
+
+/**
+ * 그 크기로 늘린 마스크 스프라이트.
+ *
+ * 마스크로 걸거나(`node.mask`), 어둡게 물들여 그림자로 놓습니다 — 그림자도 뜯긴 변을
+ * 따라가야 카드가 종이로 보입니다.
+ */
+export function tornSprite(pick: number, width: number, height: number): Sprite | undefined {
+  const texture = tornTexture(pick)
+  if (texture === undefined) return undefined
+  const sprite = new Sprite(texture)
+  sprite.width = width
+  sprite.height = height
   return sprite
 }

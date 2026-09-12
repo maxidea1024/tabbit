@@ -158,9 +158,27 @@ function captionInk(base: number): number {
  */
 const SINK = 3
 
+/**
+ * 상태가 건너가는 시간. 초입니다.
+ *
+ * **한 프레임에 바뀌면 눌린 것인지 잠긴 것인지가 갈립니다.** 활성과 비활성, 색이 바뀌는
+ * 것, 글이 바뀌는 것이 전부 이 시간에 건너갑니다.
+ */
+const CROSS = 0.16
+
+/** 지금 화면에 붙어 있는 단추들. 프레임마다 건너가는 것을 한 걸음 옮깁니다. */
+const TICKING = new Set<Button>()
+
 export class Button extends Container {
   private readonly board = new Graphics()
   private skin?: Container
+  /** 그림이 지금 띤 색과 가려는 색. 건너가는 동안 그 사이입니다. */
+  private tintNow?: number
+  private tintWant?: number
+  /** 물러나는 옛 글. 올라가며 옅어지고, 다 지면 지웁니다. */
+  private fading?: { text: Text; left: number }
+  /** 새 글이 드는 정도. 0 이면 아래에서 시작하고 1 이면 제자리입니다. */
+  private rising = 1
   /** 이 단추가 서 있는 높이의 칸. 계단 넷 안에서만 고릅니다. */
   private readonly rung: RungName
   private readonly caption = new Text({
@@ -226,9 +244,44 @@ export class Button extends Container {
     // 않고, 그러면 그 단추만 눌린 색으로 남습니다.
     this.on('pointerup', () => this.release())
     this.on('pointerupoutside', () => this.release())
-    this.on('added', () => LIVE.add(this))
-    this.on('removed', () => LIVE.delete(this))
+    this.on('added', () => { LIVE.add(this); TICKING.add(this) })
+    this.on('removed', () => { LIVE.delete(this); TICKING.delete(this) })
     this.draw()
+  }
+
+  /**
+   * 화면의 모든 단추를 한 걸음 옮깁니다. **게임의 시계가 프레임마다 부릅니다.**
+   *
+   * 색은 가려는 색으로 미끄러지고, 옛 글은 올라가며 옅어지고, 새 글은 아래에서 듭니다.
+   */
+  static advanceAll(seconds: number): void {
+    for (const one of TICKING) one.step(seconds)
+  }
+
+  private step(seconds: number): void {
+    const k = Math.min(1, seconds / CROSS)
+    if (this.skin !== undefined && this.tintWant !== undefined && this.tintNow !== undefined
+        && this.tintNow !== this.tintWant) {
+      this.tintNow = mix(this.tintNow, this.tintWant, k)
+      // 8비트로 반올림한 뒤 같으면 다 간 것입니다.
+      if (mix(this.tintNow, this.tintWant, 0.5) === this.tintWant) this.tintNow = this.tintWant
+      ;(this.skin as { tint: number }).tint = this.tintNow
+    }
+    if (this.fading !== undefined) {
+      this.fading.left -= seconds
+      const gone = 1 - Math.max(0, this.fading.left) / CROSS
+      this.fading.text.alpha = 1 - gone
+      this.fading.text.y = this.captionY(this.pushed) - gone * 10
+      if (this.fading.left <= 0) {
+        this.fading.text.destroy()
+        this.fading = undefined
+      }
+    }
+    if (this.rising < 1) {
+      this.rising = Math.min(1, this.rising + seconds / CROSS)
+      this.caption.alpha = this.enabledState ? this.rising : this.rising * 0.5
+      this.caption.y = this.captionY(this.pushed) + (1 - this.rising) * 10
+    }
   }
 
   /** 이 칸의 글자 크기. 글이 길어 줄였다가 되돌릴 때 씁니다. */
@@ -248,6 +301,18 @@ export class Button extends Container {
     // **같은 글이면 손대지 않습니다.** 아래의 줄이기가 글자 크기를 바꿀 때마다 글을 다시
     // 굽고, 조커 풀은 쪽을 넘길 때마다 단추 7개에 같은 글을 다시 적습니다.
     if (value === this.captionShown) return
+    // **옛 글이 올라가며 옅어지고 새 글이 아래에서 듭니다.** 처음 적는 글은 그냥 놓입니다.
+    if (this.captionShown !== undefined && this.caption.text !== '') {
+      this.fading?.text.destroy()
+      const old = new Text({ text: this.caption.text, style: this.caption.style.clone() })
+      old.anchor.set(0.5)
+      old.position.set(this.caption.x, this.caption.y)
+      old.alpha = this.caption.alpha
+      this.addChild(old)
+      this.fading = { text: old, left: CROSS }
+      this.rising = 0
+      this.caption.alpha = 0
+    }
     this.captionShown = value
     this.caption.style.fontSize = this.textSize
     this.caption.text = value
@@ -404,7 +469,10 @@ export class Button extends Container {
     this.skin?.destroy()
     const tall = rungOf(this.rung).height
     const sunk = this.pushed ? SINK : 0
-    this.skin = piece(this.rung, this.boxWidth, tall - sunk, this.shown.face)
+    // **색은 건너갑니다.** 새 그림은 지금 띤 색으로 놓고, 가려는 색은 `step` 이 옮깁니다.
+    this.tintWant = this.shown.face
+    if (this.tintNow === undefined || !TICKING.has(this)) this.tintNow = this.tintWant
+    this.skin = piece(this.rung, this.boxWidth, tall - sunk, this.tintNow)
     if (this.skin !== undefined) {
       // `piece()` 가 그림자 여백만큼 물러앉혀 두었으므로 그 위에 더합니다 — 덮어쓰면 얼굴이
       // 여백만큼 아래로 내려가 글이 얼굴의 윗변에 붙습니다.

@@ -14,6 +14,7 @@ import { EnhancementKind } from '../generated/enums/enhancement-kind'
 import type { CardInstance } from '../core/state'
 import { EDITION_SHADER, EditionFilter, type EditionLook } from '../shader/editions'
 import { roundedMask } from '../shader/mask'
+import { tornSprite, tornTexture } from '../ui/chrome'
 import { PickFilter } from '../shader/pick'
 import { ERODE_SWEEP, ErodeFilter } from '../shader/erode'
 import { BlightFilter } from '../shader/blight'
@@ -231,10 +232,25 @@ export class CardView extends Container {
     this.body.addChild(this.faceSprite, this.faceNode, this.backNode,
                        this.markPlate, this.mark, this.seal)
     this.faceSprite.setSize(SIZE.cardWidth, SIZE.cardHeight)
-    // **그림자는 한 번만 그립니다.** 카드가 무엇이든 같은 사각형이고, 바뀌는 것은 이 통의
-    // 자리와 알파뿐입니다.
-    this.shadow.rect(3, 6, SIZE.cardWidth, SIZE.cardHeight)
-      .fill({ color: PAINT.veil, alpha: 0.35 })
+    // **그림자는 한 번만 그립니다.** 카드가 무엇이든 같은 꼴이고, 바뀌는 것은 이 통의
+    // 자리와 알파뿐입니다. **뜯긴 변을 따라갑니다** — 마스크 그림을 어둡게 물들인 것입니다.
+    const shade = tornSprite(card.uid, SIZE.cardWidth, SIZE.cardHeight)
+    if (shade !== undefined) {
+      shade.tint = PAINT.veil
+      shade.alpha = 0.35
+      shade.position.set(3, 6)
+      this.shadow.addChild(shade)
+    } else {
+      this.shadow.rect(3, 6, SIZE.cardWidth, SIZE.cardHeight)
+        .fill({ color: PAINT.veil, alpha: 0.35 })
+    }
+    // **얼굴은 뜯긴 가장자리로 오려 냅니다.** 가위로 자른 네모는 멋이 없고 둥근 모서리는
+    // 웹의 문법입니다.
+    const torn = tornSprite(card.uid, SIZE.cardWidth, SIZE.cardHeight)
+    if (torn !== undefined) {
+      this.body.addChild(torn)
+      this.body.mask = torn
+    }
     // **넓이를 고정합니다.** 그리는 것에 따라 재면 획이 삐져나온 만큼 사각형이 커지고,
     // 그만큼 모양 그림이 밀립니다. **필터 사각형도 함께 고정합니다** — 이 통에 에디션과
     // 득점의 빛이 걸리고, 경계만 고정하면 구운 사진에서 이 통이 빠집니다(`pin.ts`).
@@ -424,7 +440,7 @@ export class CardView extends Container {
         strength: look.strength,
         flowSpeed: look.flowSpeed,
         noise: look.noise,
-        shape: roundedMask(SIZE.cardWidth, SIZE.cardHeight, SIZE.cardRadius),
+        shape: tornTexture(this.uid) ?? roundedMask(SIZE.cardWidth, SIZE.cardHeight, SIZE.cardRadius),
       })
     }
     this.restack()

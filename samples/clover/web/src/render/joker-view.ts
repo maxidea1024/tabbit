@@ -23,6 +23,7 @@ import { skeletonCard } from './skeleton'
 import { drawGlyph, shade, tintUp } from './glyph'
 import { fraction, Motion, sway } from './motion'
 import { pinBox } from './pin'
+import { tornTexture } from '../ui/chrome'
 import { UI, SIZE, rarityColor } from './theme'
 import { type MotesHandle, startMotes } from './motes-layer'
 
@@ -341,7 +342,12 @@ export class JokerView extends Container {
       this.art.destroy()
       this.art = undefined
     }
-    if (texture) this.clip.rect(0, 0, w, h).fill(PAINT.sheen)
+    if (texture) {
+      // **뜯긴 가장자리로 오려 냅니다.** 마스크 그림이 있으면 그것이고, 없으면 네모입니다.
+      const torn = tornTexture(this.uid)
+      if (torn !== undefined) this.clip.texture(torn, PAINT.sheen, 0, 0, w, h)
+      else this.clip.rect(0, 0, w, h).fill(PAINT.sheen)
+    }
     if (texture && !this.art) {
       const sprite = new Sprite(texture)
       // 넓이에 맞추고 남는 세로를 가운데에서 자릅니다. 그림에 테두리가 있으므로 조금

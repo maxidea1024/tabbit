@@ -19,7 +19,6 @@ import { Motion, Spring } from '../render/motion'
 import { Particles } from '../render/particles'
 import { MotesLayer } from '../render/motes-layer'
 import { packInk, packInkLit, packName } from '../render/faces'
-import { burst } from '../render/skin'
 import { SIZE, TEXT, UI, WEIGHT } from '../render/theme'
 import { box, CENTER, pointOf, putText, splitX } from '../ui/layout'
 import { Button, Panel } from '../ui/widgets'
@@ -35,6 +34,9 @@ import { ACT_KINDS, ACT_LOOK, moneyReason, ruleChange, SCORING_BEATS, VALUE_OPS 
 import { edgeBlur, rgbOf } from './helpers'
 import { type Riser } from './types'
 import { type Game } from './game'
+/** 곱셈표. 어느 말에서나 같은 기호입니다. */
+const TIMES_SIGN = String.fromCharCode(0xd7)
+
 export class ShowPart {
   constructor(private readonly game: Game) {}
 
@@ -331,7 +333,7 @@ export class ShowPart {
     // **두 상자 사이의 한가운데입니다.** 식의 연산자이므로 어느 상자에도 속하지 않는
     // 것이 맞습니다.
     const times = new Text({
-      text: '\u00d7', style: { fontSize: TEXT.head, fill: UI.ink, fontWeight: WEIGHT.bold },
+      text: TIMES_SIGN, style: { fontSize: TEXT.head, fill: UI.ink, fontWeight: WEIGHT.bold },
     })
     times.anchor.set(0.5)
     const seam = pointOf(gapBox, CENTER)
@@ -1374,23 +1376,21 @@ export class ShowPart {
 
   popAt(target: { x: number; y: number } | undefined, text: string, tint: number,
                 intensity: number): void {
+    // **크기는 계단에서 고릅니다.** 세기가 크면 한 칸 큽니다 — 24 또는 36.
     const label = new Text({
       text,
       style: {
-        ...outlined(20 + intensity * 16, UI.outline),
+        ...outlined(intensity > 0.5 ? TEXT.display : TEXT.base, UI.outline),
         fill: tint, fontWeight: WEIGHT.bold,
+        // **뒤에 어두운 번짐 하나.** 판 위에는 카드와 그림이 깔려 있어서 글자만으로는
+        // 읽히지 않습니다 — 만화의 번쩍임을 걷고 번짐으로 띄웁니다.
+        dropShadow: { color: UI.outline, alpha: 0.9, blur: 6 + intensity * 6, distance: 0 },
       },
     })
     label.anchor.set(0.5, 0.5)
     label.resolution = this.game.textScale
 
-    // **글 뒤에 번쩍임 하나를 둡니다.** 판 위에는 카드와 그림이 깔려 있어서, 테를 두른
-    // 글자만으로는 그 위에서 읽히지 않았습니다 — 만화가 소리를 적을 때 쓰는 그 모양이고,
-    // 뾰족함과 크기는 그 사건의 세기가 정합니다.
     const flare = new Graphics()
-    // 넘기는 것은 몸통의 반지름입니다. 뾰족한 끝은 `burst` 가 그 바깥으로 더 그립니다.
-    burst(flare, label.width / 2 + 12 + intensity * 5, label.height / 2 + 9 + intensity * 4,
-          intensity, tint)
 
     const node = new Container()
     node.addChild(flare, label)

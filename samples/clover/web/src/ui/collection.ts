@@ -455,7 +455,8 @@ export class CollectionPanel implements ModalPanel {
     this.body.addChild(this.scroll)
 
     this.foundLabel.anchor.set(1, 0.5)
-    this.foundLabel.position.set(WIDTH - 58, 23)
+    // ESC 키캡(64)이 오른쪽 위에 있으므로 그 왼쪽에 놓습니다.
+    this.foundLabel.position.set(WIDTH - 24 - 64 - 20, 26)
     this.body.addChild(this.foundLabel)
 
     this.hint.anchor.set(0.5, 0.5)

@@ -29,6 +29,10 @@ export const ATLAS: Record<string, Slice> = {
   'button': { w: 56, h: 48, pad: 14, left: 16, right: 16, top: 0, bottom: 0 },
   'button-lg': { w: 64, h: 60, pad: 14, left: 18, right: 18, top: 0, bottom: 0 },
   'button-xl': { w: 72, h: 72, pad: 14, left: 20, right: 20, top: 0, bottom: 0 },
+  'card-torn-1': { w: 88, h: 124, pad: 0, left: 0, right: 0, top: 0, bottom: 0 },
+  'card-torn-2': { w: 88, h: 124, pad: 0, left: 0, right: 0, top: 0, bottom: 0 },
+  'card-torn-3': { w: 88, h: 124, pad: 0, left: 0, right: 0, top: 0, bottom: 0 },
+  'card-torn-4': { w: 88, h: 124, pad: 0, left: 0, right: 0, top: 0, bottom: 0 },
 }
 
 /** 단추 높이의 계단 넷입니다. 그 사이 값은 쓰지 않습니다. */
@@ -40,3 +44,6 @@ export const RUNG = {
 } as const
 
 export type RungName = keyof typeof RUNG
+
+/** 카드의 뜯긴 가장자리 마스크의 수. 카드마다 하나를 돌려 씁니다. */
+export const TORN_COUNT = 4

@@ -15,10 +15,11 @@
 
 import { Container, Graphics, Text } from 'pixi.js'
 
-import { fraction } from '../render/motion'
-import { plate, panelStyle } from '../render/skin'
-import { TEXT, UI, WEIGHT } from '../render/theme'
+import { SETTLE_SECONDS, settle } from '../render/motion'
+import { plate, panelStyle, plateTint } from '../render/skin'
+import { TEXT, UI, WEIGHT, SIZE } from '../render/theme'
 import { outlined } from './font'
+import { glowEdge, piece } from './chrome'
 import { richLine, richStyle } from './rich'
 
 /** 규칙 하나가 어떻게 바뀌었는가. */
@@ -32,10 +33,14 @@ export interface RuleNote {
 }
 
 /** 판의 넓이. **손패보다 좁습니다** — 판 위에 얹힌 것이지 판을 덮는 것이 아닙니다. */
-const WIDTH = 470
+/**
+ * 배너의 폭. **화면보다 넓습니다** — 양 끝이 화면 밖으로 나갑니다. 화면 안에 갇힌 띠는
+ * 판으로 읽힙니다.
+ */
+const WIDTH = SIZE.width + 240
 const PAD = 16
 /** 줄 하나의 높이. 이름이 작게 위에, 바뀐 값이 크게 아래에 놓입니다. */
-const ROW = 40
+const ROW = 60
 /** 한 판에 적는 규칙의 수. 넘치면 몇 개가 더 있는지만 적습니다. */
 const ROWS = 4
 
@@ -117,9 +122,9 @@ export class RuleBanner extends Container {
         ...style,
         number: tint,
         term: tint,
-        base: { ...style.base, fontSize: TEXT.lead, fill: tint, fontWeight: WEIGHT.bold },
-      }, undefined, 24)
-      value.position.set((WIDTH - value.width) / 2, y + TEXT.mini + 4)
+        base: { ...style.base, fontSize: TEXT.base, fill: tint, fontWeight: WEIGHT.bold },
+      }, undefined, 36)
+      value.position.set((WIDTH - value.width) / 2, y + TEXT.mini + 6)
 
       this.body.addChild(name, value)
       y += ROW
@@ -169,11 +174,15 @@ export class RuleBanner extends Container {
 
   private redraw(): void {
     this.board.clear()
-    plate(this.board, WIDTH, this.tall, panelStyle())
-    // **위 변에 밝은 줄 하나.** 판이 무엇을 알리려고 선 것이라는 표시이고, 색이 곧
-    // 갈래입니다 — 규칙은 값의 색을 씁니다.
-    this.board.rect(0, 0, WIDTH, 3)
-      .fill({ color: UI.money, alpha: 0.9 })
+    this.board.removeChildren().forEach(child => child.destroy())
+    // **구운 판 한 장이고 위 변은 테두리의 빛입니다.** 색이 곧 갈래입니다 — 규칙은 값의
+    // 색을 씁니다.
+    const skin = piece('plate', WIDTH, this.tall, plateTint(UI.panel))
+    if (skin !== undefined) this.board.addChild(skin)
+    else plate(this.board, WIDTH, this.tall, panelStyle())
+    const glow = glowEdge(WIDTH, UI.money)
+    if (glow !== undefined) this.board.addChild(glow)
+    else this.board.rect(0, 0, WIDTH, 3).fill({ color: UI.money, alpha: 0.9 })
   }
 
   advance(seconds: number): void {
@@ -182,7 +191,8 @@ export class RuleBanner extends Container {
     // 들었다가 머물다가 걷힙니다. **드는 것이 빠르고 걷히는 것이 느립니다** — 방금 걸린
     // 것은 곧바로 보여야 하고, 사라지는 것은 눈이 따라갈 만해야 합니다.
     if (this.showing) {
-      this.enter += (1 - this.enter) * fraction(seconds, 16)
+      // **가운데에서 양쪽으로 펴집니다.** 곡선 하나, 0.56초.
+      this.enter = Math.min(1, this.enter + seconds / SETTLE_SECONDS)
       this.life += seconds
       if (this.life >= RISE + HOLD) this.showing = false
     } else {
@@ -194,11 +204,12 @@ export class RuleBanner extends Container {
       }
     }
 
-    // 아래에서 올라오며 짙어집니다. 걷힐 때는 그 길로 돌아갑니다.
-    this.alpha = Math.min(1, this.enter)
+    // 가운데에서 양쪽으로 펴지며 짙어집니다. 걷힐 때는 그 길로 돌아갑니다.
+    const open = settle(this.enter)
+    this.alpha = Math.min(1, open * 1.6)
     this.pivot.set(WIDTH / 2, this.tall)
-    this.scale.set(0.96 + 0.04 * this.enter)
-    this.body.y = (1 - this.enter) * 8
+    this.scale.set(Math.max(0.001, open), 1)
+    this.body.y = 0
 
     // 남은 시간의 띠. **왼쪽에서 오른쪽으로 줄어듭니다.**
     const left = Math.max(0, 1 - Math.max(0, this.life - RISE) / HOLD)

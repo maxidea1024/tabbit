@@ -181,6 +181,91 @@ def edges():
             % (px(1), px(1), px(1), px(1), px(3)))
 
 
+# ── 카드의 뜯긴 가장자리 ──────────────────────────────────────────────────
+#
+# **둥근 모서리 대신 뜯긴 변입니다.** 가위로 자른 네모는 멋이 없고 둥근 모서리는 웹의
+# 문법입니다 — 손으로 뜯은 종이가 이 화면의 카드꼴입니다.
+#
+# **변을 픽셀마다 흔들면 가시가 됩니다.** 13픽셀마다 한 점만 뽑아 코사인으로 잇고,
+# 이빠짐 셋을 따로 냅니다. 넷을 돌려 쓰므로 카드가 몇 장이든 비용이 같습니다.
+CARD_W, CARD_H = 88, 124
+TORN_SCALE = 6          # 굽는 배수. 매끈하게 그려 놓고 2배로 줄입니다.
+TORN_AMP = 1.25         # 변이 흔들리는 폭 (1배 픽셀)
+TORN_STEP = 13          # 흔들림을 뽑는 사이 (1배 픽셀)
+TORN_NICKS = 3          # 이빠짐
+TORN_COUNT = 4
+
+
+def torn_wave(length_px, seed):
+    """TORN_STEP 마다 한 점씩 뽑아 코사인으로 잇습니다."""
+    import math
+    import random
+    rnd = random.Random(seed)
+    n = max(3, int(length_px / (TORN_STEP * TORN_SCALE)) + 2)
+    keys = [rnd.uniform(-1, 1) for _ in range(n)]
+    out = []
+    for i in range(length_px):
+        t = i / (length_px - 1) * (n - 1)
+        a = int(t)
+        b = min(a + 1, n - 1)
+        f = t - a
+        f = (1 - math.cos(f * math.pi)) / 2
+        out.append(keys[a] * (1 - f) + keys[b] * f)
+    return out
+
+
+def bake_torn(index, path):
+    import random
+    from PIL import Image, ImageDraw, ImageFilter
+
+    seed = index * 101
+    rnd = random.Random(seed)
+    s6 = TORN_SCALE
+    bw, bh = CARD_W * s6, CARD_H * s6
+    pad = int(TORN_AMP * s6) + 6
+    img = Image.new('L', (bw + pad * 2, bh + pad * 2), 0)
+    d = ImageDraw.Draw(img)
+    amp = TORN_AMP * s6
+    top, bot = torn_wave(bw, seed + 1), torn_wave(bw, seed + 2)
+    lef, rig = torn_wave(bh, seed + 3), torn_wave(bh, seed + 4)
+    pts = []
+    for x in range(bw):
+        pts.append((pad + x, pad + top[x] * amp))
+    for y in range(bh):
+        pts.append((pad + bw - 1 + rig[y] * amp, pad + y))
+    for x in range(bw - 1, -1, -1):
+        pts.append((pad + x, pad + bh - 1 + bot[x] * amp))
+    for y in range(bh - 1, -1, -1):
+        pts.append((pad + lef[y] * amp, pad + y))
+    d.polygon(pts, fill=255)
+
+    # 이빠짐 — 변에서 안쪽으로 얕게 파고듭니다.
+    for _ in range(TORN_NICKS):
+        side = rnd.randrange(4)
+        depth = rnd.uniform(0.7, 1.5) * s6
+        wide = rnd.uniform(3.0, 6.5) * s6
+        if side in (0, 2):
+            x = rnd.uniform(wide, bw - wide)
+            y = 0 if side == 0 else bh - 1
+            dy = depth if side == 0 else -depth
+            d.polygon([(pad + x - wide / 2, pad + y), (pad + x + wide / 2, pad + y),
+                       (pad + x, pad + y + dy)], fill=0)
+        else:
+            y = rnd.uniform(wide, bh - wide)
+            x = 0 if side == 1 else bw - 1
+            dx = depth if side == 1 else -depth
+            d.polygon([(pad + x, pad + y - wide / 2), (pad + x, pad + y + wide / 2),
+                       (pad + x + dx, pad + y)], fill=0)
+
+    img = img.filter(ImageFilter.GaussianBlur(s6 * 0.3))
+    # 여백을 잘라 내고 2배로 줄입니다 — 놓는 쪽은 카드 크기로 늘려 씁니다.
+    img = img.crop((pad, pad, pad + bw, pad + bh))
+    small = img.resize((CARD_W * BAKE, CARD_H * BAKE), Image.LANCZOS)
+    rgba = Image.new('RGBA', small.size, (255, 255, 255, 0))
+    rgba.putalpha(small)
+    rgba.save(path, optimize=True)
+
+
 def bake():
     from playwright.sync_api import sync_playwright
 
@@ -201,6 +286,9 @@ def bake():
             pg.screenshot(path=path, clip=box, omit_background=True)
             made.append(name)
         b.close()
+    for index in range(1, TORN_COUNT + 1):
+        bake_torn(index, os.path.join(OUT, 'card-torn-%d.png' % index))
+        made.append('card-torn-%d' % index)
     return made
 
 
@@ -211,6 +299,9 @@ def table():
         pad = PAD if name.startswith('button') or name == 'keycap' else 0
         rows.append("  '%s': { w: %d, h: %d, pad: %d, left: %d, right: %d, top: %d, bottom: %d },"
                     % (name, w, h, pad, sl[0], sl[1], sl[2], sl[3]))
+    for index in range(1, TORN_COUNT + 1):
+        rows.append("  'card-torn-%d': { w: %d, h: %d, pad: 0, left: 0, right: 0, top: 0, bottom: 0 },"
+                    % (index, CARD_W, CARD_H))
     rungs = ',\n'.join("  '%s': { height: %d, font: %d, cut: %d }" % r for r in RUNGS)
     return '''// 이 파일은 design-data/tools/ui.py 가 씁니다. 손으로 고치지 않습니다.
 //
@@ -240,13 +331,17 @@ export const RUNG = {
 } as const
 
 export type RungName = keyof typeof RUNG
-''' % (BAKE, '1 / %d' % BAKE, '1 / %d' % BAKE, chr(10).join(rows), rungs)
+
+/** 카드의 뜯긴 가장자리 마스크의 수. 카드마다 하나를 돌려 씁니다. */
+export const TORN_COUNT = %d
+''' % (BAKE, '1 / %d' % BAKE, '1 / %d' % BAKE, chr(10).join(rows), rungs, TORN_COUNT)
 
 
 def main():
     check = '--check' in sys.argv
     if check:
-        missing = [n for n, *_ in PIECES if not os.path.exists(os.path.join(OUT, n + '.png'))]
+        names = [n for n, *_ in PIECES] + ['card-torn-%d' % i for i in range(1, TORN_COUNT + 1)]
+        missing = [n for n in names if not os.path.exists(os.path.join(OUT, n + '.png'))]
         if missing:
             print('없는 조각: %s' % ' '.join(missing))
             return 1

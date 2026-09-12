@@ -65,6 +65,11 @@ const GO_H = 60
 const OWNER = 'Tabbit'
 const YEAR = 2026
 
+/** 저작권 한 줄. 어느 말에서나 같습니다. */
+function copyrightLine(): string {
+  return `${String.fromCharCode(0xa9)} ${YEAR} ${OWNER} ${String.fromCharCode(0xb7)} v${__APP_VERSION__}`
+}
+
 /** 계정 카드의 크기. **`hub.ts` 의 카드와 같습니다** — 그 자리에 그 카드가 놓입니다. */
 const ACCOUNT_W = 200
 const ACCOUNT_H = 72
@@ -196,7 +201,7 @@ export class Title extends Container {
 
     // 저작권. **아래 변의 가운데, 한 줄 위입니다.** 판 번호가 여기 함께 적힙니다.
     const copyright = new Text({
-      text: `© ${YEAR} ${OWNER} · v${__APP_VERSION__}`,
+      text: copyrightLine(),
       style: { fontSize: TEXT.small, fill: UI.inkFaint, fontWeight: WEIGHT.normal, letterSpacing: 1 },
     })
     copyright.anchor.set(0.5, 1)

@@ -34,6 +34,11 @@ const LOGO_Y = 132
 const OWNER = 'Tabbit'
 const YEAR = 2026
 
+/** 저작권 한 줄. 어느 말에서나 같습니다. */
+function copyrightLine(): string {
+  return `${String.fromCharCode(0xa9)} ${YEAR} ${OWNER} ${String.fromCharCode(0xb7)} v${__APP_VERSION__}`
+}
+
 /** 화면 가장자리에서 띄우는 거리. 전면 화면의 여백입니다. */
 const EDGE = 64
 const WHY_Y = 276
@@ -433,7 +438,7 @@ export class LoginScene extends Container {
 
     // 저작권. **아래 변의 가운데, 한 줄 위입니다.** 판 번호가 여기 함께 적힙니다.
     const copyright = new Text({
-      text: `\u00a9 ${YEAR} ${OWNER} \u00b7 v${__APP_VERSION__}`,
+      text: copyrightLine(),
       style: { fontSize: TEXT.small, fill: UI.inkFaint, fontWeight: WEIGHT.normal, letterSpacing: 1 },
     })
     copyright.anchor.set(0.5, 1)

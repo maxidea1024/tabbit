@@ -1,5 +1,5 @@
 import { PAINT } from '../render/ink'
-import { type Application, Container, Graphics, Rectangle, Text } from 'pixi.js'
+import { type Application, Container, Graphics, Rectangle, Text, TilingSprite } from 'pixi.js'
 import { type Data } from '../core/data'
 import { type Action, apply, newRun } from '../core/run'
 import { t, tf } from '../core/strings'
@@ -17,6 +17,7 @@ import { cardBackMotif, setCardSet, setLookOf } from '../render/card-set'
 import { bakeCardFaces, forgetCardFaces } from '../render/card-face'
 import { SIZE, UI } from '../render/theme'
 import { box, type Box, splitX } from '../ui/layout'
+import { noise } from '../shader/noise'
 import { Button } from '../ui/widgets'
 import { CollectionPanel } from '../ui/collection'
 import { discover, saveCollection, sightings } from '../core/collection'
@@ -424,6 +425,15 @@ export class Game {
 
     // 통신 표시와 입력 막이. **판보다 위입니다.**
     this.world.addChild(this.session.netStatus)
+
+    // **알갱이 한 겹.** 화면 전체에 옅게 깔립니다 — 이것 하나로 납작한 면이 재질이 됩니다.
+    // 누름을 받지 않고, 무대 배율을 따라갑니다.
+    const grain = new TilingSprite({ texture: noise('grain'), width: SIZE.width, height: SIZE.height })
+    grain.alpha = 0.05
+    grain.blendMode = 'add'
+    grain.eventMode = 'none'
+    grain.zIndex = 9_900
+    this.world.addChild(grain)
 
     // 되돌아온 주소를 보고, 로그인되어 있으면 내 것을 읽습니다. 그다음에 어느 씬으로
     // 갈지가 정해집니다 — **로그인했거나 싱글플레이로 정했으면 타이틀입니다.**
@@ -1087,6 +1097,8 @@ export class Game {
     this.tray.advanceBurningItems(seconds)
     this.payout.coins.advance(seconds)
     this.input.toasts.advance(seconds)
+    // **단추의 색과 글이 건너갑니다.** 한 프레임에 바뀌면 눌린 것인지 잠긴 것인지가 갈립니다.
+    Button.advanceAll(seconds)
     this.show.decayFlashes(seconds)
 
     // **하나가 던져도 프레임의 나머지는 돕니다.** 이 셋은 겉모습이고, 그 뒤에 오는 것이

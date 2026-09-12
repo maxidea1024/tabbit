@@ -13,7 +13,7 @@ import { t } from '../core/strings'
 
 import { plate, plateTint, floatingStyle } from '../render/skin'
 import { UI, SIZE, popupLeft, TEXT, WEIGHT } from '../render/theme'
-import { fraction } from '../render/motion'
+import { SETTLE_SECONDS, settle } from '../render/motion'
 import { Button } from './widgets'
 import { glowEdge, piece } from './chrome'
 
@@ -60,6 +60,8 @@ interface Entry {
   leaving: boolean
   /** 들어올 때의 떨림. 0 으로 잦아듭니다. */
   rumble: number
+  /** 든 정도. 0 에서 1 로 고르게 가고, `t` 는 그것을 곡선에 얹은 값입니다. */
+  u: number
   /** 지금 그려지는 깊이. 위에 몇 장이 얹혀 있는가입니다. */
   depth: number
 }
@@ -171,7 +173,7 @@ export class Modals extends Container {
     }
 
     this.addChild(panel.view)
-    this.entries.push({ panel, t: 0, leaving: false, rumble: 1, depth: 0 })
+    this.entries.push({ panel, t: 0, u: 0, leaving: false, rumble: 0, depth: 0 })
     this.onOpened?.()
     this.sync()
   }
@@ -229,12 +231,15 @@ export class Modals extends Container {
   advance(seconds: number): void {
     if (this.entries.length === 0) return
 
-    const step = fraction(seconds, 9)
+    // **곡선 하나, 0.56초.** 판은 아래에서 들어와 제자리에 앉습니다 — 커지면서 튀는 것을
+    // 걷었습니다. 그것은 알림 창의 문법입니다.
+    const step = seconds / SETTLE_SECONDS
 
     for (let i = this.entries.length - 1; i >= 0; i--) {
       const entry = this.entries[i]
       entry.panel.tick?.(seconds)
-      entry.t += ((entry.leaving ? 0 : 1) - entry.t) * step
+      entry.u = Math.max(0, Math.min(1, entry.u + (entry.leaving ? -step * 2 : step)))
+      entry.t = settle(entry.u)
       entry.rumble = Math.max(0, entry.rumble - seconds * 5.5)
 
       if (entry.leaving && entry.t < 0.02) {
@@ -269,9 +274,9 @@ export class Modals extends Container {
     const { view, size } = entry.panel
 
     // 넘쳤다가 자리에 앉습니다. `t` 가 1에 가까워질수록 넘침이 잦아듭니다.
-    const overshoot = Math.sin(Math.min(1, entry.t) * Math.PI) * 0.06
+    const overshoot = 0
     const back = entry.depth
-    const scale = 0.9 + 0.1 * entry.t + overshoot
+    const scale = 1 + overshoot
 
     // 들어올 때의 떨림. **짧게, 그리고 잦아듭니다** — 오래 떨면 흔들리는 판이 됩니다.
     const shake = entry.rumble * entry.rumble * 5
