@@ -723,6 +723,27 @@
 	ui.tab.blinds	블라인드	Blinds	ブラインド	盲注	盲注	Blinds
 	ui.tab.stakes	스테이크	Stakes	ステーク	难度	難度	Einsätze
 	ui.tab.insight	인사이트	Insight	インサイト	洞察	洞察	Analyse
+	ui.tab.log	기록	Log	記録	记录	記錄	Verlauf
+	ui.col.level	레벨	Level	レベル	等级	等級	Stufe
+	ui.col.chips_mult	칩 × 배수	Chips × Mult	チップ × 倍率	筹码 × 倍率	籌碼 × 倍率	Chips × Mult
+	ui.col.played	친 횟수	Played	回数	次数	次數	Gespielt
+	ui.col.cards	카드	Cards	カード	卡牌	卡牌	Karten
+	ui.col.score	점수	Score	得点	分数	分數	Punkte
+	ui.run_info.ante_targets	안테별 요구 점수	Target by Ante	アンティ別の要求点	各底注目标分	各底注目標分	Ziel je Ante
+	ui.run_info.locked	잠김	Locked	ロック	未解锁	未解鎖	Gesperrt
+	ui.run_info.read	읽은 것	Read	読んだもの	已读	已讀	Gelesen
+	ui.blind.done	격파함	Cleared	撃破	已通关	已通關	Geschafft
+	ui.blind.next	다음	Next	次	下一个	下一個	Nächste
+	ui.stake.order	위로 갈수록 더합니다. 아래의 제약은 그대로 남습니다	Each stake adds to the ones below it.	上に行くほど重なります。下の制約はそのまま残ります	越往上越叠加，下面的限制依然保留	越往上越疊加，下面的限制依然保留	Jeder Einsatz kommt zu den darunter hinzu.
+	ui.insight.lead	지금 판을 읽어 다음 한 수에 필요한 것만 적습니다	Reads the board and lists only what the next move needs.	今の盤を読み、次の一手に必要なものだけを記します	读取当前局面，只列出下一步所需的内容	讀取當前局面，只列出下一步所需的內容	Liest das Spielfeld und nennt nur, was der nächste Zug braucht.
+	ui.insight.level.warn	살핌	Watch	注意	注意	注意	Achtung
+	ui.insight.level.advise	권함	Advice	推奨	建议	建議	Rat
+	ui.insight.level.info	알림	Info	情報	信息	資訊	Info
+	ui.log.soon	아직 붙지 않은 기능입니다	Not built yet	まだ実装されていません	尚未实现的功能	尚未實作的功能	Noch nicht gebaut
+	ui.log.note	화면과 문법을 먼저 정해 둡니다	The screen and its grammar are settled first.	画面と文法を先に決めておきます	先确定画面与规则	先確定畫面與規則	Bildschirm und Grammatik stehen zuerst fest.
+	ui.log.played	낸 핸드	Hands Played	出した手	出牌次数	出牌次數	Gespielte Blätter
+	ui.log.moves	이런	So far	ここまで	目前	目前	Bisher
+	ui.log.moves_unit	{n} 수	{n} moves	{n} 手	{n} 步	{n} 步	{n} Züge
 	ui.insight.none	지금 알릴 것이 없습니다	Nothing to report right now	今お知らせすることはありません	暂无可提示的内容	暫無可提示的內容	Derzeit nichts zu melden
 	ui.insight.group.round	라운드	Round	ラウンド	回合	回合	Runde
 	ui.insight.group.pick	고른 카드	Selection	選んだカード	已选卡牌	已選卡牌	Auswahl

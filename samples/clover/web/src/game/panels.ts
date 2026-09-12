@@ -1,4 +1,4 @@
-import { COLOR, DEAD, ENHANCEMENT_PAPER, SEAL_INK } from '../render/ink'
+import { COLOR, DEAD, ENHANCEMENT_PAPER, SEAL_INK, STAKE_INK } from '../render/ink'
 import { Container, Graphics, Rectangle, Sprite, Text } from 'pixi.js'
 import { BlindKind } from '../generated/enums/blind-kind'
 import { EditionKind } from '../generated/enums/edition-kind'
@@ -17,14 +17,18 @@ import { artFor } from '../render/art'
 import { cardArtDir, cardPaper, drawsIndex, suitInk } from '../render/card-set'
 import { MINI_RANK, SUIT_PIP } from '../render/faces'
 import { cardArtId, drawFace } from '../render/pips'
-import { SIZE, TEXT, UI, WEIGHT } from '../render/theme'
+import { SIZE, STEP, TEXT, UI, WEIGHT } from '../render/theme'
 import { NUMERALS } from '../ui/font'
 import { Button } from '../ui/widgets'
 import { Guide } from '../ui/guide'
 import { CollectionPanel } from '../ui/collection'
 import { RunPanel } from '../ui/run-panel'
 import { ConfirmPanel } from '../ui/confirm'
-import { FOOTER_BAR, type ModalPanel, Modals, panelFrame, TITLE_BAR } from '../ui/modal'
+import {
+  FOOTER_BAR, FULL_EDGE, FULL_FOOT_Y, fullFrame, type ModalPanel, Modals, panelFrame, TITLE_BAR,
+} from '../ui/modal'
+import { piece } from '../ui/chrome'
+import { mix, plateTint, wellTint } from '../render/skin'
 import { SECTION_H, sectionHead } from '../ui/parts'
 import { ScrollView } from '../ui/scroll'
 import { richBlock, richLeading, richLine, richStyle } from '../ui/rich'
@@ -35,6 +39,47 @@ import {
 import { blindName, HAND_SHAPE, INSIGHT_COLOR, ruleValue, snake } from './tables'
 import { type RunInfoTab } from './types'
 import { type Game } from './game'
+
+/** 곱셈 기호와 줄표. **글 표에 두지 않습니다** — 어느 말에서나 같은 기호입니다. */
+const TIMES_SIGN = String.fromCharCode(0xd7)
+const DASH = String.fromCharCode(0x2014)
+
+/**
+ * 런 정보의 자. **캔버스의 `RunInfo` 아트보드에서 옵니다.**
+ *
+ * 갈래 줄은 왼쪽 변에서 시작해 다섯이 나란히 서고, 그 밑에 열 이름 한 줄, 그 밑이 본문입니다.
+ */
+const RUN_TAB_Y = 176
+const RUN_TAB_W = 168
+const RUN_TAB_GAP = 10
+/** 열 이름 한 줄. */
+const RUN_HEAD_Y = 222
+/** 본문의 첫 줄. */
+const RUN_ROWS_Y = 248
+const RUN_ROW_H = 44
+/** 족보 갈래의 두 열. */
+const RUN_COL_LEVEL = 356
+const RUN_COL_VALUE = 456
+
+/** 블라인드 갈래의 딱지 셋. */
+const BLIND_TOP = 240
+const BLIND_H = 298
+const BLIND_GAP = 32
+/** 안테별 요구 점수. */
+const ANTE_HEAD_Y = 604
+const ANTE_ROW_Y = 636
+const ANTE_ROW_H = 76
+
+/** 스테이크 갈래의 줄 높이. 색 조각과 이름과 설명이 한 줄입니다. */
+const STAKE_ROW_H = 54
+
+/** 인사이트 갈래의 줄. */
+const INSIGHT_ROW_H = 58
+const INSIGHT_TEXT_X = 152
+
+/** 기록 갈래의 값 칸. */
+const LOG_CELL_Y = 240
+const LOG_CELL_H = 52
 
 /** 「적용 중」 목록의 한 줄. `delta` 가 있으면 값이 수이고 크게 놓입니다. */
 interface ActiveEntry {
@@ -83,7 +128,10 @@ export class PanelsPart {
   /** 족보 목록. 무엇이 몇 점인지 볼 수 있어야 무엇을 키울지 정합니다. */
   readonly handList: ModalPanel = {
     view: new Container(),
-    size: { width: 540, height: 60 },
+    size: { width: SIZE.width, height: SIZE.height },
+    // **전면 화면입니다.** 갈래 다섯이 저마다 다른 자를 쓰므로 판 하나에 담으면 갈래를
+    // 옮길 때마다 판이 들썩입니다.
+    fullscreen: true,
   }
 
   /** 족보 목록의 줄들. 어느 줄을 가리키고 있는지를 자리로 셉니다. */
@@ -161,7 +209,12 @@ export class PanelsPart {
   }
 
   /**
-   * 족보 목록.
+   * 런 정보. **전면 화면이고 갈래가 다섯입니다.**
+   *
+   * 한 판을 도는 동안 궁금해지는 것이 다섯입니다 — 어느 족보가 몇 점인지, 이 안테의
+   * 블라인드가 무엇인지, 지금 난이도가 무엇을 바꾸는지, 다음 한 수를 무엇으로 두어야
+   * 하는지, 그리고 여기까지 무엇을 했는지. 판 다섯을 만들면 그 다섯을 여는 방법이
+   * 저마다 달라지므로 한 화면 안의 갈래로 둡니다.
    *
    * **줄에 마우스를 올리면 그 족보를 카드로 보여 줍니다.** 「투 페어」가 무엇인지는 낱말이
    * 아니라 카드 다섯 장의 모양이고, 그 모양을 본 적이 없으면 이름만으로는 배울 수 없습니다.
@@ -174,63 +227,111 @@ export class PanelsPart {
     layer.removeChildren().forEach(child => child.destroy())
     this.handRows.length = 0
 
-    const rows = this.game.data.tables.pokerHand.records
-    const rowH = 36
-    // 갈래 단추가 머리띠 아래 한 줄을 차지합니다.
-    const top = TITLE_BAR + 54
-    // **네 갈래가 같은 크기입니다.** 갈래마다 다르면 단추를 누를 때마다 판과 단추가 함께
-    // 자리를 옮기고, 그러면 다음 갈래를 누르려는 손이 빈자리를 누릅니다. 폭은 상수이고
-    // 높이는 족보 목록이 정합니다 — 넷 가운데 가장 긴 것이 그것입니다.
-    const width = 620
-    const body = rows.length * rowH
-    const height = top + body + 14 + FOOTER_BAR
-
-    layer.addChild(panelFrame(width, height, t('ui.run_info.title'),
-      () => this.game.cards.toggleHandList()))
-
-    // 네 갈래. **한 판을 도는 동안 궁금해지는 것이 넷입니다** — 어느 족보가 몇 점인지,
-    // 이 안테의 블라인드가 무엇인지, 지금 난이도가 무엇을 바꾸는지, 그리고 지금 이 판에서
-    // 다음 한 수를 무엇으로 두어야 하는지. 판을 넷 만들면 그 넷을 여는 방법이 저마다
-    // 달라지므로 한 판 안의 갈래로 둡니다.
     const tabs: { key: RunInfoTab; label: string }[] = [
       { key: 'hands', label: t('ui.kind.poker_hand') },
       { key: 'blinds', label: t('ui.tab.blinds') },
       { key: 'stakes', label: t('ui.tab.stakes') },
       { key: 'insight', label: t('ui.tab.insight') },
+      { key: 'log', label: t('ui.tab.log') },
     ]
-    const tabW = 140
-    const tabGap = 8
-    const tabsX = (width - (tabs.length * tabW + (tabs.length - 1) * tabGap)) / 2
+    const here = tabs.find(tab => tab.key === this.runInfoTab) ?? tabs[0]
+
+    layer.addChild(fullFrame(here.label, [t('ui.run_info.title')],
+      () => this.game.cards.toggleHandList(), this.runInfoCorner()))
+
     tabs.forEach((tab, index) => {
-      const here = this.runInfoTab === tab.key
-      const button = new Button(tab.label, tabW, 36, here ? 'select' : 'neutral', () => {
+      const chosen = this.runInfoTab === tab.key
+      const button = new Button(tab.label, RUN_TAB_W, 36, chosen ? 'select' : 'neutral', () => {
         if (this.runInfoTab !== tab.key) this.insightScroll?.toTop()
         this.runInfoTab = tab.key
         this.drawHandList()
       })
-      button.position.set(tabsX + index * (tabW + tabGap), TITLE_BAR + 12)
+      button.position.set(FULL_EDGE + index * (RUN_TAB_W + RUN_TAB_GAP), RUN_TAB_Y)
       layer.addChild(button)
       // **자리는 화면이 알립니다.** 판이 닫히면 이 단추가 지워지고 `lateSpots` 가 그것을
       // 봅니다 — 도구가 좌표를 적어 두면 폭이 바뀔 때 빈자리를 누르고 통과합니다.
       this.game.spotNodes.set(`runInfoTab:${tab.key}`,
-                         { node: button, cx: tabW / 2, cy: 15 })
+                         { node: button, cx: RUN_TAB_W / 2, cy: 18 })
     })
 
-    if (this.runInfoTab === 'insight') {
-      this.drawInsightRows(layer, width, top, body)
-      this.handList.size.width = width
-      this.handList.size.height = height
-      layer.eventMode = 'static'
-      return
+    this.handList.size.width = SIZE.width
+    this.handList.size.height = SIZE.height
+    layer.eventMode = 'static'
+
+    if (this.runInfoTab === 'blinds') return this.drawBlindsTab(layer)
+    if (this.runInfoTab === 'stakes') return this.drawStakesTab(layer)
+    if (this.runInfoTab === 'insight') return this.drawInsightTab(layer)
+    if (this.runInfoTab === 'log') return this.drawLogTab(layer)
+    this.drawHandsTab(layer)
+  }
+
+  /**
+   * 오른쪽 위에 적는 것. **갈래마다 다릅니다** — 그 갈래를 읽는 동안 곁에 두고 싶은 값 하나입니다.
+   */
+  private runInfoCorner(): Container {
+    const label: string = this.runInfoTab === 'stakes' ? t('ui.run_info.current')
+      : this.runInfoTab === 'insight' ? t('ui.run_info.read')
+        : this.runInfoTab === 'log' ? t('ui.log.moves') : t('ui.slot.ante')
+    let value = `${this.game.state.ante} / ${this.game.data.run.winAnte}`
+    let ink = UI.ink
+    if (this.runInfoTab === 'stakes') {
+      const row = stakeRow(this.game.data, this.game.state.stake)
+      value = row === undefined ? '' : nameOf(this.game.data, 'stake', stakeSlug(row.stake),
+                                              row.name)
+      ink = UI.money
+    } else if (this.runInfoTab === 'insight') {
+      value = String(this.insightRows().length)
+    } else if (this.runInfoTab === 'log') {
+      value = tf('ui.log.moves_unit', { n: this.game.state.handsPlayedThisRun })
     }
 
-    if (this.runInfoTab !== 'hands') {
-      this.drawRunInfoRows(layer, width, top)
-      this.handList.size.width = width
-      this.handList.size.height = height
-      layer.eventMode = 'static'
-      return
+    const node = new Container()
+    const head = new Text({
+      text: label,
+      style: { fontSize: TEXT.small, fill: UI.inkDim, fontWeight: WEIGHT.normal },
+    })
+    head.anchor.set(1, 0)
+    node.addChild(head)
+    const big = new Text({
+      text: value,
+      style: { fontSize: TEXT.base, fill: ink, fontWeight: WEIGHT.bold },
+    })
+    big.anchor.set(1, 0)
+    big.position.set(0, 26)
+    node.addChild(big)
+    return node
+  }
+
+  /** 갈래의 본문에 놓는 칸 머리 한 줄. 열 이름들입니다. */
+  private columnHead(layer: Container, cols: { text: string; x: number; right?: boolean }[],
+                     top = RUN_HEAD_Y): void {
+    for (const col of cols) {
+      const node = new Text({
+        text: col.text,
+        style: { fontSize: TEXT.small, fill: UI.inkFaint, fontWeight: WEIGHT.normal },
+      })
+      node.anchor.set(col.right === true ? 1 : 0, 0)
+      node.position.set(col.x, top)
+      layer.addChild(node)
     }
+  }
+
+  /** 족보 갈래. 이름 · 레벨 · 칩 × 배수 · 친 횟수입니다. */
+  private drawHandsTab(layer: Container): void {
+    // **아직 못 본 족보는 한 줄로 묶습니다.** 열두 줄을 다 세우면 마지막 셋이 아래 변을
+    // 넘고, 그 셋은 이름도 값도 없는 줄입니다 — 몇 개가 남았는지만 적습니다.
+    const all = this.game.data.tables.pokerHand.records
+    const rows = all.filter(row => row.visibleFromStart
+      || (this.game.state.handPlayCounts[PokerHandKind[row.hand]] ?? 0) > 0)
+    const hidden = all.length - rows.length
+    const left = FULL_EDGE + 20
+    const right = SIZE.width - FULL_EDGE - 20
+    this.columnHead(layer, [
+      { text: t('ui.kind.poker_hand'), x: left },
+      { text: t('ui.col.level'), x: RUN_COL_LEVEL },
+      { text: t('ui.col.chips_mult'), x: RUN_COL_VALUE },
+      { text: t('ui.col.played'), x: right, right: true },
+    ])
 
     const band = new Graphics()
     layer.addChild(band)
@@ -241,39 +342,88 @@ export class PanelsPart {
       const chips = row.baseChips + row.chipsPerLevel * (level - 1)
       const mult = row.baseMult + row.multPerLevel * (level - 1)
       const seen = row.visibleFromStart || (this.game.state.handPlayCounts[key] ?? 0) > 0
-      const y = top + index * rowH
+      const y = RUN_ROWS_Y + index * RUN_ROW_H
+
+      // **한 줄 걸러 한 줄만 옅게 깔립니다.** 아홉 줄이 같은 바탕이면 눈이 가로로 미끄러져
+      // 이름과 횟수가 어긋나 읽힙니다.
+      if (index % 2 === 0) {
+        const plate = new Graphics()
+        plate.rect(FULL_EDGE, y - 6, SIZE.width - FULL_EDGE * 2, RUN_ROW_H)
+          .fill({ color: UI.cell, alpha: 0.5 })
+        layer.addChild(plate)
+      }
 
       const name = new Text({
         text: seen ? this.handName(row.hand) : '???',
-        style: { fontSize: TEXT.base, fill: seen ? UI.ink : UI.inkDim,
-          fontWeight: WEIGHT.normal },
+        style: { fontSize: TEXT.base, fill: seen ? UI.ink : UI.inkDim, fontWeight: WEIGHT.bold },
       })
-      name.position.set(28, y + 2)
+      name.anchor.set(0, 0.5)
+      name.position.set(left, y + RUN_ROW_H / 2 - 6)
 
       const lv = new Text({
         text: tf('ui.hand.level_short', { level }),
-        style: { fontSize: TEXT.body, fill: level > 1 ? UI.good : UI.inkDim,
-          fontWeight: WEIGHT.normal },
+        style: { fontSize: TEXT.small, fill: level > 1 ? UI.chips : UI.inkDim,
+          fontWeight: level > 1 ? WEIGHT.bold : WEIGHT.normal },
       })
-      lv.position.set(246, y + 3)
+      lv.anchor.set(0, 0.5)
+      lv.position.set(RUN_COL_LEVEL, y + RUN_ROW_H / 2 - 6)
 
-      const value = new Text({
-        text: seen ? `${chips}  ×  ${mult}` : '—',
-        style: { fontSize: TEXT.base, fill: seen ? UI.chips : UI.inkDim,
-          fontWeight: WEIGHT.normal },
-      })
-      value.position.set(318, y + 2)
+      const value = new Container()
+      if (seen) {
+        const c = new Text({
+          text: String(chips),
+          style: { fontSize: TEXT.base, fill: UI.chips, fontWeight: WEIGHT.bold },
+        })
+        c.anchor.set(0, 0.5)
+        const sign = new Text({
+          text: TIMES_SIGN,
+          style: { fontSize: TEXT.small, fill: UI.inkFaint, fontWeight: WEIGHT.normal },
+        })
+        sign.anchor.set(0, 0.5)
+        sign.position.set(c.width + 12, 0)
+        const m = new Text({
+          text: String(mult),
+          style: { fontSize: TEXT.base, fill: UI.mult, fontWeight: WEIGHT.bold },
+        })
+        m.anchor.set(0, 0.5)
+        m.position.set(c.width + 12 + sign.width + 12, 0)
+        value.addChild(c, sign, m)
+      } else {
+        const dash = new Text({
+          text: DASH, style: { fontSize: TEXT.base, fill: UI.inkFaint },
+        })
+        dash.anchor.set(0, 0.5)
+        value.addChild(dash)
+      }
+      value.position.set(RUN_COL_VALUE, y + RUN_ROW_H / 2 - 6)
 
       const played = new Text({
         text: tf('ui.hand.times', { n: this.game.state.handPlayCounts[key] ?? 0 }),
         style: { fontSize: TEXT.small, fill: UI.inkDim },
       })
-      played.anchor.set(1, 0)
-      played.position.set(width - 28, y + 4)
+      played.anchor.set(1, 0.5)
+      played.position.set(right, y + RUN_ROW_H / 2 - 6)
 
       layer.addChild(name, lv, value, played)
-      this.handRows.push({ hand: row.hand, seen, y, height: rowH })
+      this.handRows.push({ hand: row.hand, seen, y: y - 6, height: RUN_ROW_H })
     })
+
+    if (hidden > 0) {
+      const y = RUN_ROWS_Y + rows.length * RUN_ROW_H
+      const more = new Text({
+        text: '???',
+        style: { fontSize: TEXT.base, fill: UI.inkFaint, fontWeight: WEIGHT.bold },
+      })
+      more.anchor.set(0, 0.5)
+      more.position.set(left, y + RUN_ROW_H / 2 - 6)
+      const count = new Text({
+        text: tf('ui.active.more', { n: hidden }),
+        style: { fontSize: TEXT.small, fill: UI.inkFaint },
+      })
+      count.anchor.set(1, 0.5)
+      count.position.set(right, y + RUN_ROW_H / 2 - 6)
+      layer.addChild(more, count)
+    }
 
     // **가리킨 줄의 그림은 맨 위입니다.** 줄보다 먼저 붙이면 글자가 그림 위에 겹칩니다.
     const preview = new Container()
@@ -282,91 +432,194 @@ export class PanelsPart {
     this.handBand = band
     this.handPreview = preview
     this.handHovered = -1
-
-    // 자리는 모달 더미가 정합니다. 이쪽은 넓이만 알립니다.
-    this.handList.size.width = width
-    this.handList.size.height = height
-    layer.eventMode = 'static'
   }
 
   /**
-   * 블라인드와 스테이크의 줄들.
+   * 블라인드 갈래.
    *
-   * **둘이 같은 모양입니다** — 이름과 값 몇 개가 한 줄이고, 지금 것에 표가 붙습니다.
-   * 갈래마다 판을 따로 만들면 그 셋이 서로 다르게 생기고, 그러면 한 판 안의 갈래가
-   * 아니라 판 셋이 됩니다.
+   * **이 안테의 셋을 딱지로 늘어놓고, 그 아래에 안테별 요구 점수를 한 줄로 둡니다.**
+   * 줄로만 적으면 지금 어느 것과 붙고 있는지가 글에서만 읽히고, 요구 점수가 안테를 따라
+   * 어떻게 자라는지는 어디에도 남지 않습니다.
    */
-  private drawRunInfoRows(layer: Container, width: number, top: number): void {
-    const rowH = 36
-    const rows: { name: string; note: string; value: string; here: boolean }[] = []
+  private drawBlindsTab(layer: Container): void {
+    const kinds = [BlindKind.Small, BlindKind.Big, BlindKind.Boss]
+    const cardW = (SIZE.width - FULL_EDGE * 2 - BLIND_GAP * 2 - 88) / 3
+    const startX = (SIZE.width - (cardW * 3 + BLIND_GAP * 2)) / 2
 
-    if (this.runInfoTab === 'blinds') {
-      // 이 안테의 세 라운드. **요구 점수는 안테가 정하므로 판마다 다릅니다.**
-      for (const blind of [BlindKind.Small, BlindKind.Big, BlindKind.Boss]) {
-        const bossRow = blind === BlindKind.Boss
-          ? this.game.data.tables.bossBlind.findByBossId(this.game.state.bossId) : undefined
-        rows.push({
-          name: bossRow
-            ? nameOf(this.game.data, 'boss', this.game.state.bossId, bossRow.name)
-            : blindName(blind),
-          note: bossRow
-            ? describe(this.game.data, this.game.data.bossEffects.get(this.game.state.bossId)
-                ?? []).join(' · ')
-            : t('ui.note.no_rules'),
-          value: `${targetOf(this.game.data, this.game.state, blind).toLocaleString('en-US')}`
-            + `   ${tf('ui.blind.reward', { n: rewardOf(this.game.data, this.game.state, blind) })}`,
-          here: this.game.state.blind === blind,
-        })
-      }
-    } else {
-      // 난이도. **누적입니다** — 뒤의 것은 앞의 것을 전부 포함합니다.
-      const here = stakeRow(this.game.data, this.game.state.stake)?.stake
-      for (const row of this.game.data.tables.stake.records) {
-        rows.push({
-          name: nameOf(this.game.data, 'stake', stakeSlug(row.stake), row.name),
-          note: tf('ui.stake.note', {
-            column: row.anteColumn, reward: row.smallBlindReward, discards: row.discardsDelta,
-          }),
-          value: '',
-          here: row.stake === here,
-        })
-      }
-    }
+    kinds.forEach((blind, index) => {
+      const bossRow = blind === BlindKind.Boss
+        ? this.game.data.tables.bossBlind.findByBossId(this.game.state.bossId) : undefined
+      const tone = blind === BlindKind.Boss ? UI.red
+        : blind === BlindKind.Big ? UI.legendary : UI.bar
+      const x = startX + index * (cardW + BLIND_GAP)
+      const card = new Container()
+      card.position.set(x, BLIND_TOP)
 
-    rows.forEach((row, index) => {
-      const y = top + index * rowH
-
-      if (row.here) {
-        const band = new Graphics()
-        band.rect(16, y - 4, width - 32, rowH - 4)
-          .fill({ color: UI.pick, alpha: 0.22 })
-        layer.addChild(band)
+      const skin = piece('plate', cardW, BLIND_H, plateTint(UI.panel))
+      if (skin !== undefined) card.addChild(skin)
+      else {
+        const plate = new Graphics()
+        plate.rect(0, 0, cardW, BLIND_H).fill(UI.panel)
+        card.addChild(plate)
       }
+      const band = piece('head', cardW, 48, mix(tone, UI.panel, 0.62))
+      if (band !== undefined) card.addChild(band)
 
       const name = new Text({
-        text: row.name,
-        style: { fontSize: TEXT.base, fill: row.here ? UI.ink : UI.inkDim,
-          fontWeight: WEIGHT.bold },
+        text: bossRow
+          ? nameOf(this.game.data, 'boss', this.game.state.bossId, bossRow.name)
+          : tf('ui.blind.named', { name: blindName(blind) }),
+        style: { fontSize: TEXT.base, fill: mix(tone, UI.ink, 0.35), fontWeight: WEIGHT.bold },
       })
-      name.position.set(28, y)
+      name.anchor.set(0.5, 0.5)
+      name.position.set(cardW / 2, 24)
+      card.addChild(name)
 
-      const note = new Text({
-        text: row.note,
+      const caption = new Text({
+        text: t('ui.label.target'),
+        style: { fontSize: TEXT.small, fill: UI.inkDim, fontWeight: WEIGHT.normal },
+      })
+      caption.anchor.set(0.5, 0)
+      caption.position.set(cardW / 2, 74)
+      card.addChild(caption)
+
+      const need = new Text({
+        text: targetOf(this.game.data, this.game.state, blind).toLocaleString('en-US'),
+        style: { fontSize: STEP[3], fill: tone, fontWeight: WEIGHT.bold, fontFamily: NUMERALS },
+      })
+      need.anchor.set(0.5, 0)
+      need.position.set(cardW / 2, 96)
+      card.addChild(need)
+
+      const reward = richLine(tf('ui.blind.reward',
+        { n: rewardOf(this.game.data, this.game.state, blind) }),
+        richStyle('note', { fontWeight: WEIGHT.normal }))
+      reward.position.set((cardW - reward.width) / 2, 162)
+      card.addChild(reward)
+
+      if (bossRow) {
+        const note = richBlock(
+          [describe(this.game.data, this.game.data.bossEffects.get(this.game.state.bossId)
+            ?? []).join(' · ')],
+          richStyle('note'), richLeading('note'), cardW - 40, 'center')
+        note.position.set(20, 206)
+        card.addChild(note)
+      }
+
+      layer.addChild(card)
+
+      // 딱지 밑에 이 블라인드가 지금 어디인지 한 낱말.
+      const where = this.game.state.blind === blind ? t('ui.run_info.current')
+        : blind < this.game.state.blind ? t('ui.blind.done') : t('ui.blind.next')
+      const mark = new Text({
+        text: where,
         style: {
-          fontSize: TEXT.mini, fill: UI.inkDim,
-          wordWrap: true, wordWrapWidth: width - 220, breakWords: true,
+          fontSize: TEXT.small,
+          fill: this.game.state.blind === blind ? UI.money : UI.inkDim,
+          fontWeight: this.game.state.blind === blind ? WEIGHT.bold : WEIGHT.normal,
         },
       })
-      note.position.set(28, y + 18)
+      mark.anchor.set(0.5, 0)
+      mark.position.set(x + cardW / 2, BLIND_TOP + BLIND_H + 14)
+      layer.addChild(mark)
+    })
 
-      const value = new Text({
-        text: row.value,
-        style: { fontSize: TEXT.copy, fill: UI.chips, fontWeight: WEIGHT.normal },
+    // 안테별 요구 점수.
+    const head = sectionHead(SIZE.width - FULL_EDGE * 2, t('ui.run_info.ante_targets'),
+      undefined, false)
+    head.position.set(FULL_EDGE, ANTE_HEAD_Y)
+    layer.addChild(head)
+
+    // **안테 0 은 적지 않습니다.** 표의 첫 줄은 셈의 바닥이고 사람이 붙는 판이 아닙니다.
+    const antes = this.game.data.tables.ante.records.filter(row => row.ante > 0)
+    const cellW = (SIZE.width - FULL_EDGE * 2) / antes.length
+    antes.forEach((row, index) => {
+      const at = row.ante === this.game.state.ante
+      const x = FULL_EDGE + index * cellW
+      if (at) {
+        const plate = new Graphics()
+        plate.rect(x, ANTE_ROW_Y, cellW, ANTE_ROW_H).fill({ color: UI.cell, alpha: 0.9 })
+        plate.rect(x, ANTE_ROW_Y, cellW, 2).fill(UI.chips)
+        layer.addChild(plate)
+      }
+      const label = new Text({
+        text: `${t('ui.slot.ante')} ${row.ante}`,
+        style: { fontSize: TEXT.small, fill: at ? UI.chips : UI.inkDim,
+          fontWeight: at ? WEIGHT.bold : WEIGHT.normal },
       })
-      value.anchor.set(1, 0)
-      value.position.set(width - 28, y + 2)
+      label.anchor.set(0.5, 0)
+      label.position.set(x + cellW / 2, ANTE_ROW_Y + 18)
+      const value = new Text({
+        text: targetOf(this.game.data, { ...this.game.state, ante: row.ante },
+          BlindKind.Small).toLocaleString('en-US'),
+        style: { fontSize: TEXT.base, fill: at ? UI.ink : UI.inkDim, fontWeight: WEIGHT.bold,
+          fontFamily: NUMERALS },
+      })
+      value.anchor.set(0.5, 0)
+      value.position.set(x + cellW / 2, ANTE_ROW_Y + 38)
+      layer.addChild(label, value)
+    })
+  }
 
-      layer.addChild(name, note, value)
+  /**
+   * 스테이크 갈래.
+   *
+   * **누적입니다** — 뒤의 것은 앞의 것을 전부 포함합니다. 그래서 줄의 차례가 곧 난이도의
+   * 차례이고, 지금 것 위쪽은 이미 걸려 있는 것입니다.
+   */
+  private drawStakesTab(layer: Container): void {
+    const lead = new Text({
+      text: t('ui.stake.order'),
+      style: { fontSize: TEXT.small, fill: UI.inkDim, fontWeight: WEIGHT.normal },
+    })
+    lead.position.set(FULL_EDGE, RUN_HEAD_Y)
+    layer.addChild(lead)
+
+    const now = stakeRow(this.game.data, this.game.state.stake)?.stake
+    const rows = this.game.data.tables.stake.records
+    const left = FULL_EDGE + 20
+    const right = SIZE.width - FULL_EDGE - 20
+    rows.forEach((row, index) => {
+      const at = row.stake === now
+      const y = RUN_ROWS_Y + index * STAKE_ROW_H
+
+      const plate = new Graphics()
+      plate.rect(FULL_EDGE, y - 6, SIZE.width - FULL_EDGE * 2, STAKE_ROW_H)
+        .fill({ color: UI.cell, alpha: at ? 0.95 : index % 2 === 0 ? 0.5 : 0.2 })
+      if (at) plate.rect(FULL_EDGE, y - 6, 4, STAKE_ROW_H).fill(UI.chips)
+      layer.addChild(plate)
+
+      // 그 스테이크의 색 한 조각. **이름보다 이것이 먼저 눈에 듭니다.**
+      const chip = new Graphics()
+      chip.rect(left, y + STAKE_ROW_H / 2 - 16, 60, 22)
+        .fill({ color: STAKE_INK[row.stake] ?? UI.inkDim, alpha: at ? 1 : 0.55 })
+      layer.addChild(chip)
+
+      const name = new Text({
+        text: nameOf(this.game.data, 'stake', stakeSlug(row.stake), row.name),
+        style: { fontSize: TEXT.base, fill: at ? UI.ink : UI.inkDim, fontWeight: WEIGHT.bold },
+      })
+      name.anchor.set(0, 0.5)
+      name.position.set(left + 80, y + STAKE_ROW_H / 2 - 5)
+
+      const note = new Text({
+        text: tf('ui.stake.note', {
+          column: row.anteColumn, reward: row.smallBlindReward, discards: row.discardsDelta,
+        }),
+        style: { fontSize: TEXT.small, fill: UI.inkDim, fontWeight: WEIGHT.normal },
+      })
+      note.anchor.set(0, 0.5)
+      note.position.set(left + 260, y + STAKE_ROW_H / 2 - 5)
+
+      const mark = new Text({
+        text: at ? t('ui.run_info.current') : t('ui.run_info.locked'),
+        style: { fontSize: TEXT.small, fill: at ? UI.chips : UI.inkFaint,
+          fontWeight: at ? WEIGHT.bold : WEIGHT.normal },
+      })
+      mark.anchor.set(1, 0.5)
+      mark.position.set(right, y + STAKE_ROW_H / 2 - 5)
+
+      layer.addChild(name, note, mark)
     })
   }
 
@@ -390,21 +643,38 @@ export class PanelsPart {
   }
 
   /**
-   * 인사이트 갈래의 줄들.
+   * 인사이트 갈래.
    *
-   * **갈래 머리로 묶어 세웁니다.** 줄만 늘어놓으면 「이 줄이 무엇에 대한 것인가」를 문장에서
-   * 읽어야 하고, 문장에는 그것이 적혀 있지 않습니다.
-   *
-   * 줄이 길어 접히므로 **높이를 미리 세지 않습니다** — 줄마다 그린 뒤에 그 높이만큼
-   * 내립니다. 말을 바꾸면 접히는 자리가 달라지고, 미리 센 높이는 한국어에만 맞습니다.
+   * **등급은 왼쪽 끝의 띠입니다.** 글의 색으로 알리면 읽는 색이 셋이 되고, 그러면 강조한
+   * 숫자와 구분되지 않습니다. 오른쪽 위에 그 띠 셋이 무엇인지 적힙니다.
    */
-  private drawInsightRows(layer: Container, width: number, top: number,
-                          height: number): void {
-    const rows = this.insightRows()
-    const inner = width - 36
-    const scroll = this.insightScroll ?? new ScrollView(inner, height)
+  private drawInsightTab(layer: Container): void {
+    const lead = new Text({
+      text: t('ui.insight.lead'),
+      style: { fontSize: TEXT.small, fill: UI.inkDim, fontWeight: WEIGHT.normal },
+    })
+    lead.position.set(FULL_EDGE, RUN_HEAD_Y)
+    layer.addChild(lead)
+
+    // 띠 셋의 뜻. 오른쪽 끝에서 왼쪽으로 쌓습니다.
+    let x = SIZE.width - FULL_EDGE
+    for (const level of ['warn', 'advise', 'info'] as const) {
+      const name = new Text({
+        text: t(`ui.insight.level.${level}`),
+        style: { fontSize: TEXT.small, fill: INSIGHT_COLOR[level], fontWeight: WEIGHT.bold },
+      })
+      name.anchor.set(1, 0)
+      name.position.set(x, RUN_HEAD_Y)
+      const bar = new Graphics()
+      bar.rect(x - name.width - 8, RUN_HEAD_Y + 1, 2, 12).fill(INSIGHT_COLOR[level])
+      layer.addChild(bar, name)
+      x -= name.width + 26
+    }
+
+    const width = SIZE.width - FULL_EDGE * 2
+    const scroll = this.insightScroll ?? new ScrollView(width, FULL_FOOT_Y - RUN_ROWS_Y - 8)
     this.insightScroll = scroll
-    scroll.position.set(18, top)
+    scroll.position.set(FULL_EDGE, RUN_ROWS_Y - 6)
     layer.addChild(scroll)
 
     // **답이 같으면 다시 그리지 않습니다.** 판이 떠 있는 동안 `refresh` 마다 여기를 지나고,
@@ -414,72 +684,67 @@ export class PanelsPart {
     this.insightDrawn = key
     scroll.content.removeChildren().forEach(child => child.destroy())
 
+    const rows = this.insightRows()
     if (rows.length === 0) {
       const none = new Text({
         text: t('ui.insight.none'),
-        style: { fontSize: TEXT.copy, fill: UI.inkDim, fontWeight: WEIGHT.normal },
+        style: { fontSize: TEXT.base, fill: UI.inkDim, fontWeight: WEIGHT.normal },
       })
       none.anchor.set(0.5, 0)
-      none.position.set(inner / 2, 26)
+      none.position.set(width / 2, 40)
       scroll.content.addChild(none)
       scroll.refresh()
       return
     }
 
     let y = 0
-    let group = ''
-    for (const row of rows) {
-      if (row.group !== group) {
-        // 무리 사이는 10 입니다. 붙여 두면 앞 무리의 마지막 줄이 다음 머리에 닿습니다.
-        if (group !== '') y += 10
-        group = row.group
-        const head = sectionHead(inner, t(`ui.insight.group.${row.group}`), undefined, false)
-        head.position.set(0, y)
-        scroll.content.addChild(head)
-        y += SECTION_H + 2
-      }
-      y += this.drawInsightLine(scroll.content, inner, y, row) + 6
-    }
-
+    for (const row of rows) y += this.drawInsightLine(scroll.content, width, y, row)
     scroll.refresh()
   }
 
   /**
    * 줄 하나. 그린 높이를 돌려줍니다.
    *
-   * **등급은 왼쪽 끝의 띠입니다.** 글의 색으로 알리면 읽는 색이 셋이 되고, 그러면 강조한
-   * 숫자와 구분되지 않습니다.
+   * **갈래 이름이 줄 안에 있습니다.** 무리 머리로 묶어 세우던 것을 걷었습니다 — 갈래마다
+   * 한 줄인 대목이 많아 머리와 줄이 번갈아 놓였고, 그러면 목록이 아니라 계단으로 읽힙니다.
    */
   private drawInsightLine(into: Container, width: number, y: number, row: Insight): number {
     const step = richLeading('body')
     const text = richBlock([tf(`ui.insight.${row.key}`, row.values)],
-                           richStyle('body'), step, width - 46)
+                           richStyle('body'), step, width - INSIGHT_TEXT_X - 120)
     const wrapped = (text as Container & { rows?: number }).rows ?? 1
-    const rowH = Math.max(30, wrapped * step + 13)
+    const rowH = Math.max(INSIGHT_ROW_H, wrapped * step + 24)
 
     const node = new Container()
     node.position.set(0, y)
 
     const plate = new Graphics()
-    plate.rect(0, 0, width, rowH).fill(UI.cell)
-    plate.rect(0.5, 0.5, width - 1, rowH - 1)
-      .stroke({ color: UI.hairline, width: 1 })
-    plate.rect(0, 5, 4, rowH - 10).fill(INSIGHT_COLOR[row.level])
+    plate.rect(0, 0, width, rowH).fill({ color: UI.cell, alpha: 0.5 })
+    plate.rect(0, 0, width, 1).fill({ color: UI.hairline, alpha: 0.5 })
+    plate.rect(20, (rowH - 16) / 2, 4, 16).fill(INSIGHT_COLOR[row.level])
     node.addChild(plate)
 
-    text.position.set(16, (rowH - wrapped * 17) / 2 + 1)
+    const group = new Text({
+      text: t(`ui.insight.group.${row.group}`),
+      style: { fontSize: TEXT.small, fill: UI.inkDim, fontWeight: WEIGHT.normal },
+    })
+    group.anchor.set(0, 0.5)
+    group.position.set(44, rowH / 2 - 5)
+    node.addChild(group)
+
+    text.position.set(INSIGHT_TEXT_X, (rowH - wrapped * step) / 2)
     node.addChild(text)
 
-    // 쪽지를 가진 줄에만 표시가 붙습니다. **표시가 없으면 눌러 볼 것이 있는지 알 수 없습니다.**
-    if (row.lines.length > 0) {
-      const mark = new Text({
-        text: '···',
-        style: { fontSize: TEXT.copy, fill: UI.inkDim, fontWeight: WEIGHT.bold },
-      })
-      mark.anchor.set(1, 0.5)
-      mark.position.set(width - 12, rowH / 2)
-      node.addChild(mark)
+    const tag = new Text({
+      text: t(`ui.insight.level.${row.level}`),
+      style: { fontSize: TEXT.small, fill: INSIGHT_COLOR[row.level], fontWeight: WEIGHT.bold },
+    })
+    tag.anchor.set(1, 0.5)
+    tag.position.set(width - 20, rowH / 2 - 5)
+    node.addChild(tag)
 
+    // 쪽지를 가진 줄만 눌러 볼 것이 있습니다.
+    if (row.lines.length > 0) {
       node.eventMode = 'static'
       node.cursor = 'pointer'
       node.hitArea = new Rectangle(0, 0, width, rowH)
@@ -493,6 +758,72 @@ export class PanelsPart {
 
     into.addChild(node)
     return rowH
+  }
+
+  /**
+   * 기록 갈래.
+   *
+   * **아직 붙지 않은 기능입니다.** 화면과 문법을 먼저 정해 두는 자리이고, 지금 셀 수 있는
+   * 값 셋만 위에 놓습니다 — 한 수씩 남기기 시작하면 그 아래를 그대로 채웁니다.
+   */
+  private drawLogTab(layer: Container): void {
+    const cells: { name: string; value: string; ink: number }[] = [
+      { name: t('ui.log.played'), value: String(this.game.state.handsPlayedThisRun),
+        ink: UI.ink },
+      { name: t('ui.over.best_hand'),
+        value: this.game.session.metrics.bestHand.toLocaleString('en-US'), ink: UI.chips },
+      { name: t('ui.over.money'), value: `$${this.game.state.money}`, ink: UI.money },
+    ]
+    const gap = 16
+    const cellW = (SIZE.width - FULL_EDGE * 2 - gap * (cells.length - 1)) / cells.length
+    cells.forEach((cell, index) => {
+      const x = FULL_EDGE + index * (cellW + gap)
+      const box = new Container()
+      box.position.set(x, LOG_CELL_Y)
+      const skin = piece('well', cellW, LOG_CELL_H, wellTint(UI.cell))
+      if (skin !== undefined) box.addChild(skin)
+      else {
+        const plate = new Graphics()
+        plate.rect(0, 0, cellW, LOG_CELL_H).fill(UI.cell)
+        box.addChild(plate)
+      }
+      const name = new Text({
+        text: cell.name,
+        style: { fontSize: TEXT.small, fill: UI.inkDim, fontWeight: WEIGHT.normal },
+      })
+      name.anchor.set(0, 0.5)
+      name.position.set(16, LOG_CELL_H / 2 - 5)
+      const value = new Text({
+        text: cell.value,
+        style: { fontSize: TEXT.base, fill: cell.ink, fontWeight: WEIGHT.bold,
+          fontFamily: NUMERALS },
+      })
+      value.anchor.set(1, 0.5)
+      value.position.set(cellW - 16, LOG_CELL_H / 2 - 5)
+      box.addChild(name, value)
+      layer.addChild(box)
+    })
+
+    // **값 칸 아래입니다.** 열 이름 줄의 자리에 두었더니 칸들과 겹쳤습니다.
+    this.columnHead(layer, [
+      { text: t('ui.col.cards'), x: FULL_EDGE + 20 },
+      { text: t('ui.col.chips_mult'), x: RUN_COL_VALUE },
+      { text: t('ui.col.score'), x: SIZE.width - FULL_EDGE - 20, right: true },
+    ], LOG_CELL_Y + LOG_CELL_H + 20)
+
+    const soon = new Text({
+      text: t('ui.log.soon'),
+      style: { fontSize: TEXT.base, fill: UI.money, fontWeight: WEIGHT.bold },
+    })
+    soon.anchor.set(0.5, 0)
+    soon.position.set(SIZE.width / 2, 420)
+    const note = new Text({
+      text: t('ui.log.note'),
+      style: { fontSize: TEXT.small, fill: UI.inkDim, fontWeight: WEIGHT.normal },
+    })
+    note.anchor.set(0.5, 0)
+    note.position.set(SIZE.width / 2, 456)
+    layer.addChild(soon, note)
   }
 
   /**

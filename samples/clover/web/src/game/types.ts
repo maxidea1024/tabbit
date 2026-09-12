@@ -103,7 +103,7 @@ export interface BlindGroup {
  * 넷째가 인사이트이고, 규격은 `doc/insight.md` 입니다. 앞의 셋은 표를 읽어 적는 것이고
  * 그것 하나만 지금의 상태를 셉니다.
  */
-export type RunInfoTab = 'hands' | 'blinds' | 'stakes' | 'insight'
+export type RunInfoTab = 'hands' | 'blinds' | 'stakes' | 'insight' | 'log'
 
 export interface PackFace {
   node: Container

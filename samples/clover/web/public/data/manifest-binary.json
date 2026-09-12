@@ -1,7 +1,7 @@
 {
-  "LastUpdatedDate": "2026-09-12T23:11:25.4964073+09:00",
-  "MasterHash": "0c1a3b1d886b26e1977fd6d094932711",
-  "TotalSize": 179942,
+  "LastUpdatedDate": "2026-09-12T23:31:14.3900973+09:00",
+  "MasterHash": "1b9ec26d70858af778eff40383758ca4",
+  "TotalSize": 181788,
   "Items": [
     {
       "Name": "Rank.tcb",
@@ -209,9 +209,9 @@
     },
     {
       "Name": "StringTable.tcb",
-      "Size": 145728,
-      "Hash": "065f1c43de49bc6782f2781544b76c9b",
-      "LastUpdatedDate": "2026-09-12T23:11:25.4939718+09:00"
+      "Size": 147574,
+      "Hash": "acf9cf36f56b55917f95f061c53807bf",
+      "LastUpdatedDate": "2026-09-12T23:31:14.387597+09:00"
     },
     {
       "Name": "Achievement.tcb",

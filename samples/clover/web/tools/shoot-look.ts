@@ -135,6 +135,11 @@ async function shootRun(browser: Browser): Promise<void> {
   await openDeckView(page)
   await pass(page, 700)
   await shot(page, 'runinfo')
+  for (const tab of ['blinds', 'stakes', 'insight', 'log']) {
+    await clickSpot(page, `runInfoTab:${tab}`)
+    await pass(page, 400)
+    await shot(page, `runinfo-${tab}`)
+  }
   await page.keyboard.press('Escape')
   await pass(page, 500)
 

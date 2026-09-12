@@ -296,8 +296,15 @@ export class Game {
     // 고릅니다. 처음 열 때 조커 탭이 보여 주는 범위만 그 값을 따릅니다.
     // **칸을 굽는 렌더러와 글씨의 배율을 넘깁니다.** 배율은 창의 크기를 따라 바뀌므로 값이
     // 아니라 읽는 함수입니다.
+    // **닫는 길이 둘입니다.** 타이틀에서는 씬으로 열리고(`openScreen`) 판 안에서는 메뉴의
+    // 한 줄로 열립니다 — 씬에서 나가는 것 하나만 걸어 두었더니 판 안에서 연 콜렉션은
+    // ESC 키캡을 눌러도 아무 일도 없었습니다. 키보드의 `Esc` 는 판 더미가 따로 받습니다.
     this.panels.collection = new CollectionPanel(data, this.session.collected,
-      () => this.session.leaveScreen(),
+      () => {
+        if (this.panels.modals.has(this.panels.collection)) {
+          this.panels.modals.close(this.panels.collection)
+        } else this.session.leaveScreen()
+      },
       { renderer: this.app.renderer, density: () => this.textScale })
     this.panels.optionsPanel = new OptionsPanel(data, this.session.settings,
       () => this.session.applyOptions(),
