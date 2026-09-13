@@ -14,7 +14,8 @@ import { Button } from '../ui/widgets'
 import { PANEL_BOTTOM } from '../ui/modal'
 import { richBlock, richLeading, richStyle } from '../ui/rich'
 import {
-  BLIND_RISE, BOARD_X, PANEL_W, PLAY_Y, TAG_FIRE, TAG_FIRE_WAIT, TAG_FLASH, TAG_POP,
+  BLIND_ENTER_GAP, BLIND_ENTER_TIME, BLIND_ENTER_TOTAL, BLIND_RISE, BOARD_X, PANEL_W,
+  PLAY_Y, TAG_FIRE, TAG_FIRE_WAIT, TAG_FLASH, TAG_POP,
 } from './metrics'
 import { blindName } from './tables'
 import { glare, NEWLINE } from './helpers'
@@ -268,16 +269,22 @@ export class BlindPart {
   /**
    * 카드 하나를 들어오는 정도에 맞춰 놓습니다.
    *
-   * **떠 있는 판들과 같은 법으로 올라옵니다** — 같은 58픽셀이고 같은 감쇠입니다. 이 판만
-   * 다른 거리와 다른 곡선으로 들어오면, 정산과 상점이 이 자리에서 서고 지므로 판이 갈릴
-   * 때마다 들어오는 방식이 바뀝니다. 도구가 누르는 자리도 카드를 따라갑니다.
+   * **떠 있는 판들과 같은 거리로 올라옵니다** — 같은 58픽셀입니다. 다만 셋이 함께 있는
+   * 화면이므로 50ms 간격을 두고 차례로 서며, 마지막 칸까지 0.66초에 정확히 끝납니다.
+   * 도구가 누르는 자리도 카드를 따라갑니다.
    *
    * **적어 둔 것과 코드가 어긋나 있었습니다.** 170픽셀을 감쇠 7로 올리고 있었고, 그것은
    * 떠 있는 판의 세 배 거리를 더 느린 곡선으로 지나는 것입니다 — 고를 것이 다 설 때까지
    * 기다리는 자리가 되었습니다.
    */
   placeBlindGroup(entry: BlindGroup): void {
-    const enter = this.blindEnter
+    // **셋을 한꺼번에 밀지 않습니다.** 왼쪽에서 오른쪽으로 50ms씩 따라오게 해야
+    // 스몰→빅→보스의 순서가 보이고, 세 판이 한 덩어리로 튀는 느낌도 사라집니다.
+    const elapsed = this.blindEnter * BLIND_ENTER_TOTAL
+    const raw = Math.max(0, Math.min(1,
+      (elapsed - entry.index * BLIND_ENTER_GAP) / BLIND_ENTER_TIME))
+    // 첫 움직임은 또렷하고 끝은 부드럽게 붙되, 감쇠처럼 꼬리가 남지는 않습니다.
+    const enter = 1 - (1 - raw) ** 3
     entry.group.position.set(entry.x, entry.bottom - entry.height + (1 - enter) * BLIND_RISE)
     entry.group.alpha = (entry.now ? 1 : entry.done ? 0.5 : 0.72) * Math.min(1, enter * 1.6)
     if (entry.skipY !== undefined) {
@@ -564,14 +571,18 @@ export class BlindPart {
     const height = Math.max(FACE + 12, 20 + note.height + 8)
 
     const node = new Container()
-    // **눌린 칸입니다.** 구운 그림에 테 하나 — 태그의 색은 테에 듭니다.
-    const plate = new Graphics()
+    // **눌린 칸입니다.** 구운 `well` 자체가 재질과 가장자리를 가지고 있습니다. 그 위에
+    // 직사각형 선을 한 번 더 그리면 태그만 웹 카드처럼 둘러싸이므로, 선은 그림을 못 읽은
+    // 비상 채움에서만 씁니다. 태그의 색은 얼굴과 이름이 냅니다.
     const skin = piece('well', width, height, wellTint(UI.cell))
     if (skin !== undefined) node.addChild(skin)
-    else plate.rect(0, 0, width, height).fill({ color: UI.cell, alpha: 0.95 })
-    plate.rect(0.5, 0.5, width - 1, height - 1)
-      .stroke({ color: UI.accentTerm, width: 1, alpha: 0.7 })
-    node.addChild(plate)
+    else {
+      const fallback = new Graphics()
+        .rect(0, 0, width, height).fill({ color: UI.cell, alpha: 0.95 })
+        .rect(0.5, 0.5, width - 1, height - 1)
+        .stroke({ color: UI.accentTerm, width: 1, alpha: 0.7 })
+      node.addChild(fallback)
+    }
 
     const face = tagFace(tagId, FACE)
     face.position.set(6 + FACE / 2, height / 2)

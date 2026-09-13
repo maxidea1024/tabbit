@@ -129,6 +129,15 @@ export const SHOP_RISE = 0.34
  */
 export const BLIND_RISE = 58
 
+/** 블라인드 카드 하나가 제자리에 서는 시간. 화면 진입 박자의 기준인 0.56초입니다. */
+export const BLIND_ENTER_TIME = 0.56
+
+/** 세 블라인드가 왼쪽부터 따라 들어오는 간격. */
+export const BLIND_ENTER_GAP = 0.05
+
+/** 첫 카드가 움직이기 시작해 마지막 카드가 다 설 때까지의 전체 시간. */
+export const BLIND_ENTER_TOTAL = BLIND_ENTER_TIME + BLIND_ENTER_GAP * 2
+
 /**
  * 머리띠와 첫 줄 사이.
  *
