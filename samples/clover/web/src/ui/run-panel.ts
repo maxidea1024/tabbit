@@ -39,6 +39,7 @@ import { ChallengeBody, openCount, type ChallengeProgress } from './challenge'
 import { glowEdge, piece } from './chrome'
 import type { ToolSpot } from './layout'
 import { FULL_BODY_TOP, FULL_EDGE, FULL_FOOT_Y, fullFrame, type ModalPanel } from './modal'
+import { runCardArt, type RunCardArt } from './scene-art'
 import { SetupBody, setupLabel, type RunSetup } from './setup'
 import { Tooltip } from './tooltip'
 import { Button } from './widgets'
@@ -298,23 +299,23 @@ export class RunPanel implements ModalPanel {
     const saved = this.saved
     const opened = openCount(this.progress)
     const cards: {
-      key: RunTab; title: string; lines: string[]; go: string; tone: number
+      key: RunTab; art: RunCardArt; title: string; lines: string[]; go: string
       primary: boolean; locked: boolean
     }[] = [
       {
-        key: 'new', title: t('ui.run.tab.new'),
+        key: 'new', art: 'new', title: t('ui.run.tab.new'),
         lines: [t('ui.run.new_desc'), setupLabel(this.data, this.setupBody.picked())],
-        go: t('ui.run.pick'), tone: UI.red, primary: true, locked: false,
+        go: t('ui.run.pick'), primary: true, locked: false,
       },
       {
-        key: 'resume', title: t('ui.run.tab.resume'),
+        key: 'resume', art: 'resume', title: t('ui.run.tab.resume'),
         lines: saved ? this.resumeBody.summary(saved) : [],
-        go: t('ui.run.continue'), tone: UI.bar, primary: false, locked: saved === undefined,
+        go: t('ui.run.continue'), primary: false, locked: saved === undefined,
       },
       {
-        key: 'challenge', title: t('ui.run.tab.challenge'),
+        key: 'challenge', art: 'challenge', title: t('ui.run.tab.challenge'),
         lines: [t('ui.run.challenge_desc'), opened === 0 ? t('ui.challenge.lockedAll') : ''],
-        go: t('ui.run.open'), tone: UI.money, primary: false, locked: opened === 0,
+        go: t('ui.run.open'), primary: false, locked: opened === 0,
       },
     ]
     const left = (SIZE.width - (CARD_W * cards.length + CARD_GAP * (cards.length - 1))) / 2
@@ -329,10 +330,10 @@ export class RunPanel implements ModalPanel {
         g.rect(0, 0, CARD_W, CARD_H).fill({ color: UI.panel, alpha: UI.panelAlpha })
         node.addChild(g)
       }
-      const art = piece('tray', CARD_W - 2, ART_H, wellTint(card.tone))
+      const art = runCardArt(card.art, CARD_W - 2, ART_H)
       if (art) {
         art.position.set(1, 1)
-        art.alpha = card.locked ? 0.2 : 0.4
+        art.alpha = card.locked ? 0.48 : 1
         node.addChild(art)
       }
       const band = glowEdge(CARD_W, card.primary ? UI.yellow : UI.rule)
@@ -587,7 +588,7 @@ class ResumeBody {
     resume.position.set(width - 320, footY)
     this.resumeButton = resume
 
-    const discard = new Button(t('ui.run.discard'), 160, GO_H, 'neutral',
+    const discard = new Button(t('ui.run.discard'), 160, GO_H, 'caution',
                                () => this.onDiscard?.())
     discard.position.set(width - 320 - 12 - 160, footY)
     this.discardButton = discard

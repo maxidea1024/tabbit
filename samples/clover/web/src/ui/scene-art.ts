@@ -23,6 +23,23 @@ function gray(level: number): number {
 
 let ready: Texture | undefined
 
+/** 타이틀의 세 큰 판에 들어가는 실제 삽화입니다. 임시 줄무늬나 막대는 두지 않습니다. */
+export type TitleCardArt = 'start' | 'collection' | 'leaderboard'
+export type RunCardArt = 'new' | 'resume' | 'challenge'
+
+const titleReady = new Map<TitleCardArt, Texture>()
+const runReady = new Map<RunCardArt, Texture>()
+const TITLE_FILE: Record<TitleCardArt, string> = {
+  start: 'title-start.webp',
+  collection: 'title-collection.webp',
+  leaderboard: 'title-leaderboard.webp',
+}
+const RUN_FILE: Record<RunCardArt, string> = {
+  new: 'run-new.webp',
+  resume: 'run-resume.webp',
+  challenge: 'run-challenge.webp',
+}
+
 /**
  * 배경 그림을 미리 읽습니다.
  *
@@ -30,11 +47,25 @@ let ready: Texture | undefined
  * 한 번 보입니다.
  */
 export async function loadSceneArt(base = './ui'): Promise<void> {
-  try {
-    ready = await Assets.load<Texture>(`${base}/title-bg.webp`)
-  } catch {
-    // 없으면 그림 없이 갑니다. 두 화면은 지금까지의 배경으로 그려집니다.
-  }
+  await Promise.all([
+    Assets.load<Texture>(`${base}/title-bg.webp`).then(texture => { ready = texture }).catch(() => {
+      // 없으면 그림 없이 갑니다. 두 화면은 지금까지의 배경으로 그려집니다.
+    }),
+    ...Object.entries(TITLE_FILE).map(async ([name, file]) => {
+      try {
+        titleReady.set(name as TitleCardArt, await Assets.load<Texture>(`${base}/${file}`))
+      } catch {
+        // 그림이 없는 판에는 대체 도형을 만들지 않습니다. 원화 누락을 그대로 드러냅니다.
+      }
+    }),
+    ...Object.entries(RUN_FILE).map(async ([name, file]) => {
+      try {
+        runReady.set(name as RunCardArt, await Assets.load<Texture>(`${base}/${file}`))
+      } catch {
+        // 삽화가 없으면 색 면이나 기호로 둘러대지 않습니다.
+      }
+    }),
+  ])
 }
 
 export function sceneArtReady(): boolean {
@@ -64,4 +95,29 @@ export function sceneArt(dim = 1): Container | undefined {
   sprite.position.set((SIZE.width - sprite.width) / 2, (SIZE.height - sprite.height) / 2)
   node.addChild(sprite)
   return node
+}
+
+/**
+ * 타이틀의 큰 판을 채우는 삽화입니다.
+ *
+ * 원화가 그림 자리와 같은 3:2 비율이므로 잘라내는 도형 마스크가 필요 없습니다. 픽셀 한두
+ * 줄의 비율 차이만 화면 크기에 맞춥니다. 누락됐을 때 선이나 막대로 대신하지 않습니다.
+ */
+export function titleCardArt(name: TitleCardArt, width: number, height: number): Sprite | undefined {
+  const texture = titleReady.get(name)
+  if (texture === undefined) return undefined
+  const sprite = new Sprite(texture)
+  sprite.width = width
+  sprite.height = height
+  return sprite
+}
+
+/** 런 시작의 세 선택지를 설명하는 삽화입니다. 누락됐을 때 대체 도형을 만들지 않습니다. */
+export function runCardArt(name: RunCardArt, width: number, height: number): Sprite | undefined {
+  const texture = runReady.get(name)
+  if (texture === undefined) return undefined
+  const sprite = new Sprite(texture)
+  sprite.width = width
+  sprite.height = height
+  return sprite
 }

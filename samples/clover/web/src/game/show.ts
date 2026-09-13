@@ -24,7 +24,7 @@ import { box, CENTER, pointOf, putText, splitX } from '../ui/layout'
 import { Button, Panel } from '../ui/widgets'
 import { RuleBanner, type RuleNote } from '../ui/rule-banner'
 import {
-  ACTIVE_GLOW, BLIND_MUSIC_DIM, BLUR_BACK_PX, BLUR_PX, BOARD_X, BUTTON_Y, CHIPS_GAP, CHIPS_H, CHIPS_Y, CONSUMABLE_TRAY, DEALER, DECK_X, DECK_Y, DELTA_LIFE, DELTA_POOL, EMBER, HAND_Y, JOKER_TRAY, JOKER_Y, LAND_AT, LEFT, PACK_TITLE_Y, PACK_X, PANEL_ROWS, PANEL_W, PLAY_H, PLAY_W, PLAY_Y, RIGHT_COL, RISER_HOLD, RISER_LIFT, RISER_ON_CARD, RISER_SPAN, SELL_WAIT, TRAY_PAD_X, within, IN_X, IN_W, SCORE_H,
+  ACTIVE_GLOW, BLIND_MUSIC_DIM, BLUR_BACK_PX, BLUR_PX, BOARD_X, BUTTON_Y, CHIPS_GAP, CHIPS_H, CHIPS_Y, CONSUMABLE_TRAY, DEALER, DECK_X, DECK_Y, DELTA_LIFE, DELTA_POOL, EMBER, HAND_INFO_Y, HAND_Y, JOKER_TRAY, JOKER_Y, LAND_AT, LEFT, PACK_TITLE_Y, PACK_X, PANEL_ROWS, PANEL_W, PLAY_H, PLAY_W, PLAY_Y, RIGHT_COL, RISER_HOLD, RISER_LIFT, RISER_ON_CARD, RISER_SPAN, SELL_WAIT, TRAY_PAD_X, within, IN_X, IN_W, SCORE_H,
 } from './metrics'
 import { ACT_KINDS, ACT_LOOK, moneyReason, ruleChange, SCORING_BEATS, VALUE_OPS } from './tables'
 import { edgeBlur, rgbOf } from './helpers'
@@ -272,7 +272,7 @@ export class ShowPart {
 
   buildPanel(): void {
     // **판은 16 · 32 에서 시작하고 물건 자리의 윗변과 같습니다.**
-    const panel = new Panel(PANEL_W, SIZE.height - 32 - 12)
+    const panel = new Panel(PANEL_W, SIZE.height - 32 - 12, undefined, 'hud-shell')
     this.game.chrome.panelPlate = panel
     panel.position.set(LEFT, 32)
     // **조커와 소모품의 자리는 상점 아래에 그립니다.** 상점이 판 안에 서므로, 이 사각형이
@@ -349,7 +349,7 @@ export class ShowPart {
     // **족보 이름은 판 안이 아니라 손패 위에 뜹니다.** 고른 카드 바로 위에서 무엇을 만들었는지가
     // 읽혀야 하고, 판 안에 두면 눈이 왼쪽으로 한 번 가야 합니다.
     putText(this.game.chrome.handLabel,
-            box(BOARD_X - 200, HAND_Y - SIZE.cardHeight / 2 - 52, 400, 24), CENTER)
+            box(BOARD_X - 200, HAND_INFO_Y - 12, 400, 24), CENTER)
 
     // **딱지 아래의 것들은 한 통에 담습니다.** 블라인드 딱지는 들고 있는 태그만큼 자라고,
     // 그러면 그 아래가 통째로 내려가야 합니다 — 낱개로 자리를 다시 세면 여섯 곳을 고쳐야
@@ -392,9 +392,9 @@ export class ShowPart {
     //
     // 손패와 단추 줄 사이에 두었던 동안 그 줄은 카드 밑의 점들과 겹쳤습니다 — 그 사이는
     // 43픽셀이고 점이 그 한가운데에 있어서, 글 한 줄이 더 들어갈 자리가 아닙니다.
-    // 족보 이름과 이 글은 함께 뜨지 않으므로(고른 것이 있으면 이름, 없으면 지시문) 한
-    // 자리를 나눠 씁니다.
-    this.game.input.hint.position.set(BOARD_X, HAND_Y - SIZE.cardHeight / 2 - 40)
+    // 카드를 고르면 큰 족보 이름이 함께 뜨므로 작은 지시문은 그 위로 한 줄 물러납니다.
+    // 고르기 전에는 족보 이름이 비어 있어 이 기준선을 그대로 씁니다.
+    this.game.input.hint.position.set(BOARD_X, HAND_INFO_Y)
 
     // **덱은 판이 도는 동안만 화면에 있습니다.** 상점에서는 오른쪽으로 밀려 나가고,
     // 다음 블라인드로 가면 다시 들어옵니다 — 상점의 물건과 자리를 다투지 않습니다.

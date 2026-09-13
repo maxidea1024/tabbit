@@ -26,6 +26,10 @@ import { type Game } from './game'
 export class CardsPart {
   constructor(private readonly game: Game) {}
 
+  /** 마지막으로 명시해 정렬한 기준과 그때의 손패 구성입니다. */
+  private sortMode?: 'rank' | 'suit'
+  private sortMembers = ''
+
   readonly views = new Map<number, CardView>()
 
   readonly playedViews: CardView[] = []
@@ -348,11 +352,11 @@ export class CardsPart {
       .map(uid => this.game.state.deck.find(card => card.uid === uid))
       .filter((card): card is CardInstance => card !== undefined)
 
-    cards.sort((a, b) => by === 'rank'
-      ? b.rank - a.rank || a.suit - b.suit
-      : a.suit - b.suit || b.rank - a.rank)
+    cards.sort((a, b) => this.compareHand(a, b, by))
 
     this.game.state.hand = cards.map(card => card.uid)
+    this.sortMode = by
+    this.sortMembers = this.handMemberKey()
     // **화면이 그리는 것은 `shown.hand` 입니다.** 연출이 도달한 것만 그리기 위한 것이라,
     // 정렬이 그것을 함께 바꾸지 않으면 자리가 하나도 움직이지 않습니다.
     //
@@ -364,6 +368,35 @@ export class CardsPart {
     this.game.input.recordOrder('hand', before)
     this.game.audio.play('card_select')
     this.game.refresh()
+  }
+
+  /**
+   * 지금도 유효한 정렬 기준.
+   *
+   * 새 카드를 받았거나 손으로 순서를 바꾸면 고른 정렬 표시를 끕니다. 마지막으로 눌렀던
+   * 단추만 기억하면 실제 카드 순서와 단추가 서로 다른 말을 하게 됩니다.
+   */
+  activeHandSort(): 'rank' | 'suit' | undefined {
+    const by = this.sortMode
+    if (by === undefined || this.sortMembers !== this.handMemberKey()) return undefined
+    const cards = this.game.state.hand
+      .map(uid => this.game.state.deck.find(card => card.uid === uid))
+      .filter((card): card is CardInstance => card !== undefined)
+    if (cards.length < 2) return undefined
+    for (let i = 1; i < cards.length; i++) {
+      if (this.compareHand(cards[i - 1], cards[i], by) > 0) return undefined
+    }
+    return by
+  }
+
+  private handMemberKey(): string {
+    return this.game.state.hand.slice().sort((a, b) => a - b).join(',')
+  }
+
+  private compareHand(a: CardInstance, b: CardInstance, by: 'rank' | 'suit'): number {
+    return by === 'rank'
+      ? b.rank - a.rank || a.suit - b.suit
+      : a.suit - b.suit || b.rank - a.rank
   }
 
   /** 족보 목록을 열고 닫습니다. */

@@ -14,7 +14,8 @@ import { Button } from '../ui/widgets'
 import { PANEL_BOTTOM } from '../ui/modal'
 import { richBlock, richLeading, richStyle } from '../ui/rich'
 import {
-  BLIND_RISE, BOARD_X, PANEL_W, PLAY_Y, TAG_FIRE, TAG_FIRE_WAIT, TAG_FLASH, TAG_POP,
+  BLIND_ENTER_GAP, BLIND_ENTER_TIME, BLIND_ENTER_TOTAL, BLIND_RISE, BOARD_X, PANEL_W,
+  PLAY_Y, TAG_FIRE, TAG_FIRE_WAIT, TAG_FLASH, TAG_POP,
 } from './metrics'
 import { blindName } from './tables'
 import { glare, NEWLINE } from './helpers'
@@ -268,16 +269,22 @@ export class BlindPart {
   /**
    * 카드 하나를 들어오는 정도에 맞춰 놓습니다.
    *
-   * **떠 있는 판들과 같은 법으로 올라옵니다** — 같은 58픽셀이고 같은 감쇠입니다. 이 판만
-   * 다른 거리와 다른 곡선으로 들어오면, 정산과 상점이 이 자리에서 서고 지므로 판이 갈릴
-   * 때마다 들어오는 방식이 바뀝니다. 도구가 누르는 자리도 카드를 따라갑니다.
+   * **떠 있는 판들과 같은 거리로 올라옵니다** — 같은 58픽셀입니다. 다만 셋이 함께 있는
+   * 화면이므로 50ms 간격을 두고 차례로 서며, 마지막 칸까지 0.66초에 정확히 끝납니다.
+   * 도구가 누르는 자리도 카드를 따라갑니다.
    *
    * **적어 둔 것과 코드가 어긋나 있었습니다.** 170픽셀을 감쇠 7로 올리고 있었고, 그것은
    * 떠 있는 판의 세 배 거리를 더 느린 곡선으로 지나는 것입니다 — 고를 것이 다 설 때까지
    * 기다리는 자리가 되었습니다.
    */
   placeBlindGroup(entry: BlindGroup): void {
-    const enter = this.blindEnter
+    // **셋을 한꺼번에 밀지 않습니다.** 왼쪽에서 오른쪽으로 50ms씩 따라오게 해야
+    // 스몰→빅→보스의 순서가 보이고, 세 판이 한 덩어리로 튀는 느낌도 사라집니다.
+    const elapsed = this.blindEnter * BLIND_ENTER_TOTAL
+    const raw = Math.max(0, Math.min(1,
+      (elapsed - entry.index * BLIND_ENTER_GAP) / BLIND_ENTER_TIME))
+    // 첫 움직임은 또렷하고 끝은 부드럽게 붙되, 감쇠처럼 꼬리가 남지는 않습니다.
+    const enter = 1 - (1 - raw) ** 3
     entry.group.position.set(entry.x, entry.bottom - entry.height + (1 - enter) * BLIND_RISE)
     entry.group.alpha = (entry.now ? 1 : entry.done ? 0.5 : 0.72) * Math.min(1, enter * 1.6)
     if (entry.skipY !== undefined) {
@@ -316,8 +323,10 @@ export class BlindPart {
     }
 
     const order = [BlindKind.Small, BlindKind.Big, BlindKind.Boss]
-    const cardW = 226
-    const gap = 20
+    // 설명과 두 갈래 행동을 담는 카드입니다. 226픽셀에서는 태그 이름과 한국어 설명이
+    // 같은 줄에서 서로 밀어내므로, 세 장이 화면 안에 남는 범위에서 244픽셀로 넓힙니다.
+    const cardW = 244
+    const gap = 18
     const cardH = 322
     // **아래에 붙입니다.** 조커 줄과 판 사이가 비면 화면이 위로 쏠리고, 판이 서는 자리는
     // 카드를 내는 자리와 같아야 눈이 옮겨 다니지 않습니다.
@@ -345,15 +354,45 @@ export class BlindPart {
       // **건너뛰면 무엇을 받는가.** 스몰과 빅이 나란히 서므로 둘 다 적혀 있어야 지금 것을
       // 건너뛸지 다음 것을 건너뛸지를 견줄 수 있습니다.
       const offer = skippable ? tagFor(state, blind) : undefined
-      const tag = offer ? this.tagPlate(offer, cardW - 36) : undefined
+      const actionW = cardW - 24
+      // 태그는 스킵으로 받는 보상 카드입니다. 현재 블라인드에서도 자기 면을 가져야
+      // 스킵 단추 바로 아래에 붙었을 때 하나의 선택지로 읽힙니다.
+      const tag = offer ? this.tagPlate(offer, now ? actionW : cardW - 36) : undefined
+
+      // **건너뛰기와 그 보상은 한 덩어리입니다.** 별도의 큰 상자로 한 번 더 감싸지 않고
+      // 단추와 보상 카드를 4픽셀로 붙입니다. 반대로 블라인드 시작은 24픽셀 떨어진 금색
+      // 단추로 두어, 두 행동의 경계가 프레임 수가 아니라 거리와 색으로 읽히게 합니다.
+      let skipChoice: { node: Container; height: number; buttonY: number } | undefined
+      if (now && skippable) {
+        const node = new Container()
+        const skip = new Button(t('ui.button.skip'), actionW, 36, 'dare', () => {
+          if (this.skipping) return
+          this.game.audio.play('blind_skip')
+          if (tag) {
+            this.skipFrom = this.game.overlay.toLocal(tag.face.getGlobalPosition())
+            this.skipping = true
+          }
+          this.game.act({ t: 'skip_blind' })
+        })
+        skip.position.set(0, 0)
+        let choiceH = 36
+        if (tag) {
+          tag.node.position.set(0, choiceH + 4)
+          choiceH += 4 + tag.height
+        }
+        if (tag) node.addChild(tag.node)
+        node.addChild(skip)
+        skipChoice = { node, height: choiceH, buttonY: 18 }
+      }
 
       // 밑단에 쌓이는 것들의 높이. 아래에서 위로 쌓습니다.
       //
       // 지금 차례인 칸에는 **하는 일 둘이 들어갑니다** — 이 블라인드로 가는 것과 건너뛰는
       // 것이고, 그 사이에 구분선 하나가 놓입니다.
       // **가르는 줄은 없습니다.** 무리는 사이의 넓이가 가릅니다.
+      const ACTION_GAP = 24
       const stack: number[] = now
-        ? [...(skippable ? [36, tag?.height ?? 0] : []), 48]
+        ? [...(skipChoice ? [skipChoice.height + ACTION_GAP - STACK_GAP] : []), 48]
         : [20, ...(tag ? [tag.height] : [])]
       // **사이는 12 입니다.** 단추의 턱(3)과 그림자가 아래로 내려오므로 8 이면 그 아래의
       // 것이 단추에 붙어 보입니다.
@@ -387,12 +426,13 @@ export class BlindPart {
       } else {
         plate.rect(0, 0, cardW, height).fill({ color: UI.panel, alpha: UI.panelAlpha })
       }
-      // **머리 판.** 판의 폭을 다 쓰고 색은 채움과 글자에 듭니다 — 스몰은 파랑, 빅은
-      // 보라, 보스는 붉음. 어느 블라인드인지가 이름을 읽기 전에 색으로 읽힙니다.
+      // **머리 판은 외피 안쪽에 들어갑니다.** 원화의 양끝 장식이 판 밖으로 튀어나오면
+      // 세 카드가 서로 침범합니다. 외피에서 8픽셀 물려 제목의 소속을 분명히 합니다.
       const tone = boss ? UI.red : blind === BlindKind.Big ? UI.legendary : UI.bar
-      const band = piece('head', cardW, BAND_H, mix(tone, UI.panel, 0.62))
+      const band = piece('blind-head', cardW - 16, BAND_H, mix(tone, UI.panel, 0.62))
       if (band !== undefined) {
         band.alpha = now ? 1 : 0.55
+        band.x = 8
         group.addChildAt(band, rim !== undefined ? 1 : 0)
       }
 
@@ -461,10 +501,10 @@ export class BlindPart {
 
       // 아래에서 위로 쌓습니다. **아랫변이 맞아야 셋이 한 줄로 보입니다.**
       let at = height - 12
-      const place = (node: Container, h: number): void => {
+      const place = (node: Container, w: number, h: number, gap = STACK_GAP): void => {
         at -= h
-        node.position.set(18, at)
-        at -= STACK_GAP
+        node.position.set((cardW - w) / 2, at)
+        at -= gap
         group.addChild(node)
       }
 
@@ -479,36 +519,19 @@ export class BlindPart {
         mark.position.set(cardW / 2, height - 32)
         group.addChild(mark)
         at = height - 40
-        if (tag) place(tag.node, tag.height)
+        if (tag) place(tag.node, cardW - 36, tag.height)
       } else {
         // **이 블라인드로 가는 것이 맨 아래입니다.** 셋 중 지금 차례인 칸에서만 뜨는
         // 단추이고, 밑단에 붙어 있어야 다음 안테에서도 같은 자리입니다.
-        const pick = new Button(t('ui.button.select_blind'), cardW - 36, 48, 'primary',
+        const pick = new Button(t('ui.button.select_blind'), actionW, 48, 'primary',
           () => this.game.act({ t: 'select_blind' }))
-        place(pick, 48)
+        place(pick, actionW, 48, skipChoice ? ACTION_GAP : STACK_GAP)
         entry.pickY = pick.y + 24
         this.game.spots.pick = { x: group.x + cardW / 2, y: group.y + entry.pickY }
 
-        if (skippable) {
-          // **받는 것이 건너뛰기 단추 아래입니다.** 위에 두었더니 그 태그가 「이
-          // 블라인드로 간다」의 딸린 글로 읽혔습니다 — 태그는 건너뛰었을 때 받는 것이고,
-          // 무엇을 하면 무엇을 받는가는 그 차례로 읽혀야 합니다.
-          if (tag) place(tag.node, tag.height)
-
-          const skip = new Button(t('ui.button.skip'), cardW - 36, 36, 'dare',
-            () => {
-              if (this.skipping) return
-              this.game.audio.play('blind_skip')
-              // **연출의 출발점은 카드에 적힌 태그의 얼굴입니다.** 액션이 판을 바꾸기 전에
-              // 적어 둡니다 — 뒤에 읽으면 없어진 것에게 자리를 묻는 것입니다.
-              if (tag) {
-                this.skipFrom = this.game.overlay.toLocal(tag.face.getGlobalPosition())
-                this.skipping = true
-              }
-              this.game.act({ t: 'skip_blind' })
-            })
-          place(skip, 36)
-          entry.skipY = skip.y + 18
+        if (skipChoice) {
+          place(skipChoice.node, actionW, skipChoice.height)
+          entry.skipY = skipChoice.node.y + skipChoice.buttonY
           this.game.spots.skip = { x: group.x + cardW / 2, y: group.y + entry.skipY }
         }
 
@@ -537,7 +560,7 @@ export class BlindPart {
    * **이름과 하는 일이 함께 적혀 있어야 합니다.** 이름만 있으면 「저글 태그」 가 무엇인지
    * 모르는 채로 건너뛸지를 정하게 됩니다.
    */
-  private tagPlate(tagId: string, width: number):
+  private tagPlate(tagId: string, width: number, framed = true):
       { node: Container; height: number; face: Container } {
     const lines = describe(this.game.data, this.game.data.tagEffects.get(tagId) ?? [])
 
@@ -564,14 +587,20 @@ export class BlindPart {
     const height = Math.max(FACE + 12, 20 + note.height + 8)
 
     const node = new Container()
-    // **눌린 칸입니다.** 구운 그림에 테 하나 — 태그의 색은 테에 듭니다.
-    const plate = new Graphics()
-    const skin = piece('well', width, height, wellTint(UI.cell))
-    if (skin !== undefined) node.addChild(skin)
-    else plate.rect(0, 0, width, height).fill({ color: UI.cell, alpha: 0.95 })
-    plate.rect(0.5, 0.5, width - 1, height - 1)
-      .stroke({ color: UI.accentTerm, width: 1, alpha: 0.7 })
-    node.addChild(plate)
+    // **눌린 칸입니다.** 구운 `well` 자체가 재질과 가장자리를 가지고 있습니다. 그 위에
+    // 직사각형 선을 한 번 더 그리면 태그만 웹 카드처럼 둘러싸이므로, 선은 그림을 못 읽은
+    // 비상 채움에서만 씁니다. 태그의 색은 얼굴과 이름이 냅니다.
+    if (framed) {
+      const skin = piece('well', width, height, wellTint(UI.cell))
+      if (skin !== undefined) node.addChild(skin)
+      else {
+        const fallback = new Graphics()
+          .rect(0, 0, width, height).fill({ color: UI.cell, alpha: 0.95 })
+          .rect(0.5, 0.5, width - 1, height - 1)
+          .stroke({ color: UI.accentTerm, width: 1, alpha: 0.7 })
+        node.addChild(fallback)
+      }
+    }
 
     const face = tagFace(tagId, FACE)
     face.position.set(6 + FACE / 2, height / 2)
@@ -582,6 +611,8 @@ export class BlindPart {
       style: { fontSize: TEXT.small, fill: UI.ink, fontWeight: WEIGHT.bold },
     })
     name.position.set(textLeft, 6)
+    const nameRoom = width - textLeft - 8
+    if (name.width > nameRoom) name.scale.set(nameRoom / name.width)
     node.addChild(name)
 
     note.position.set(textLeft, 22)
@@ -623,6 +654,11 @@ export class BlindPart {
 
   syncBadge(): void {
     const state = this.game.state
+
+    // 보통 국면은 고정 높이 HUD입니다. 블라인드 선택에서만 안내가 짧아지며 아래 묶음이
+    // 함께 올라가고, 그 국면을 벗어나면 즉시 원래 기준선으로 돌아옵니다.
+    this.game.chrome.panelStack.y = 0
+    this.game.tray.activeLayer.y = 0
 
     // **태그는 연출과 상관없이 지금 것입니다.** 딱지 전체는 연출이 끝난 뒤에 바꾸지만,
     // 태그는 그 연출 안에서 들어오므로 함께 묶으면 딱지가 한 번씩 뒤처집니다 — 첫 스킵의
@@ -666,6 +702,24 @@ export class BlindPart {
       this.badge.setNext(t('ui.guide.shop.head'), tf('ui.badge.next', { name }),
         targetOf(this.game.data, ahead, next), rewardOf(this.game.data, ahead, next),
         UI.bar, undefined, chips)
+      return
+    }
+
+    // 고르는 화면의 왼쪽은 현재 블라인드의 사본이 아닙니다. 이름·요구 점수·보상은
+    // 가운데 카드가 판단에 필요한 크기로 이미 보여 주므로, 여기서는 화면의 목적과 안테
+    // 안에서의 진행 순서만 알립니다. 같은 제목과 수를 두 번 놓으면 어느 쪽이 조작 대상인지
+    // 흐려지고, 특히 첫 카드가 왼쪽 HUD의 연장처럼 붙어 보입니다.
+    if (state.phase === 'blind-select') {
+      const order = [BlindKind.Small, BlindKind.Big, BlindKind.Boss]
+      const progress = order.map(kind => kind === state.blind
+        ? `**${blindName(kind)}**`
+        : blindName(kind)).join('  ·  ')
+      const compact = 160
+      this.badge.setInfo(t('ui.run.phase.blindSelect'), t('ui.badge.pick_note'), [progress],
+        UI.bar, undefined, chips, compact)
+      const lift = compact - 212
+      this.game.chrome.panelStack.y = lift
+      this.game.tray.activeLayer.y = lift
       return
     }
 

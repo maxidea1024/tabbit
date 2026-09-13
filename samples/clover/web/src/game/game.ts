@@ -31,7 +31,10 @@ import { type Crossings, readCrossings, Transition } from '../render/transition'
 import { type ToolSpot } from '../ui/layout'
 import { OptionsPanel, saveOptions } from '../ui/options'
 import {
-  BOARD_X, BUTTON_GAP, BUTTON_Y, CLEAR_W, DECK_MEET, FOOT_BTN_H, HELD_RISE, ITEM_LINGER, ITEM_SETTLE, JOKER_Y, LEFT, PANEL_INFO_W, PANEL_MENU_W, PANEL_FOOT_Y, PANEL_W, PLAY_H, PLAY_W, PLAY_Y, SORT_GAP, SORT_H, SORT_W, STEP_MS, DISCARD_W, IN_X, PANEL_BTN_GAP,
+  BLIND_ENTER_TOTAL, BOARD_X, BUTTON_GAP, BUTTON_Y, CLEAR_W, DECK_MEET, FOOT_BTN_H,
+  HELD_RISE, ITEM_LINGER, ITEM_SETTLE, JOKER_Y, LEFT, PANEL_INFO_W, PANEL_MENU_W,
+  PANEL_FOOT_Y, PANEL_W, PLAY_H, PLAY_W, PLAY_Y, SORT_GAP, SORT_H, SORT_W, STEP_MS,
+  DISCARD_W, IN_X, PANEL_BTN_GAP,
 } from './metrics'
 import { blurResolution } from './helpers'
 import {
@@ -256,9 +259,7 @@ export class Game {
     this.player = new TimelinePlayer(beat => this.show.showBeat(beat))
     this.session.hub = new LeaderboardHub(data, this.panels.modals, this.input.toasts)
     this.session.netStatus = new NetStatus(this.input.toasts)
-    const redDeck = data.tables.deck.findByDeckId('red_deck')
     this.session.title = new Title({
-      back: redDeck ? backLookOf(redDeck) : undefined,
       onStart: () => this.session.openRunPanel(),
       onGuide: () => this.panels.modals.open(this.panels.guide),
       onOptions: () => this.session.openOptions(),
@@ -1291,8 +1292,11 @@ export class Game {
     // 넘어가므로, 그 자리에서 올리면 판 셋이 상점 뒤에서 올라오고 상점이 걷힌 자리에는
     // 이미 다 떠 있습니다 — 올라오는 것을 아무도 보지 못합니다.
     const roomForBlind = !this.shop.shopLayer.visible && this.panels.modals.cover < 0.2
-    if (this.state.phase === 'blind-select' && this.blind.blindEnter < 0.999 && roomForBlind) {
-      this.blind.blindEnter += (1 - this.blind.blindEnter) * fraction(seconds, 9)
+    if (this.state.phase === 'blind-select' && this.blind.blindEnter < 1 && roomForBlind) {
+      // **정해진 길이로 끝냅니다.** 감쇠값은 거의 다 선 뒤에도 꼬리가 남아 카드와 누르는
+      // 자리가 오래 미끄러졌습니다. 0.66초 안에 셋이 순서대로 완전히 고정됩니다.
+      this.blind.blindEnter = Math.min(1,
+        this.blind.blindEnter + seconds / BLIND_ENTER_TOTAL)
       for (const entry of this.blind.blindGroups) this.blind.placeBlindGroup(entry)
     } else if (this.state.phase !== 'blind-select') {
       this.blind.blindEnter = 0

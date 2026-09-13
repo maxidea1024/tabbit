@@ -129,6 +129,15 @@ export const SHOP_RISE = 0.34
  */
 export const BLIND_RISE = 58
 
+/** 블라인드 카드 하나가 제자리에 서는 시간. 화면 진입 박자의 기준인 0.56초입니다. */
+export const BLIND_ENTER_TIME = 0.56
+
+/** 세 블라인드가 왼쪽부터 따라 들어오는 간격. */
+export const BLIND_ENTER_GAP = 0.05
+
+/** 첫 카드가 움직이기 시작해 마지막 카드가 다 설 때까지의 전체 시간. */
+export const BLIND_ENTER_TOTAL = BLIND_ENTER_TIME + BLIND_ENTER_GAP * 2
+
 /**
  * 머리띠와 첫 줄 사이.
  *
@@ -446,6 +455,12 @@ export const ITEM_SETTLE = 0.11
 export const ITEM_LINGER = 0.22
 
 export const HAND_Y = 608
+
+/** 손패 바로 위에서 현재 족보 또는 기본 지시문이 읽히는 기준선입니다. */
+export const HAND_INFO_Y = HAND_Y - SIZE.cardHeight / 2 - 40
+
+/** 카드를 골랐을 때 작은 지시문을 큰 족보 이름 위로 물리는 거리입니다. */
+export const HAND_HINT_SELECTED_RISE = 32
 
 /**
  * 바뀌는 카드가 나와 서는 줄.

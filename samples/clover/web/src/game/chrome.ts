@@ -6,13 +6,14 @@ import { ScoreWave } from '../shader/wave'
 import { Slot } from '../render/hud'
 import { Spring } from '../render/motion'
 import { slotStyle, mix } from '../render/skin'
-import { SIZE, TEXT, UI, WEIGHT } from '../render/theme'
+import { TEXT, UI, WEIGHT } from '../render/theme'
 import { type Box } from '../ui/layout'
 import { ProgressBar } from '../ui/parts'
 import { Button, Panel } from '../ui/widgets'
 import {
   BOARD_X, BUTTON_Y, CELL_SLOT_H, CELL_SLOT_W, CHIPS_GAP, CHIPS_H, CHIPS_R, CONSUMABLE_TRAY,
-  COUNT_PULSE, HAND_Y, IN_W, JOKER_TRAY, PLAY_H, PLAY_Y, SCORE_H, SORT_H, SORT_HIDE,
+  COUNT_PULSE, HAND_HINT_SELECTED_RISE, HAND_INFO_Y, IN_W, JOKER_TRAY, PLAY_H, PLAY_Y,
+  SCORE_H, SORT_H, SORT_HIDE,
 } from './metrics'
 import { boxInk } from './helpers'
 import { type Game } from './game'
@@ -51,7 +52,9 @@ export class ChromePart {
    */
   panelPlate?: Panel
 
-  readonly score = new Slot(t('ui.slot.round_score'), IN_W, SCORE_H, UI.ink)
+  // 라운드 총점은 자원 네 값보다 한 계단 큽니다. 같은 24픽셀이면 가장 자주 확인하는
+  // 결과가 핸드 수와 같은 위계가 되어, 패널이 값 일곱 개를 나열한 디버그 표처럼 보입니다.
+  readonly score = new Slot(t('ui.slot.round_score'), IN_W, SCORE_H, UI.ink, 36)
   /**
    * 라운드 점수 아래의 게이지. **눈금의 끝은 요구 점수가 아닙니다** — 넘긴 만큼이 금색으로
    * 보입니다.
@@ -141,13 +144,14 @@ export class ChromePart {
   panelShown: { hands: number; discards: number; ante: number; phase: string } =
     { hands: -1, discards: -1, ante: -1, phase: '' }
 
-  readonly hands = new Slot(t('ui.slot.hands'), CELL_SLOT_W, CELL_SLOT_H, UI.good)
+  readonly hands = new Slot(t('ui.slot.hands'), CELL_SLOT_W, CELL_SLOT_H, UI.good, 24, 1, true)
 
-  readonly discards = new Slot(t('ui.slot.discards'), CELL_SLOT_W, CELL_SLOT_H, UI.discard)
+  readonly discards = new Slot(t('ui.slot.discards'), CELL_SLOT_W, CELL_SLOT_H,
+    UI.discard, 24, 1, true)
 
-  readonly money = new Slot(t('ui.slot.money'), CELL_SLOT_W, CELL_SLOT_H, UI.money)
+  readonly money = new Slot(t('ui.slot.money'), CELL_SLOT_W, CELL_SLOT_H, UI.money, 24, 1, true)
 
-  readonly anteSlot = new Slot(t('ui.slot.ante'), CELL_SLOT_W, CELL_SLOT_H, UI.ink)
+  readonly anteSlot = new Slot(t('ui.slot.ante'), CELL_SLOT_W, CELL_SLOT_H, UI.ink, 24, 1, true)
 
   /**
    * 왼쪽 판의 값 칸 전부.
@@ -348,10 +352,12 @@ export class ChromePart {
       // **칸을 하나씩 그리지 않습니다. 고정된 영역 하나입니다** — 칸 수를 덱·바우처·
       // 챌린지가 바꾸므로, 칸마다 그리면 줄의 너비가 규칙을 따라 달라집니다.
       // **반투명입니다.** 자리는 바탕이고, 그 뒤의 무늬가 비쳐야 판 위에 파인 자리로 읽힙니다.
-      const skin = piece('tray', tray.width, tray.height, UI.ground)
+      const skin = piece('tray', tray.width, tray.height, UI.inkDim)
       if (skin !== undefined) {
         skin.position.set(tray.x, tray.y)
-        skin.alpha = 0.62
+        // 빈 칸은 전체 면적만 알립니다. 밝은 테나 슬롯 구획 없이 프랙탈이 비치는 재질 한
+        // 겹이고, 카드가 놓이면 카드가 이 면을 자연스럽게 덮습니다.
+        skin.alpha = 0.14
         g.addChild(skin)
         continue
       }
@@ -470,13 +476,17 @@ export class ChromePart {
     this.sortSuitButton.y = sortY
     this.sortRankButton.enabled = usable && this.game.shown.hand.length > 1
     this.sortSuitButton.enabled = usable && this.game.shown.hand.length > 1
+    const activeSort = this.game.cards.activeHandSort()
+    this.sortRankButton.highlight = activeSort === 'rank'
+    this.sortSuitButton.highlight = activeSort === 'suit'
     this.playButton.y = BUTTON_Y + off
     this.clearButton.y = BUTTON_Y + off
     this.discardButton.y = BUTTON_Y + off
-    // **지시문은 손패 위, 족보 이름이 서던 그 자리입니다.** 손패와 단추 줄 사이에 두었던
-    // 동안 그 줄은 카드 밑의 점들과 겹쳤습니다 — 그 사이는 43픽셀이고 점이 그 한가운데에
-    // 있습니다. 단추 줄이 물러나면 함께 물러납니다.
-    this.game.input.hint.y = HAND_Y - SIZE.cardHeight / 2 - 40 + off
+    // **지시문은 손패 위입니다.** 손패와 단추 줄 사이에 두었던 동안 그 줄은 카드 밑의
+    // 점들과 겹쳤습니다. 카드를 고르면 큰 족보 이름과 함께 뜨므로 그때만 한 줄 위로
+    // 물러나고, 조작 무리가 숨을 때는 둘이 함께 아래로 내려갑니다.
+    const selectedRise = this.game.cards.selected.size > 0 ? HAND_HINT_SELECTED_RISE : 0
+    this.game.input.hint.y = HAND_INFO_Y - selectedRise + off
   }
 
   /**
