@@ -9,7 +9,7 @@ import { fileURLToPath } from 'url'
 import { chromium, type Page } from 'playwright'
 import { createServer } from 'vite'
 import {
-  at, chooseFive, peek, pickCards, pressPlay, skipLogin, startNewRun, pass,
+  at, chooseFive, closeGuide, peek, pickCards, pressPlay, skipLogin, startNewRun, pass,
 } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -48,7 +48,9 @@ async function main(): Promise<number> {
   // 못한 채 타이틀에서 「소리 0번」 을 재고 통과했습니다.
   await startNewRun(page)
   await pass(page, 1100)
-  await tap(page, 20, 20)
+  // 게임 방법은 판 밖 좌표가 아니라 공통 닫기 경로로 닫습니다. 전면 판이 화면 밖 누름을
+  // 막은 뒤에도 예전 좌표가 남아 있어, 블라인드 단추를 가린 채 검사가 진행됐습니다.
+  await closeGuide(page)
   await pass(page, 700)
   const pick = (await peek(page)).spots?.pick
   if (pick) await tap(page, pick.x, pick.y)

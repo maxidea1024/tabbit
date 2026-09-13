@@ -140,6 +140,9 @@ PIECES = [
     ('well', 96, 48, (18, 18, 12, 12), well()),
     ('tray', 96, 96, (14, 14, 8, 8), tray()),
     ('head', 96, 64, (14, 14, 8, 10), head()),
+    # 블라인드 카드의 제목 띠. 공용 머리 판의 중앙 장식은 짧은 카드 제목을 가리므로,
+    # 같은 재질이되 글 뒤가 비어 있는 전용 조각을 둡니다.
+    ('blind-head', 96, 64, (14, 14, 8, 10), head()),
     ('keycap', 64, 36, (12, 12, 10, 14), keycap()),
     ('gauge', 48, 12, (6, 6, 0, 0), gauge_groove()),
     ('gauge-fill', 48, 8, (6, 6, 0, 0), gauge_fill()),
@@ -312,6 +315,12 @@ def bake_sources():
     head_art = crop_ratio(shell_art, (0.03, 0.01, 0.97, 0.105))
     fit_source(head_art, 96, 64).save(os.path.join(OUT, 'head.png'), optimize=True)
     made.append('head')
+
+    # 블라인드 카드에는 중앙 문양이 없는 눌린 판의 종이·금속 결을 씁니다. 이것은 보이는
+    # 도형을 새로 그리는 대체물이 아니라 `well` 원화의 실제 재질을 전용 규격으로 자른
+    # 것입니다. 글 뒤가 비어 있어 세 언어의 긴 제목도 장식과 충돌하지 않습니다.
+    fit_source(well_art, 96, 64).save(os.path.join(OUT, 'blind-head.png'), optimize=True)
+    made.append('blind-head')
 
     # 버튼 네 계단은 같은 원화에서 굽습니다. 모양과 재질은 같고 높이만 계단을 따릅니다.
     for name, h, _font, _cut in RUNGS:

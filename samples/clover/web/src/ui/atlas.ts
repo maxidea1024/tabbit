@@ -23,6 +23,7 @@ export const ATLAS: Record<string, Slice> = {
   'well': { w: 96, h: 48, pad: 0, left: 18, right: 18, top: 12, bottom: 12 },
   'tray': { w: 96, h: 96, pad: 0, left: 14, right: 14, top: 8, bottom: 8 },
   'head': { w: 96, h: 64, pad: 0, left: 14, right: 14, top: 8, bottom: 10 },
+  'blind-head': { w: 96, h: 64, pad: 0, left: 14, right: 14, top: 8, bottom: 10 },
   'keycap': { w: 64, h: 36, pad: 14, left: 12, right: 12, top: 10, bottom: 14 },
   'gauge': { w: 48, h: 12, pad: 0, left: 6, right: 6, top: 0, bottom: 0 },
   'gauge-fill': { w: 48, h: 8, pad: 0, left: 6, right: 6, top: 0, bottom: 0 },
