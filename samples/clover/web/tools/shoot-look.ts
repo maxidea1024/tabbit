@@ -108,6 +108,13 @@ async function shootRun(browser: Browser): Promise<void> {
   await pass(page, 400)
   await shot(page, 'round')
 
+  // 실제 조작 상태. 쉬는 화면만 남기면 주동작과 위험 동작의 위계를 확인할 수 없습니다.
+  await pickCards(page, [0, 1])
+  // 마지막으로 누른 카드의 쪽지가 그림을 가리지 않도록 빈 판으로 커서를 물립니다.
+  await page.mouse.move(640, 400)
+  await pass(page, 240)
+  await shot(page, 'round-selected')
+
   await clearBlind(page)
   await pass(page, 1400)
   // 줄이 쌓이는 중. **합계는 아직 $ 낱개입니다** — 「받는다」 는 그 뒤에 열립니다.

@@ -588,7 +588,7 @@ class ResumeBody {
     resume.position.set(width - 320, footY)
     this.resumeButton = resume
 
-    const discard = new Button(t('ui.run.discard'), 160, GO_H, 'neutral',
+    const discard = new Button(t('ui.run.discard'), 160, GO_H, 'caution',
                                () => this.onDiscard?.())
     discard.position.set(width - 320 - 12 - 160, footY)
     this.discardButton = discard

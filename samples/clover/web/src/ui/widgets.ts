@@ -175,9 +175,16 @@ export class Button extends Container {
   private skin?: Container
   /** 그림이 지금 띤 색과 가려는 색. 건너가는 동안 그 사이입니다. */
   private tintNow?: number
+  private tintFrom?: number
   private tintWant?: number
+  private tintLeft = 0
+  /** 비활성 글도 얼굴과 같은 시간에 건너갑니다. */
+  private captionAlphaNow = 1
+  private captionAlphaFrom = 1
+  private captionAlphaWant = 1
+  private captionAlphaLeft = 0
   /** 물러나는 옛 글. 올라가며 옅어지고, 다 지면 지웁니다. */
-  private fading?: { text: Text; left: number }
+  private fading?: { text: Text; left: number; alpha: number }
   /** 새 글이 드는 정도. 0 이면 아래에서 시작하고 1 이면 제자리입니다. */
   private rising = 1
   /** 이 단추가 서 있는 높이의 칸. 계단 넷 안에서만 고릅니다. */
@@ -270,18 +277,24 @@ export class Button extends Container {
   }
 
   private step(seconds: number): void {
-    const k = Math.min(1, seconds / CROSS)
-    if (this.skin !== undefined && this.tintWant !== undefined && this.tintNow !== undefined
-        && this.tintNow !== this.tintWant) {
-      this.tintNow = mix(this.tintNow, this.tintWant, k)
-      // 8비트로 반올림한 뒤 같으면 다 간 것입니다.
-      if (mix(this.tintNow, this.tintWant, 0.5) === this.tintWant) this.tintNow = this.tintWant
+    if (this.skin !== undefined && this.tintWant !== undefined && this.tintFrom !== undefined
+        && this.tintLeft > 0) {
+      this.tintLeft = Math.max(0, this.tintLeft - seconds)
+      const moved = 1 - this.tintLeft / CROSS
+      this.tintNow = this.tintLeft === 0 ? this.tintWant : mix(this.tintFrom, this.tintWant, moved)
       ;(this.skin as { tint: number }).tint = this.tintNow
+    }
+    if (this.captionAlphaLeft > 0) {
+      this.captionAlphaLeft = Math.max(0, this.captionAlphaLeft - seconds)
+      const moved = 1 - this.captionAlphaLeft / CROSS
+      this.captionAlphaNow = this.captionAlphaLeft === 0
+        ? this.captionAlphaWant
+        : this.captionAlphaFrom + (this.captionAlphaWant - this.captionAlphaFrom) * moved
     }
     if (this.fading !== undefined) {
       this.fading.left -= seconds
       const gone = 1 - Math.max(0, this.fading.left) / CROSS
-      this.fading.text.alpha = 1 - gone
+      this.fading.text.alpha = this.fading.alpha * (1 - gone)
       this.fading.text.y = this.captionY(this.pushed) - gone * 10
       if (this.fading.left <= 0) {
         this.fading.text.destroy()
@@ -290,9 +303,9 @@ export class Button extends Container {
     }
     if (this.rising < 1) {
       this.rising = Math.min(1, this.rising + seconds / CROSS)
-      this.caption.alpha = this.enabledState ? this.rising : this.rising * 0.5
       this.caption.y = this.captionY(this.pushed) + (1 - this.rising) * 10
     }
+    this.caption.alpha = this.rising * this.captionAlphaNow
   }
 
   /** 이 칸의 글자 크기. 글이 길어 줄였다가 되돌릴 때 씁니다. */
@@ -320,7 +333,7 @@ export class Button extends Container {
       old.position.set(this.caption.x, this.caption.y)
       old.alpha = this.caption.alpha
       this.addChild(old)
-      this.fading = { text: old, left: CROSS }
+      this.fading = { text: old, left: CROSS, alpha: old.alpha }
       this.rising = 0
       this.caption.alpha = 0
     }
@@ -384,7 +397,13 @@ export class Button extends Container {
     // 배경이 그 색에 섞여 노랑이 흙색으로, 붉음이 자주색으로 보입니다 — 잠긴 것은 잠긴
     // 것의 색을 가져야 합니다.
     this.alpha = 1
-    this.caption.alpha = value ? 1 : 0.5
+    this.captionAlphaFrom = this.captionAlphaNow
+    this.captionAlphaWant = value ? 1 : 0.5
+    this.captionAlphaLeft = TICKING.has(this) ? CROSS : 0
+    if (this.captionAlphaLeft === 0) {
+      this.captionAlphaNow = this.captionAlphaWant
+      this.caption.alpha = this.rising * this.captionAlphaNow
+    }
     this.cursor = value ? 'pointer' : 'default'
     this.draw()
   }
@@ -488,8 +507,13 @@ export class Button extends Container {
     const tall = rungOf(this.rung).height
     const sunk = this.pushed ? SINK : 0
     // **색은 건너갑니다.** 새 그림은 지금 띤 색으로 놓고, 가려는 색은 `step` 이 옮깁니다.
-    this.tintWant = this.shown.face
-    if (this.tintNow === undefined || !TICKING.has(this)) this.tintNow = this.tintWant
+    const tintWant = this.shown.face
+    if (this.tintWant !== tintWant) {
+      this.tintFrom = this.tintNow ?? tintWant
+      this.tintWant = tintWant
+      this.tintLeft = this.tintNow === undefined || !TICKING.has(this) ? 0 : CROSS
+      if (this.tintLeft === 0) this.tintNow = tintWant
+    }
     // **그림은 한 번 만들고 고쳐 씁니다.** 상태마다 새로 만들면 새 그림의 자리가 다음
     // 프레임까지 없어서, 가리킨 직후의 누름이 단추를 맞히지 못하고 빈자리 누름이 됩니다.
     if (this.skin === undefined) {
@@ -501,7 +525,7 @@ export class Button extends Container {
       // `refit()` 이 그림자 여백만큼 물러앉혀 두었으므로 그 위에 더합니다 — 덮어쓰면 얼굴이
       // 여백만큼 아래로 내려가 글이 얼굴의 윗변에 붙습니다.
       this.skin.y += sunk
-      ;(this.skin as { tint: number }).tint = this.tintNow
+      ;(this.skin as { tint: number }).tint = this.tintNow ?? tintWant
       this.applyInk()
       return
     }
