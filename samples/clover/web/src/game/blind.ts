@@ -354,17 +354,18 @@ export class BlindPart {
       // **건너뛰면 무엇을 받는가.** 스몰과 빅이 나란히 서므로 둘 다 적혀 있어야 지금 것을
       // 건너뛸지 다음 것을 건너뛸지를 견줄 수 있습니다.
       const offer = skippable ? tagFor(state, blind) : undefined
-      const tag = offer ? this.tagPlate(offer, now ? cardW - 40 : cardW - 36, !now) : undefined
-
-      // **건너뛰기와 그 보상은 한 덩어리입니다.** 단추·태그·주동작을 같은 간격으로
-      // 세워 두면 태그가 어느 행동의 결과인지 모호합니다. 건너뛰기와 태그를 눌린 판 안에
-      // 묶고, 블라인드 시작은 그 밖의 금색 단추 하나로 둡니다.
       const actionW = cardW - 24
+      // 태그는 스킵으로 받는 보상 카드입니다. 현재 블라인드에서도 자기 면을 가져야
+      // 스킵 단추 바로 아래에 붙었을 때 하나의 선택지로 읽힙니다.
+      const tag = offer ? this.tagPlate(offer, now ? actionW : cardW - 36) : undefined
+
+      // **건너뛰기와 그 보상은 한 덩어리입니다.** 별도의 큰 상자로 한 번 더 감싸지 않고
+      // 단추와 보상 카드를 4픽셀로 붙입니다. 반대로 블라인드 시작은 24픽셀 떨어진 금색
+      // 단추로 두어, 두 행동의 경계가 프레임 수가 아니라 거리와 색으로 읽히게 합니다.
       let skipChoice: { node: Container; height: number; buttonY: number } | undefined
       if (now && skippable) {
         const node = new Container()
-        const innerW = actionW - 16
-        const skip = new Button(t('ui.button.skip'), innerW, 36, 'dare', () => {
+        const skip = new Button(t('ui.button.skip'), actionW, 36, 'dare', () => {
           if (this.skipping) return
           this.game.audio.play('blind_skip')
           if (tag) {
@@ -373,23 +374,15 @@ export class BlindPart {
           }
           this.game.act({ t: 'skip_blind' })
         })
-        skip.position.set(8, 8)
-        let choiceH = 8 + 36
+        skip.position.set(0, 0)
+        let choiceH = 36
         if (tag) {
-          tag.node.position.set(8, choiceH + 8)
-          choiceH += 8 + tag.height
-        }
-        choiceH += 8
-        const choiceSkin = piece('well', actionW, choiceH, wellTint(UI.cell))
-        if (choiceSkin !== undefined) node.addChild(choiceSkin)
-        else {
-          const fallback = new Graphics().rect(0, 0, actionW, choiceH)
-            .fill({ color: UI.cell, alpha: 0.95 })
-          node.addChild(fallback)
+          tag.node.position.set(0, choiceH + 4)
+          choiceH += 4 + tag.height
         }
         if (tag) node.addChild(tag.node)
         node.addChild(skip)
-        skipChoice = { node, height: choiceH, buttonY: skip.y + 18 }
+        skipChoice = { node, height: choiceH, buttonY: 18 }
       }
 
       // 밑단에 쌓이는 것들의 높이. 아래에서 위로 쌓습니다.
@@ -397,8 +390,9 @@ export class BlindPart {
       // 지금 차례인 칸에는 **하는 일 둘이 들어갑니다** — 이 블라인드로 가는 것과 건너뛰는
       // 것이고, 그 사이에 구분선 하나가 놓입니다.
       // **가르는 줄은 없습니다.** 무리는 사이의 넓이가 가릅니다.
+      const ACTION_GAP = 24
       const stack: number[] = now
-        ? [...(skipChoice ? [skipChoice.height] : []), 48]
+        ? [...(skipChoice ? [skipChoice.height + ACTION_GAP - STACK_GAP] : []), 48]
         : [20, ...(tag ? [tag.height] : [])]
       // **사이는 12 입니다.** 단추의 턱(3)과 그림자가 아래로 내려오므로 8 이면 그 아래의
       // 것이 단추에 붙어 보입니다.
@@ -507,10 +501,10 @@ export class BlindPart {
 
       // 아래에서 위로 쌓습니다. **아랫변이 맞아야 셋이 한 줄로 보입니다.**
       let at = height - 12
-      const place = (node: Container, w: number, h: number): void => {
+      const place = (node: Container, w: number, h: number, gap = STACK_GAP): void => {
         at -= h
         node.position.set((cardW - w) / 2, at)
-        at -= STACK_GAP
+        at -= gap
         group.addChild(node)
       }
 
@@ -531,7 +525,7 @@ export class BlindPart {
         // 단추이고, 밑단에 붙어 있어야 다음 안테에서도 같은 자리입니다.
         const pick = new Button(t('ui.button.select_blind'), actionW, 48, 'primary',
           () => this.game.act({ t: 'select_blind' }))
-        place(pick, actionW, 48)
+        place(pick, actionW, 48, skipChoice ? ACTION_GAP : STACK_GAP)
         entry.pickY = pick.y + 24
         this.game.spots.pick = { x: group.x + cardW / 2, y: group.y + entry.pickY }
 
@@ -661,6 +655,11 @@ export class BlindPart {
   syncBadge(): void {
     const state = this.game.state
 
+    // 보통 국면은 고정 높이 HUD입니다. 블라인드 선택에서만 안내가 짧아지며 아래 묶음이
+    // 함께 올라가고, 그 국면을 벗어나면 즉시 원래 기준선으로 돌아옵니다.
+    this.game.chrome.panelStack.y = 0
+    this.game.tray.activeLayer.y = 0
+
     // **태그는 연출과 상관없이 지금 것입니다.** 딱지 전체는 연출이 끝난 뒤에 바꾸지만,
     // 태그는 그 연출 안에서 들어오므로 함께 묶으면 딱지가 한 번씩 뒤처집니다 — 첫 스킵의
     // 태그가 보이지 않고 다음 스킵에서야 그 앞의 것이 뜨던 것이 그것입니다.
@@ -703,6 +702,24 @@ export class BlindPart {
       this.badge.setNext(t('ui.guide.shop.head'), tf('ui.badge.next', { name }),
         targetOf(this.game.data, ahead, next), rewardOf(this.game.data, ahead, next),
         UI.bar, undefined, chips)
+      return
+    }
+
+    // 고르는 화면의 왼쪽은 현재 블라인드의 사본이 아닙니다. 이름·요구 점수·보상은
+    // 가운데 카드가 판단에 필요한 크기로 이미 보여 주므로, 여기서는 화면의 목적과 안테
+    // 안에서의 진행 순서만 알립니다. 같은 제목과 수를 두 번 놓으면 어느 쪽이 조작 대상인지
+    // 흐려지고, 특히 첫 카드가 왼쪽 HUD의 연장처럼 붙어 보입니다.
+    if (state.phase === 'blind-select') {
+      const order = [BlindKind.Small, BlindKind.Big, BlindKind.Boss]
+      const progress = order.map(kind => kind === state.blind
+        ? `**${blindName(kind)}**`
+        : blindName(kind)).join('  ·  ')
+      const compact = 160
+      this.badge.setInfo(t('ui.run.phase.blindSelect'), t('ui.badge.pick_note'), [progress],
+        UI.bar, undefined, chips, compact)
+      const lift = compact - 212
+      this.game.chrome.panelStack.y = lift
+      this.game.tray.activeLayer.y = lift
       return
     }
 

@@ -52,7 +52,9 @@ export class ChromePart {
    */
   panelPlate?: Panel
 
-  readonly score = new Slot(t('ui.slot.round_score'), IN_W, SCORE_H, UI.ink)
+  // 라운드 총점은 자원 네 값보다 한 계단 큽니다. 같은 24픽셀이면 가장 자주 확인하는
+  // 결과가 핸드 수와 같은 위계가 되어, 패널이 값 일곱 개를 나열한 디버그 표처럼 보입니다.
+  readonly score = new Slot(t('ui.slot.round_score'), IN_W, SCORE_H, UI.ink, 36)
   /**
    * 라운드 점수 아래의 게이지. **눈금의 끝은 요구 점수가 아닙니다** — 넘긴 만큼이 금색으로
    * 보입니다.
@@ -142,13 +144,14 @@ export class ChromePart {
   panelShown: { hands: number; discards: number; ante: number; phase: string } =
     { hands: -1, discards: -1, ante: -1, phase: '' }
 
-  readonly hands = new Slot(t('ui.slot.hands'), CELL_SLOT_W, CELL_SLOT_H, UI.good)
+  readonly hands = new Slot(t('ui.slot.hands'), CELL_SLOT_W, CELL_SLOT_H, UI.good, 24, 1, true)
 
-  readonly discards = new Slot(t('ui.slot.discards'), CELL_SLOT_W, CELL_SLOT_H, UI.discard)
+  readonly discards = new Slot(t('ui.slot.discards'), CELL_SLOT_W, CELL_SLOT_H,
+    UI.discard, 24, 1, true)
 
-  readonly money = new Slot(t('ui.slot.money'), CELL_SLOT_W, CELL_SLOT_H, UI.money)
+  readonly money = new Slot(t('ui.slot.money'), CELL_SLOT_W, CELL_SLOT_H, UI.money, 24, 1, true)
 
-  readonly anteSlot = new Slot(t('ui.slot.ante'), CELL_SLOT_W, CELL_SLOT_H, UI.ink)
+  readonly anteSlot = new Slot(t('ui.slot.ante'), CELL_SLOT_W, CELL_SLOT_H, UI.ink, 24, 1, true)
 
   /**
    * 왼쪽 판의 값 칸 전부.

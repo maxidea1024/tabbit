@@ -440,7 +440,10 @@ export class Slot extends Container {
     const inner = box(0, 0, boxWidth, boxHeight)
     const named = caption !== ''
     this.caption_.visible = named
-    this.row = named && !bare
+    // 이름 있는 값은 바탕을 따로 그리는지와 무관하게 한 줄입니다. `bare` 는 판때기만
+    // 걷는 선택이지 정보의 문법을 바꾸는 선택이 아닙니다 — 자원 네 칸의 테를 걷었을 때
+    // 이름이 다시 위, 값이 아래로 갈라지면 프레임만 없앤 채 예전 위계로 돌아갑니다.
+    this.row = named
     // **한 줄 칸의 숫자에는 테를 두르지 않습니다.** 칸의 어두운 바탕 위에 있으므로 테가
     // 할 일이 없고, 테를 두르면 12픽셀 이름 옆에서 숫자만 굵어 보입니다 — 테는 색 상자
     // 위에 앉는 칩과 배수에만 남습니다.
@@ -1006,15 +1009,20 @@ export class BlindBadge extends Container {
   private dressPlate(height: number, mark = UI.mark): void {
     this.skin?.destroy()
     this.band?.destroy()
-    // 이름·점수·보상 구획이 한 장에 이어진 전용 원화입니다. `well` 위에 `head` 를 다시
-    // 놓지 않으므로 안쪽 판에 테와 띠가 겹쳐지지 않습니다.
-    this.skin = piece('blind-badge', this.boxWidth, height, wellTint(UI.cell))
+    // 바깥 HUD가 이미 화면의 외곽을 정합니다. 이 안에 다시 문장·점수·보상 모양을 따라
+    // 장식 테를 두르면 정보보다 프레임이 먼저 보입니다 — 한 장의 조용한 반투명 면만
+    // 깔고, 구획은 글의 크기와 여백으로 가릅니다.
+    this.skin = piece('tray', this.boxWidth - 24, height - 12, wellTint(UI.cell))
     if (this.skin === undefined) {
-      plate(this.plate, this.boxWidth, height, {
-        top: UI.cell, bottom: UI.cell, border: UI.hairline, radius: 0, weight: 1,
+      plate(this.plate, this.boxWidth - 24, height - 12, {
+        top: UI.cell, bottom: UI.cell, border: UI.cell, radius: 0, weight: 0,
       })
+      this.plate.position.set(12, 6)
       return
     }
+    this.plate.position.set(0, 0)
+    this.skin.position.set(12, 6)
+    this.skin.alpha = 0.42
     const home = this.plate.parent ?? this
     home.addChildAt(this.skin, 0)
     this.title.style.fill = mix(mark, UI.ink, 0.35)
@@ -1026,9 +1034,8 @@ export class BlindBadge extends Container {
   private band?: Container
 
   setInfo(name: string, lead: string, lines: string[], mark: number, seal?: Container,
-          tags: Container[] = []): void {
+          tags: Container[] = [], height = BADGE_H): void {
     this.settle(`info|${name}|${lead}|${lines.join('|')}`)
-    const height = BADGE_H
     this.boxHeight = height
 
     this.plate.clear()

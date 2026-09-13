@@ -203,7 +203,7 @@ SOURCE_FILES = {
     'plate': 'plate-source.png',
     'well': 'well-source.png',
     'button': 'button-source.png',
-    'hud-shell': 'hud-shell-source.png',
+    'hud-shell': 'hud-shell-v2-source.png',
     'blind-badge': 'blind-badge-source.png',
 }
 
