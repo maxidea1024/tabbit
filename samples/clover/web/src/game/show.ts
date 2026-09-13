@@ -272,7 +272,7 @@ export class ShowPart {
 
   buildPanel(): void {
     // **판은 16 · 32 에서 시작하고 물건 자리의 윗변과 같습니다.**
-    const panel = new Panel(PANEL_W, SIZE.height - 32 - 12)
+    const panel = new Panel(PANEL_W, SIZE.height - 32 - 12, undefined, 'hud-shell')
     this.game.chrome.panelPlate = panel
     panel.position.set(LEFT, 32)
     // **조커와 소모품의 자리는 상점 아래에 그립니다.** 상점이 판 안에 서므로, 이 사각형이

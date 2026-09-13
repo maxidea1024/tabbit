@@ -348,10 +348,12 @@ export class ChromePart {
       // **칸을 하나씩 그리지 않습니다. 고정된 영역 하나입니다** — 칸 수를 덱·바우처·
       // 챌린지가 바꾸므로, 칸마다 그리면 줄의 너비가 규칙을 따라 달라집니다.
       // **반투명입니다.** 자리는 바탕이고, 그 뒤의 무늬가 비쳐야 판 위에 파인 자리로 읽힙니다.
-      const skin = piece('tray', tray.width, tray.height, UI.ground)
+      const skin = piece('tray', tray.width, tray.height, UI.inkDim)
       if (skin !== undefined) {
         skin.position.set(tray.x, tray.y)
-        skin.alpha = 0.62
+        // 빈 칸은 전체 면적만 알립니다. 밝은 테나 슬롯 구획 없이 프랙탈이 비치는 재질 한
+        // 겹이고, 카드가 놓이면 카드가 이 면을 자연스럽게 덮습니다.
+        skin.alpha = 0.14
         g.addChild(skin)
         continue
       }

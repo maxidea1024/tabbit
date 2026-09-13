@@ -256,9 +256,7 @@ export class Game {
     this.player = new TimelinePlayer(beat => this.show.showBeat(beat))
     this.session.hub = new LeaderboardHub(data, this.panels.modals, this.input.toasts)
     this.session.netStatus = new NetStatus(this.input.toasts)
-    const redDeck = data.tables.deck.findByDeckId('red_deck')
     this.session.title = new Title({
-      back: redDeck ? backLookOf(redDeck) : undefined,
       onStart: () => this.session.openRunPanel(),
       onGuide: () => this.panels.modals.open(this.panels.guide),
       onOptions: () => this.session.openOptions(),

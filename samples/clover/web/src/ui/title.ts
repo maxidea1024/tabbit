@@ -16,17 +16,15 @@
 //
 // 이름은 [`wordmark.ts`](wordmark.ts) 이고 로그인 화면이 같은 것을 씁니다.
 
-import { Container, Graphics, Text } from 'pixi.js'
+import { Container, Text } from 'pixi.js'
 import { t } from '../core/strings'
 
-import { drawCardBack, type BackLook } from '../render/card-back'
-import { PAINT } from '../render/ink'
-import { plateTint, wellTint } from '../render/skin'
+import { plateTint } from '../render/skin'
 import { UI, SIZE, TEXT, WEIGHT } from '../render/theme'
 import { glowEdge, piece } from './chrome'
 import type { ToolSpot } from './layout'
 import { Button } from './widgets'
-import { sceneArt } from './scene-art'
+import { sceneArt, titleCardArt, type TitleCardArt } from './scene-art'
 import { Wordmark } from './wordmark'
 
 /**
@@ -76,53 +74,6 @@ function copyrightLine(): string {
 const ACCOUNT_W = 200
 const ACCOUNT_H = 72
 
-/**
- * 시작 판의 그림 — 카드의 뒷면 한 장을 크게.
- *
- * **판에서 쓰는 그 그림입니다.** 따로 그린 것이 아니라 붉은 덱의 뒷면을 두 배로 놓고
- * 그림 자리 밖은 잘라 냅니다.
- */
-function backArt(width: number, height: number, look?: BackLook): Container {
-  const node = new Container()
-  if (look === undefined) return node
-  const w = SIZE.cardWidth * 2
-  const h = SIZE.cardHeight * 2
-  const back = new Container()
-  drawCardBack(back, w, h, 0, look)
-  back.position.set((width - w) / 2, (height - h) / 2 + 40)
-  const clip = new Graphics()
-  clip.rect(0, 0, width, height).fill(PAINT.mask)
-  node.addChild(clip, back)
-  node.mask = clip
-  return node
-}
-
-/** 콜렉션 판의 그림 — 세로 결. 늘어선 카드의 등입니다. */
-function stripeArt(width: number, height: number): Container {
-  const node = new Container()
-  const g = new Graphics()
-  const step = 22
-  for (let x = 12; x < width - 8; x += step) {
-    g.rect(x, 14, 8, height - 28).fill({ color: UI.legendary, alpha: 0.10 })
-  }
-  node.addChild(g)
-  return node
-}
-
-/** 리더보드 판의 그림 — 순위의 가로 막대 넷. 위가 길고 아래로 짧아집니다. */
-function barsArt(width: number, height: number): Container {
-  const node = new Container()
-  const g = new Graphics()
-  const lengths = [0.62, 0.46, 0.34, 0.26]
-  lengths.forEach((part, at) => {
-    g.rect(24, 48 + at * 30, Math.round((width - 48) * part), 14)
-      .fill({ color: UI.money, alpha: at === 0 ? 0.42 : 0.18 })
-  })
-  void height
-  node.addChild(g)
-  return node
-}
-
 export interface TitleHooks {
   /** 판을 여는 자리. 새 런 · 이어하기 · 챌린지가 그 안에 있습니다. */
   onStart: () => void
@@ -136,8 +87,6 @@ export interface TitleHooks {
   onSignOut: () => void
   /** 게임을 나갑니다. **묻는 것은 부르는 쪽이 합니다.** */
   onQuit: () => void
-  /** 시작 판의 그림에 놓이는 카드 뒷면. 붉은 덱의 것입니다. 없으면 그림 자리만 남습니다. */
-  back?: BackLook
 }
 
 /** 큰 판 하나의 재료. */
@@ -147,11 +96,10 @@ interface Card {
   lines: string[]
   /** 나아가는 단추의 글. */
   go: string
-  tone: number
   primary: boolean
   press: () => void
-  /** 그림 자리에 놓이는 것. */
-  art: (width: number, height: number, back?: BackLook) => Container
+  /** 그림 자리에 놓이는 실제 원화. */
+  art: TitleCardArt
 }
 
 export class Title extends Container {
@@ -198,12 +146,8 @@ export class Title extends Container {
    * 순위까지 있습니다 — `game.ts` 가 여기에 카드를 넣습니다.
    */
   readonly accountSlot = new Container()
-  /** 시작 판의 그림에 놓이는 카드 뒷면. */
-  private readonly back?: BackLook
-
   constructor(hooks: TitleHooks) {
     super()
-    this.back = hooks.back
 
     // **배경 그림 위에 막을 깝니다.** 판 없이 놓인 글이 읽혀야 합니다 — 그림을 어둡게
     // 물들이는 것이 곧 막이고, 사각형을 얹으면 그 변이 가로선으로 보입니다.
@@ -251,15 +195,15 @@ export class Title extends Container {
     const cards: Card[] = [
       {
         key: 'ui.button.start', lines: ['ui.run.new_desc'], go: 'ui.run.enter',
-        tone: UI.red, primary: true, press: hooks.onStart, art: backArt,
+        primary: true, press: hooks.onStart, art: 'start',
       },
       {
         key: 'ui.button.collection', lines: ['ui.collection.hint'], go: 'ui.run.open',
-        tone: UI.legendary, primary: false, press: hooks.onCollection, art: stripeArt,
+        primary: false, press: hooks.onCollection, art: 'collection',
       },
       {
         key: 'ui.button.leaderboard', lines: ['ui.lb.login.keep'], go: 'ui.run.open',
-        tone: UI.money, primary: false, press: hooks.onLeaderboard, art: barsArt,
+        primary: false, press: hooks.onLeaderboard, art: 'leaderboard',
       },
     ]
     const left = (SIZE.width - (CARD_W * cards.length + CARD_GAP * (cards.length - 1))) / 2
@@ -293,23 +237,14 @@ export class Title extends Container {
     const node = new Container()
     const plate = piece('plate', CARD_W, CARD_H, plateTint(UI.panel))
     if (plate !== undefined) node.addChild(plate)
-    else {
-      const g = new Graphics()
-      g.rect(0, 0, CARD_W, CARD_H).fill({ color: UI.panel, alpha: UI.panelAlpha })
-      node.addChild(g)
-    }
 
-    // 그림 자리. **눌린 자리에 그 판의 색이 들고 그 위에 판의 그림이 놓입니다** — 시작은
-    // 카드의 뒷면, 콜렉션은 세로 결, 리더보드는 순위의 가로 막대입니다.
-    const art = piece('tray', CARD_W - 2, ART_H, wellTint(card.tone))
-    if (art !== undefined) {
-      art.position.set(1, 1)
-      art.alpha = 0.4
-      node.addChild(art)
+    // 그림 자리. **세 판 모두 실제 원화입니다.** 원화가 없으면 임시 줄·막대·도형으로
+    // 때우지 않고 비워 두어 애셋 누락을 곧바로 드러냅니다.
+    const picture = titleCardArt(card.art, CARD_W - 2, ART_H)
+    if (picture !== undefined) {
+      picture.position.set(1, 1)
+      node.addChild(picture)
     }
-    const picture = card.art(CARD_W - 2, ART_H, this.back)
-    picture.position.set(1, 1)
-    node.addChild(picture)
 
     // 머리띠.
     const band = glowEdge(CARD_W, card.primary ? UI.yellow : UI.rule)

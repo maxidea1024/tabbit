@@ -13,7 +13,7 @@ import { LIP, mix, panelStyle, plate, plateTint, pressable,
 import { inkDrop, TEXT, UI, WEIGHT } from '../render/theme'
 import { outlined, outlineOf, outlineWidth, strokeWidthOf } from './font'
 import { iconFor, type IconName } from './icon'
-import { piece, refit, rungFor, rungOf } from './chrome'
+import { piece, refit, rungFor, rungOf, type ChromeName } from './chrome'
 import type { RungName } from './atlas'
 
 /**
@@ -30,7 +30,8 @@ export class Panel extends Container {
   private readonly board = new Graphics()
   private skin?: Container
 
-  constructor(width: number, height: number, tint?: number) {
+  constructor(width: number, height: number, tint?: number,
+              private readonly chrome: ChromeName = 'plate') {
     super()
     this.addChild(this.board)
     this.resize(width, height, tint)
@@ -38,7 +39,7 @@ export class Panel extends Container {
 
   resize(width: number, height: number, tint?: number): void {
     this.skin?.destroy()
-    this.skin = piece('plate', width, height, plateTint(tint ?? panelStyle().top))
+    this.skin = piece(this.chrome, width, height, plateTint(tint ?? panelStyle().top))
     this.board.clear()
     if (this.skin !== undefined) {
       this.addChildAt(this.skin, 0)

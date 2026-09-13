@@ -11,9 +11,9 @@
 **두 배로 굽고 절반으로 놓습니다.** 1대1로 구우면 2배 밀도 화면에서 늘려 쓰게 되어
 가장자리가 흐려집니다. `web/src/ui/chrome.ts` 의 `SCALE` 이 이미 그 값입니다.
 
-**손으로 다시 그리지 않습니다.** 규격은 [디자인 언어](../../doc/ui/language.md) 에 있고
-이 파일은 그 값을 CSS 로 적어 브라우저에서 내립니다. 그래야 문서와 애셋이 어긋나지
-않습니다.
+**손으로 다시 그리지 않습니다.** 규격은 [디자인 언어](../../doc/ui/language.md) 에 있고,
+고정 부품과 타이틀 그림은 `design-data/art/ui` 의 원화에서 내립니다. CSS 정의는 원화가
+아직 없는 개발용 부품의 대체 경로일 뿐이며 제품 화면의 그림 자리를 대신하지 않습니다.
 
     python samples/clover/design-data/tools/ui.py
     python samples/clover/design-data/tools/ui.py --check   # 다시 굽지 않고 대조만
@@ -31,6 +31,7 @@ DESIGN = os.path.dirname(HERE)
 SAMPLE = os.path.dirname(DESIGN)
 OUT = os.path.join(SAMPLE, 'web', 'public', 'ui')
 TABLE = os.path.join(SAMPLE, 'web', 'src', 'ui', 'atlas.ts')
+SOURCE = os.path.join(DESIGN, 'art', 'ui')
 
 if hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
@@ -131,8 +132,12 @@ def glow_edge():
 
 
 PIECES = [
+    # 왼쪽 HUD 전용 외피. 글과 값은 모두 런타임에 놓고 원화에는 재질과 큰 구획만 있습니다.
+    ('hud-shell', 264, 756, (24, 24, 72, 64), plate()),
+    # 블라인드 정보 전용 안쪽 판. 머리·점수·보상 자리가 한 원화에 이어져 있습니다.
+    ('blind-badge', 264, 212, (28, 28, 52, 34), well()),
     ('plate', 96, 96, (24, 24, 6, PLATE_CUT + 4), plate()),
-    ('well', 64, 64, (12, 12, 8, 8), well()),
+    ('well', 96, 48, (18, 18, 12, 12), well()),
     ('tray', 96, 96, (14, 14, 8, 8), tray()),
     ('head', 96, 64, (14, 14, 8, 10), head()),
     ('keycap', 64, 36, (12, 12, 10, 14), keycap()),
@@ -141,7 +146,9 @@ PIECES = [
     ('glow-edge', 64, 2, (0, 0, 0, 0), glow_edge()),
 ]
 for name, h, _font, cut in RUNGS:
-    PIECES.append((name, cut * 4 + 16, h, (cut + 2, cut + 2, 0, 0), button(h, cut)))
+    # 버튼 원화는 실제 화면에서 가장 흔한 3:1 비율로 그립니다. 9분할의 가운데가 줄어들 수
+    # 있으므로 좁은 단추도 그대로 쓸 수 있고, 넓은 단추에서는 재질의 결이 찌그러지지 않습니다.
+    PIECES.append((name, h * 3, h, (cut + 12, cut + 12, 10, 14), button(h, cut)))
 
 
 # 단추의 겉면 밖으로 나가는 그림자입니다. 클립 밖이라 여백을 둡니다.
@@ -180,6 +187,168 @@ def edges():
             ' drop-shadow(0 %s 0 #3c3c3c)'
             ' drop-shadow(0 %s 0 #2a2a2a);'
             % (px(1), px(1), px(1), px(1), px(3)))
+
+
+# ── 원화에서 UI 스프라이트 굽기 ──────────────────────────────────────────
+#
+# CSS 도형은 구조를 세우는 동안의 대체물이었습니다. 최종 부품은 `design-data/art/ui` 의
+# 원화에서 굽습니다. 원화는 높은 밝기의 회색조이고 실행 중 `tint` 를 받아 겉면을 따라갑니다.
+# 배경의 순수한 마젠타는 생성 도구가 투명 알파 대신 남기는 크로마키이고, 아래 한 자리에서만
+# 걷습니다. 화면에 보이는 모양을 여기서 새로 그리지 않습니다.
+
+SOURCE_FILES = {
+    'plate': 'plate-source.png',
+    'well': 'well-source.png',
+    'button': 'button-source.png',
+    'hud-shell': 'hud-shell-source.png',
+    'blind-badge': 'blind-badge-source.png',
+}
+
+TITLE_FILES = {
+    'title-start': 'title-start-source.png',
+    'title-collection': 'title-collection-source.png',
+    'title-leaderboard': 'title-leaderboard-source.png',
+}
+
+
+def source_image(name):
+    """마젠타 바탕을 실제 알파로 바꾼 회색조 원화를 읽습니다.
+
+    생성된 가장자리 픽셀은 전경 회색과 마젠타가 섞여 있습니다. 배경이 (255, 0, 255), 전경이
+    회색이라고 두면 `alpha = 1 - (red - green) / 255` 이므로 가장자리의 반투명도와 본래
+    회색을 함께 되찾을 수 있습니다. 단순 색상 문턱보다 분홍 테가 남지 않습니다.
+    """
+    from PIL import Image
+
+    path = os.path.join(SOURCE, SOURCE_FILES[name])
+    raw = Image.open(path).convert('RGBA')
+    # 생성기가 실제 알파를 준 원화는 그 알파를 보존합니다. 마젠타 복원식에 다시 넣으면
+    # 투명 픽셀의 검정 RGB가 불투명한 검정 바탕이 됩니다.
+    if raw.getchannel('A').getextrema()[0] < 255:
+        gray = raw.convert('L')
+        keyed = Image.merge('RGBA', (gray, gray, gray, raw.getchannel('A')))
+        bbox = keyed.getchannel('A').point(lambda a: 255 if a > 3 else 0).getbbox()
+        if bbox is None:
+            raise RuntimeError('UI 원화의 전경을 찾지 못했습니다: %s' % path)
+        return keyed.crop(bbox)
+
+    image = raw.convert('RGB')
+    out = []
+    for r, g, b in image.get_flattened_data():
+        # R/B 둘 중 하나에 압축 오차가 있어도 한쪽만으로 가장자리가 들쭉날쭉하지 않게 합니다.
+        spill = max(0, ((r + b) // 2) - g)
+        alpha = max(0, min(255, 255 - spill))
+        if alpha <= 3:
+            out.append((255, 255, 255, 0))
+            continue
+        gray = max(0, min(255, round(g * 255 / alpha)))
+        out.append((gray, gray, gray, alpha))
+    keyed = Image.new('RGBA', image.size)
+    keyed.putdata(out)
+    alpha = keyed.getchannel('A')
+    bbox = alpha.point(lambda a: 255 if a > 10 else 0).getbbox()
+    if bbox is None:
+        raise RuntimeError('UI 원화의 전경을 찾지 못했습니다: %s' % path)
+    return keyed.crop(bbox)
+
+
+def crop_ratio(image, area):
+    """원화 안의 정규화된 구역을 자릅니다. 재질의 면을 빌릴 때만 씁니다."""
+    x0, y0, x1, y1 = area
+    return image.crop((round(image.width * x0), round(image.height * y0),
+                       round(image.width * x1), round(image.height * y1)))
+
+
+def fit_source(image, width, height, pad=0):
+    """원화 한 장을 그 부품의 2배 크기로 맞추고 바깥 여백을 둡니다."""
+    from PIL import Image, ImageOps
+
+    target = (width * BAKE, height * BAKE)
+    fitted = ImageOps.fit(image, target, method=Image.Resampling.LANCZOS,
+                          centering=(0.5, 0.5))
+    if pad <= 0:
+        return fitted
+    canvas = Image.new('RGBA', ((width + pad * 2) * BAKE, (height + pad * 2) * BAKE),
+                       (255, 255, 255, 0))
+    canvas.alpha_composite(fitted, (pad * BAKE, pad * BAKE))
+    return canvas
+
+
+def bake_sources():
+    """그림 원화가 맡는 부품을 CSS 대체물 위에 덮어 씁니다."""
+    if not os.path.isdir(SOURCE):
+        return []
+
+    made = []
+    plate_art = source_image('plate')
+    well_art = source_image('well')
+    button_art = source_image('button')
+    shell_art = source_image('hud-shell')
+    badge_art = source_image('blind-badge')
+
+    fit_source(shell_art, 264, 756).save(os.path.join(OUT, 'hud-shell.png'), optimize=True)
+    made.append('hud-shell')
+    fit_source(badge_art, 264, 212).save(os.path.join(OUT, 'blind-badge.png'), optimize=True)
+    made.append('blind-badge')
+
+    # 판과 값 칸은 원화의 전체 실루엣을 그대로 씁니다.
+    fit_source(plate_art, 96, 96).save(os.path.join(OUT, 'plate.png'), optimize=True)
+    fit_source(well_art, 96, 48).save(os.path.join(OUT, 'well.png'), optimize=True)
+    made.extend(['plate', 'well'])
+
+    # 물건 자리는 테가 없습니다. 판 원화의 조용한 가운데 재질만 빌려 전체 영역에 놓습니다.
+    tray_art = crop_ratio(plate_art, (0.22, 0.24, 0.78, 0.76))
+    fit_source(tray_art, 96, 96).save(os.path.join(OUT, 'tray.png'), optimize=True)
+    made.append('tray')
+
+    # 머리 판은 왼쪽 HUD 원화의 실제 머리 재질입니다. 내부의 글과 값은 런타임이 놓습니다.
+    head_art = crop_ratio(shell_art, (0.03, 0.01, 0.97, 0.105))
+    fit_source(head_art, 96, 64).save(os.path.join(OUT, 'head.png'), optimize=True)
+    made.append('head')
+
+    # 버튼 네 계단은 같은 원화에서 굽습니다. 모양과 재질은 같고 높이만 계단을 따릅니다.
+    for name, h, _font, _cut in RUNGS:
+        w = h * 3
+        fit_source(button_art, w, h, PAD).save(os.path.join(OUT, name + '.png'), optimize=True)
+        made.append(name)
+
+    # 키캡도 같은 누름 재질을 쓰되 작은 단추의 비율로 접습니다.
+    fit_source(button_art, 64, 36, PAD).save(os.path.join(OUT, 'keycap.png'), optimize=True)
+    made.append('keycap')
+
+    # 게이지는 값 칸 원화의 파인 면을 그대로 축소합니다. 채움은 판의 조용한 면입니다.
+    groove = crop_ratio(well_art, (0.04, 0.12, 0.96, 0.88))
+    fit_source(groove, 48, 12).save(os.path.join(OUT, 'gauge.png'), optimize=True)
+    fill = crop_ratio(plate_art, (0.28, 0.28, 0.72, 0.72))
+    fit_source(fill, 48, 8).save(os.path.join(OUT, 'gauge-fill.png'), optimize=True)
+    made.extend(['gauge', 'gauge-fill'])
+
+    # 머리의 밝은 아래 변을 경계의 빛으로 씁니다. 색과 가산 합성은 런타임이 정합니다.
+    edge = crop_ratio(shell_art, (0.08, 0.095, 0.92, 0.103))
+    fit_source(edge, 64, 2).save(os.path.join(OUT, 'glow-edge.png'), optimize=True)
+    made.append('glow-edge')
+    return made
+
+
+def bake_title_art():
+    """타이틀 세 판의 실제 삽화를 화면용 WebP로 내립니다.
+
+    원본은 보존하고 런타임에는 그림 자리의 정확한 2배 크기만 둡니다. 같은 도구를 다시
+    돌려도 같은 결과가 나와야 원화를 고친 뒤 옛 그림이 남지 않습니다.
+    """
+    from PIL import Image, ImageOps
+
+    made = []
+    for name, filename in TITLE_FILES.items():
+        source = os.path.join(SOURCE, filename)
+        if not os.path.exists(source):
+            continue
+        image = Image.open(source).convert('RGB')
+        fitted = ImageOps.fit(image, (704, 472), method=Image.Resampling.LANCZOS,
+                              centering=(0.5, 0.5))
+        fitted.save(os.path.join(OUT, name + '.webp'), 'WEBP', quality=88, method=6)
+        made.append(name)
+    return made
 
 
 # ── 카드의 뜯긴 가장자리 ──────────────────────────────────────────────────
@@ -290,6 +459,13 @@ def bake():
     for index in range(1, TORN_COUNT + 1):
         bake_torn(index, os.path.join(OUT, 'card-torn-%d.png' % index))
         made.append('card-torn-%d' % index)
+    # CSS 로 세운 대체물 가운데 원화가 준비된 것은 마지막에 실제 스프라이트로 갈아 끼웁니다.
+    # 이 순서라야 원화가 없는 부품도 화면을 깨뜨리지 않고, 원화가 있는 부품은 도형이 남지
+    # 않습니다.
+    for name in bake_sources():
+        if name not in made:
+            made.append(name)
+    made.extend(bake_title_art())
     return made
 
 
@@ -341,12 +517,17 @@ export const TORN_COUNT = %d
 def main():
     check = '--check' in sys.argv
     if check:
-        names = [n for n, *_ in PIECES] + ['card-torn-%d' % i for i in range(1, TORN_COUNT + 1)]
-        missing = [n for n in names if not os.path.exists(os.path.join(OUT, n + '.png'))]
+        pngs = [n for n, *_ in PIECES] + ['card-torn-%d' % i for i in range(1, TORN_COUNT + 1)]
+        missing = [n + '.png' for n in pngs
+                   if not os.path.exists(os.path.join(OUT, n + '.png'))]
+        missing.extend(name + '.webp' for name in TITLE_FILES
+                       if not os.path.exists(os.path.join(OUT, name + '.webp')))
+        missing.extend(filename for filename in [*SOURCE_FILES.values(), *TITLE_FILES.values()]
+                       if not os.path.exists(os.path.join(SOURCE, filename)))
         if missing:
             print('없는 조각: %s' % ' '.join(missing))
             return 1
-        print('조각 %d개가 모두 있습니다' % len(PIECES))
+        print('UI 조각과 원화가 모두 있습니다')
         return 0
     made = bake()
     io.open(TABLE, 'w', encoding='utf-8', newline='\n').write(table())

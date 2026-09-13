@@ -1006,7 +1006,9 @@ export class BlindBadge extends Container {
   private dressPlate(height: number, mark = UI.mark): void {
     this.skin?.destroy()
     this.band?.destroy()
-    this.skin = piece('well', this.boxWidth, height, wellTint(UI.cell))
+    // 이름·점수·보상 구획이 한 장에 이어진 전용 원화입니다. `well` 위에 `head` 를 다시
+    // 놓지 않으므로 안쪽 판에 테와 띠가 겹쳐지지 않습니다.
+    this.skin = piece('blind-badge', this.boxWidth, height, wellTint(UI.cell))
     if (this.skin === undefined) {
       plate(this.plate, this.boxWidth, height, {
         top: UI.cell, bottom: UI.cell, border: UI.hairline, radius: 0, weight: 1,
@@ -1015,15 +1017,12 @@ export class BlindBadge extends Container {
     }
     const home = this.plate.parent ?? this
     home.addChildAt(this.skin, 0)
-    // **머리 판.** 판의 폭을 다 쓰고, 색은 채움과 글자에 듭니다 — 스몰은 파랑, 빅은
-    // 보라, 보스는 붉음. 밑줄의 번짐까지 그림 한 장에 있습니다.
-    this.band = piece('head', this.boxWidth, HEAD_H, mix(mark, UI.cell, 0.62))
-    if (this.band !== undefined) home.addChildAt(this.band, 1)
     this.title.style.fill = mix(mark, UI.ink, 0.35)
   }
 
-  /** 구워 둔 몸통과 머리 판. 없으면 `plate` 가 그립니다. */
+  /** 이름·점수·보상 구획이 한 장에 이어진 전용 몸통. */
   private skin?: Container
+  /** 이전 머리 판을 안전하게 걷기 위한 자리. 전용 몸통에서는 따로 만들지 않습니다. */
   private band?: Container
 
   setInfo(name: string, lead: string, lines: string[], mark: number, seal?: Container,
