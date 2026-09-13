@@ -808,7 +808,10 @@ export class CardView extends Container {
 
     // **도움을 받는 카드는 들리지 않습니다.** 표시는 카드 아래의 동그라미이고, 들리는 것은
     // 가리킨 것과 고른 것뿐입니다.
-    const lift = this.hovered ? 16 : this.selected ? 26 : 0
+    // **고른 카드는 가리켜도 내려가지 않습니다.** 선택 26px가 호버 16px보다 높으므로,
+    // 호버가 먼저 오면 고른 카드가 커서를 댄 순간 10px 내려앉아 선택을 푼 것처럼 보입니다.
+    // 가리킨 선택 카드는 높이는 지키고 아래의 확대와 기울기만 더 받습니다.
+    const lift = this.selected ? 26 : this.hovered ? 16 : 0
     const wobble = sway(time, this.motion.phase, 1.6 * this.idle, 1.4)
     const bob = sway(time, this.motion.phase * 1.7, 2.2 * this.idle, 0.9)
 

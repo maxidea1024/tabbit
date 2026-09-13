@@ -473,6 +473,9 @@ export class ChromePart {
     this.sortSuitButton.y = sortY
     this.sortRankButton.enabled = usable && this.game.shown.hand.length > 1
     this.sortSuitButton.enabled = usable && this.game.shown.hand.length > 1
+    const activeSort = this.game.cards.activeHandSort()
+    this.sortRankButton.highlight = activeSort === 'rank'
+    this.sortSuitButton.highlight = activeSort === 'suit'
     this.playButton.y = BUTTON_Y + off
     this.clearButton.y = BUTTON_Y + off
     this.discardButton.y = BUTTON_Y + off
