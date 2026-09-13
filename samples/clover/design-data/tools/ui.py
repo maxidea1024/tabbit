@@ -210,6 +210,13 @@ TITLE_FILES = {
     'title-leaderboard': 'title-leaderboard-source.png',
 }
 
+RUN_FILES = {
+    'run-new': 'run-new-source.png',
+    'run-resume': 'run-resume-source.png',
+    'run-challenge': 'run-challenge-source.png',
+}
+
+ILLUSTRATION_FILES = {**TITLE_FILES, **RUN_FILES}
 
 def source_image(name):
     """마젠타 바탕을 실제 알파로 바꾼 회색조 원화를 읽습니다.
@@ -330,8 +337,8 @@ def bake_sources():
     return made
 
 
-def bake_title_art():
-    """타이틀 세 판의 실제 삽화를 화면용 WebP로 내립니다.
+def bake_illustrations():
+    """타이틀과 런 시작 판의 실제 삽화를 화면용 WebP로 내립니다.
 
     원본은 보존하고 런타임에는 그림 자리의 정확한 2배 크기만 둡니다. 같은 도구를 다시
     돌려도 같은 결과가 나와야 원화를 고친 뒤 옛 그림이 남지 않습니다.
@@ -339,7 +346,7 @@ def bake_title_art():
     from PIL import Image, ImageOps
 
     made = []
-    for name, filename in TITLE_FILES.items():
+    for name, filename in ILLUSTRATION_FILES.items():
         source = os.path.join(SOURCE, filename)
         if not os.path.exists(source):
             continue
@@ -465,7 +472,7 @@ def bake():
     for name in bake_sources():
         if name not in made:
             made.append(name)
-    made.extend(bake_title_art())
+    made.extend(bake_illustrations())
     return made
 
 
@@ -520,9 +527,9 @@ def main():
         pngs = [n for n, *_ in PIECES] + ['card-torn-%d' % i for i in range(1, TORN_COUNT + 1)]
         missing = [n + '.png' for n in pngs
                    if not os.path.exists(os.path.join(OUT, n + '.png'))]
-        missing.extend(name + '.webp' for name in TITLE_FILES
+        missing.extend(name + '.webp' for name in ILLUSTRATION_FILES
                        if not os.path.exists(os.path.join(OUT, name + '.webp')))
-        missing.extend(filename for filename in [*SOURCE_FILES.values(), *TITLE_FILES.values()]
+        missing.extend(filename for filename in [*SOURCE_FILES.values(), *ILLUSTRATION_FILES.values()]
                        if not os.path.exists(os.path.join(SOURCE, filename)))
         if missing:
             print('없는 조각: %s' % ' '.join(missing))
