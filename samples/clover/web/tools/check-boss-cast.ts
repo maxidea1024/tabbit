@@ -14,8 +14,7 @@ import { fileURLToPath } from 'url'
 import { chromium } from 'playwright'
 import { createServer } from 'vite'
 import {
-  clickPrimary, forceBoss, grantJoker, openRun, pass, peek, settle, skipLogin,
-  startNewRun, winRound,
+  clickPrimary, forceBoss, grantJoker, openRun, pass, peek, settle, skipLogin, winRound,
 } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -49,24 +48,54 @@ function check(ok: boolean, what: string): void {
  * 안테 1의 보스 블라인드까지 갑니다. **그 자리에서 고르기 전에 멈춥니다** — 고르는 순간에
  * 보스가 걸고, 그 순간을 재는 것이 이 도구입니다.
  */
+/**
+ * 보스 블라인드를 고르는 화면까지 걸어갑니다. **국면을 보고 걷습니다.**
+ *
+ * 고르는 것은 부르는 쪽이 합니다 — 고른 다음을 재는 도구와 고르는 그 순간을 재는 도구가
+ * 갈리므로, 여기서 눌러 버리면 한쪽이 잴 것을 지나칩니다.
+ *
+ * 걸음 수를 세어 걷고 있었습니다 — 이기고 · 상점을 나서고 · 고르고를 정해진 횟수만큼
+ * 부르는 것이라, 앞에서 한 걸음이 더 있거나 덜 있으면 그만큼 어긋난 자리에서 끝납니다.
+ * 조커를 들리고 시작하는 쪽이 그래서 빅 블라인드에 멈춰 있었고, 그 판에는 보스가 없으니
+ * 「조커의 차례가 섞이지 않는다」로 끝났습니다.
+ */
 async function walkToBoss(page: Page, bossId: string): Promise<void> {
   await forceBoss(page, bossId)
-  await winRound(page)
-  await leaveShop(page)
-  await pass(page, 600)
-  await settle(page)
-  await clickPrimary(page)
-  await settle(page)
-  await winRound(page)
-  await leaveShop(page)
-  await pass(page, 600)
+  for (let step = 0; step < 16; step++) {
+    const now = await peek(page)
+    if (now.phase === 'blind-select' && now.blind === 3) return
+    // **떠 있는 판을 먼저 걷습니다.** 판이 덮여 있으면 그 아래의 자리를 화면이 알리지
+    // 않고, 누르는 쪽은 「자리를 알리지 않습니다」로 끝납니다.
+    if (now.modalUp === true) {
+      await page.keyboard.press('Escape')
+      await pass(page, 400)
+      continue
+    }
+    if (now.phase === 'shop') {
+      await leaveShop(page)
+      await pass(page, 600)
+      continue
+    }
+    if (now.phase === 'blind-select') {
+      await settle(page)
+      await clickPrimary(page)
+      await settle(page)
+      continue
+    }
+    if (now.phase === 'round') {
+      await winRound(page)
+      continue
+    }
+    await pass(page, 300)
+  }
+  throw new Error(`보스 블라인드에 닿지 못했습니다 (${bossId})`)
 }
 
 async function main(): Promise<number> {
   const server = await createServer({ root: path.resolve(HERE, '..'), server: { port: PORT } })
   await server.listen()
   const browser = await chromium.launch()
-  const page = await browser.newPage({ viewport: { width: 1280, height: 800 } })
+  let page = await browser.newPage({ viewport: { width: 1280, height: 800 } })
   await skipLogin(page)
   page.on('pageerror', error => console.log('  [터짐]', error.stack ?? error.message))
   page.on('console', one => {
@@ -121,18 +150,24 @@ async function main(): Promise<number> {
   //
   // **판을 다시 엽니다.** 도는 판에서 타이틀로 돌아가려면 메뉴를 거쳐야 하고, 그것은 이
   // 도구가 재려는 것과 무관한 길입니다 — 주소를 다시 열면 처음부터입니다.
+  // **새 쪽에서 엽니다.** 같은 쪽을 다시 열면 앞 판의 자취가 남아 블라인드 판이 자리를
+  // 알리지 않는 자리가 있었습니다 — 판이 갈리는 것은 쪽이 갈리는 것으로 확실히 합니다.
+  await page.close()
+  page = await browser.newPage({ viewport: { width: 1280, height: 800 } })
+  await skipLogin(page)
+  page.on('pageerror', error => console.log('  [터짐]', error.stack ?? error.message))
+  page.on('console', one => {
+    if (one.type() === 'error') console.log('  [콘솔]', one.text().slice(0, 200))
+  })
   await page.goto(`http://localhost:${PORT}/?seed=CLOVER-BOSS2&tick=manual`,
                   { waitUntil: 'networkidle' })
   await pass(page, 1500)
-  await startNewRun(page)
-  await pass(page, 900)
-  if ((await peek(page)).modalUp === true) await page.keyboard.press('Escape')
-  await pass(page, 400)
+  // **판을 여는 길은 하나입니다.** 여기만 손으로 다시 적어 두었고, 그 줄이 판을 고른 뒤에
+  // 한 번 더 고르려 해서 「블라인드 판의 버튼 자리를 화면이 알리지 않습니다」로 끝났습니다.
+  await openRun(page)
   await grantJoker(page, 'twig')
   await grantJoker(page, 'spinner')
   await pass(page, 300)
-  await clickPrimary(page)
-  await settle(page)
   await walkToBoss(page, 'amber_acorn')
   await clickPrimary(page)
 
@@ -140,7 +175,9 @@ async function main(): Promise<number> {
     if (((await peek(page)).beats ?? []).includes('JokersShuffled')) break
     await pass(page, 40)
   }
-  const shuffled = ((await peek(page)).beats ?? []).includes('JokersShuffled')
+  const atShuffle = await peek(page)
+  console.log(`  안테 ${atShuffle.ante} · 블라인드 ${atShuffle.blind} · 조커 ${atShuffle.jokers}`)
+  const shuffled = (atShuffle.beats ?? []).includes('JokersShuffled')
   check(shuffled, '조커의 차례가 섞이는 것이 그려집니다')
 
   console.log(bad === 0 ? '보스가 거는 것이 화면에 나타납니다' : `${bad}건 어긋납니다`)

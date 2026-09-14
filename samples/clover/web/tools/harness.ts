@@ -994,6 +994,16 @@ export async function clickPrimary(page: Page): Promise<void> {
     pick = (await peek(page)).spots?.pick
   }
   if (!pick) throw new Error('블라인드 판의 버튼 자리를 화면이 알리지 않았습니다')
+  // **자리가 멎기를 기다립니다.** 칸 셋은 아래에서 올라오며 자리에 앉고(`BLIND_RISE`),
+  // 그 사이에 무엇이 판을 다시 그리면 처음부터 다시 올라옵니다 — 올라오는 중에 누르면
+  // 누른 것과 뗀 것 사이에 단추가 그 자리에서 비켜서므로 누름이 통째로 없어집니다.
+  // 「맞히기는 했는데 아무 일도 없다」 가 그것이었습니다.
+  for (let wait = 0; wait < 30; wait++) {
+    await pass(page, 100)
+    const now = (await peek(page)).spots?.pick
+    if (now && pick && now.x === pick.x && now.y === pick.y) break
+    pick = now ?? pick
+  }
   const spot = await at(page, pick.x, pick.y)
   await page.mouse.move(spot.x, spot.y)
   await pass(page, 80)

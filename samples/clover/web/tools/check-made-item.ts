@@ -38,7 +38,8 @@ async function main(): Promise<number> {
   await grantJoker(page, 'card_reader')
   await pass(page, 400)
   const before = await peek(page)
-  console.log('고르기 전 · 소모품', before.consumables, '· 자리를 잡아 준 횟수', before.flyAsked)
+  console.log('고르기 전 · 소모품', before.consumables, '· 자리를 잡아 준 횟수', before.flyAsked,
+              '· 조커', before.jokers)
 
   await clickPrimary(page)
 

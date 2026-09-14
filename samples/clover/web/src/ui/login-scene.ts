@@ -22,6 +22,7 @@ import * as account from '../net/session'
 import type { Provider } from '../net/session'
 import { UI, SIZE, TEXT, WEIGHT } from '../render/theme'
 import { providerTint } from './provider'
+import type { ToolSpot } from './layout'
 import { Button } from './widgets'
 import { glowEdge } from './chrome'
 import { sceneArt } from './scene-art'
@@ -83,6 +84,20 @@ export class LoginScene extends Container {
    */
   private readonly under = new Container()
   private readonly body = new Container()
+
+  /**
+   * 도구가 누를 자리들.
+   *
+   * **좌표를 도구에 적어 두지 않기 위한 것입니다.** 타이틀이 이미 같은 것을 알리고
+   * 있습니다 — 이 화면만 빠져 있어서 `check-relabel` 이 「혼자 하기」와 말 칩의 자리를
+   * 손으로 적어 두었고, 화면을 고친 날부터 빈 곳을 눌렀습니다.
+   */
+  private readonly toolNodes = new Map<string, ToolSpot>()
+
+  /** 그 단추들의 자리. 화면 좌표로 바꾸는 것은 이 화면을 띄운 쪽이 합니다. */
+  get toolSpots(): [string, ToolSpot][] {
+    return [...this.toolNodes]
+  }
   /** 무언가 진행 중일 때 화면을 가로지르는 띠. */
   private readonly band = new Container()
   private readonly haze = new BlurFilter({ strength: 0, quality: 3, resolution: 0.5 })
@@ -313,6 +328,8 @@ export class LoginScene extends Container {
 
   private redraw(): void {
     this.body.removeChildren().forEach(child => child.destroy({ children: true }))
+    // **자리도 함께 걷습니다.** 지워진 단추의 자리를 계속 알리면 도구가 없는 것을 누릅니다.
+    this.toolNodes.clear()
 
     // 이름 아래의 가르는 줄과 한 줄 소개. **그림 위의 글에는 그림자가 집니다.**
     const rule = glowEdge(520, UI.rule)
@@ -417,6 +434,7 @@ export class LoginScene extends Container {
                               () => void this.startWithoutAccount())
     single.position.set(SIZE.width / 2 - BUTTON_W / 2, singleY)
     this.body.addChild(single)
+    this.toolNodes.set('single', { node: single, cx: BUTTON_W / 2, cy: GO_H / 2 })
 
     const singleNote = new Text({
       text: t('ui.account.singleNote'),
@@ -494,6 +512,7 @@ export class LoginScene extends Container {
     })
     chip.position.set(x, y)
     this.body.addChild(chip)
+    this.toolNodes.set('lang', { node: chip, cx: width / 2, cy: height / 2 })
 
     if (!this.langOpen) return
 
@@ -511,6 +530,7 @@ export class LoginScene extends Container {
       })
       row.position.set(x, y + (height + 8) * (at + 1))
       this.body.addChild(row)
+      this.toolNodes.set(`lang:${code}`, { node: row, cx: width / 2, cy: height / 2 })
     })
   }
 

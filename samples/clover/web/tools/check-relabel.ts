@@ -22,10 +22,10 @@ const HERE = path.dirname(fileURLToPath(import.meta.url))
 const PORT = 5215
 
 /** 로그인 화면의 「계정 없이 시작하기」와 말 칩. 자리가 고정입니다. */
-const SINGLE = { x: 640, y: 800 - 214 + 26 }
-const LANG_CHIP = { x: 1280 - 30 - 66, y: 47 }
+// **좌표를 여기 적어 두지 않습니다.** 로그인 화면이 자기 단추의 자리를 알립니다
+// (`login:single` · `login:lang` · `login:lang:<말>`) — 적어 두었던 셋은 화면을 고친
+// 날부터 빈 곳을 가리켰고, 이 도구는 「그다음 누름이 먹습니다」 에서 멈췄습니다.
 /** 펼쳐진 목록의 둘째 줄 — 영어입니다. */
-const LANG_EN = { x: LANG_CHIP.x, y: 30 + 40 + 32 * 1 + 15 }
 
 let failed = 0
 
@@ -70,9 +70,9 @@ async function main(): Promise<number> {
   await page.waitForTimeout(1_400)
 
   // 1) 로그인 화면에서 말을 바꿉니다.
-  await page.mouse.click(LANG_CHIP.x, LANG_CHIP.y)
+  await clickSpot(page, 'login:lang')
   await page.waitForTimeout(500)
-  await page.mouse.click(LANG_EN.x, LANG_EN.y)
+  await clickSpot(page, 'login:lang:en')
   await page.waitForTimeout(900)
 
   const afterLang = await peek(page)
@@ -82,7 +82,7 @@ async function main(): Promise<number> {
   //
   // **띠가 지나가기를 기다립니다.** 로그인 없이 들어가는 것도 제공자로 들어가는 것과 같은
   // 띠를 지나므로, 누른 그 자리에서 타이틀이 되지 않습니다.
-  await page.mouse.click(SINGLE.x, SINGLE.y)
+  await clickSpot(page, 'login:single')
   await page.waitForTimeout(2_600)
   const onTitle = await peek(page)
   check('그다음 누름이 먹습니다', onTitle.scene === 'title', onTitle.scene)
@@ -131,6 +131,12 @@ async function main(): Promise<number> {
   await clickSpot(page, 'menu:options')
   await page.waitForTimeout(800)
   check('판이 도는 중에 옵션이 열립니다', (await peek(page)).modalUp)
+
+  // **말 탭을 먼저 엽니다.** 말의 칸들은 「말」 갈래 안에 있고, 판이 열릴 때 서는 것은
+  // 첫 갈래입니다 — 갈래를 열지 않은 채 칸을 찾고 있어서 이 도구는 「화면이 자리를 알리지
+  // 않습니다」 로 끝났습니다.
+  await clickSpot(page, 'option:tab:general')
+  await page.waitForTimeout(500)
 
   // **여섯 말을 차례로 누릅니다.** 한 번만 눌러 보면 그 한 번이 지나가는 것만 확인됩니다.
   for (const want of ['en', 'ja', 'zh-Hans', 'zh-Hant', 'de', 'ko']) {

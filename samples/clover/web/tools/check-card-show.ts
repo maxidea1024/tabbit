@@ -8,12 +8,19 @@
 // 좁아졌다 벌어지는 62밀리초 안에 얼굴이 갈렸고, 장마다의 간격(90밀리초)이 반 바퀴보다
 // 짧아 여러 장이 한 덩어리로 갈렸습니다 — 눈에는 「뭔가 찌그러졌다」까지만 보입니다.
 //
-// `hothouse` 로 잽니다. 라운드 끝에 확률 없이 덱의 카드 두 장을 바꾸는 조커입니다.
+// `wanderer` 로 잽니다. 낸 카드마다 확률 없이 바꾸는 조커입니다 — 한 번에 여러 장이
+// 바뀌므로 「한 장씩 도는가」 도 이 하나로 재집니다.
+//
+// **`hothouse` 로 재던 것을 옮겼습니다.** 그 조커가 없어진 뒤로 이 도구는 아무것도 걸지
+// 못한 채 「판이 선 횟수 0」 으로 끝나고 있었습니다 — 지금 데이터에 덱 안의 카드를 바꾸는
+// 조커는 없고, 있는 것은 낸 카드를 바꾸는 것들입니다.
 import * as path from 'path'
 import { fileURLToPath } from 'url'
 import { chromium } from 'playwright'
 import { createServer } from 'vite'
-import { grantJoker, openRun, pass, peek, skipLogin } from './harness'
+import {
+  chooseFive, grantJoker, openRun, pass, peek, pickCards, pressPlay, skipLogin,
+} from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const PORT = 5233
@@ -33,16 +40,18 @@ async function main(): Promise<number> {
   await pass(page, 1500)
 
   await openRun(page)
-  await grantJoker(page, 'hothouse')
+  await grantJoker(page, 'wanderer')
   await pass(page, 400)
 
   const before = await peek(page)
-  // **`clearBlind` 도 쓰지 않습니다.** 그것은 연출이 다 끝날 때까지 기다리므로 판이 서고
-  // 걷히는 것이 그 기다림 안에서 지나갑니다 — 훅만 부르고 그 뒤를 30밀리초씩 봅니다.
-  await page.evaluate(() => {
-    const hook = (window as unknown as { __clover: { clearBlind?(): void } }).__clover
-    hook.clearBlind?.()
-  })
+  // **다섯 장을 냅니다.** 한 장이면 「한 장씩 도는가」 를 잴 수 없습니다 — 재려는 것이
+  // 장마다의 간격이므로 여러 장이 한 번에 바뀌어야 합니다.
+  //
+  // **기다리지 않습니다.** 연출이 다 끝날 때까지 기다리면 판이 서고 걷히는 것이 그 기다림
+  // 안에서 지나갑니다 — 누르고 그 뒤를 30밀리초씩 봅니다.
+  await pickCards(page, chooseFive(before.hand))
+  await pass(page, 200)
+  await pressPlay(page)
 
   // 라운드 끝의 박자들이 도는 동안을 봅니다.
   let mostOut = 0
@@ -58,7 +67,11 @@ async function main(): Promise<number> {
   const popsBefore = new Set(((await peek(page)).pops ?? []).map(one => one.join('|')))
   // **창이 뒤집기보다 길어야 합니다.** 뒷면을 거치게 되며 한 장이 도는 데 1초가 되었고,
   // 220 표본(6.6초)에서는 마지막 판이 걷히기 전에 재기가 끝났습니다.
-  for (let i = 0; i < 300; i++) {
+  //
+  // **낸 카드마다 한 번씩 섭니다.** 다섯 장이면 판이 다섯 번 서고 그 사이가 49 표본이라,
+  // 300 표본에서는 마지막 판이 아직 떠 있는 채로 끝났습니다 — 「판을 다 걷었는가」 는 그
+  // 마지막 판까지 걷힌 것을 재는 값이므로 창이 그만큼 넉넉해야 합니다.
+  for (let i = 0; i < 420; i++) {
     const now = await peek(page)
     const out = now.changeCards ?? []
     mostOut = Math.max(mostOut, out.length)
@@ -81,7 +94,7 @@ async function main(): Promise<number> {
   console.log('판이 선 횟수', shows)
   console.log('판 위에 한꺼번에 나온 장수', mostOut, '· 갈래', [...kinds].join(' · ') || '없음')
   console.log('제 줄에 안착했는가', rows.size > 0, '· 그 줄', [...rows].join(' ') || '없음')
-  console.log('덱이 나와 있던 표본', peeked, '/ 300')
+  console.log('덱이 나와 있던 표본', peeked, '/ 420')
   console.log('난 소리', [...heard].filter(one => one.startsWith('card_')).join(' · '))
   console.log('덱', before.deckSize, '→', after.deckSize, '· 판을 다 걷었는가',
               (after.changeCards ?? []).length === 0)

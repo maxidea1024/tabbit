@@ -10,7 +10,7 @@ import { fileURLToPath } from 'url'
 import { chromium, type Page } from 'playwright'
 import { createServer } from 'vite'
 import {
-  at, clickPrimary, HAND_Y, peek, settle, STAGE_W, skipLogin, startNewRun, pass,
+  clickPrimary, peek, settle, skipLogin, spot as spotOf, startNewRun, pass,
 } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -32,23 +32,30 @@ async function main(): Promise<number> {
 
   await startNewRun(page)
   await pass(page, 900)
-  await page.touchscreen.tap(20, 20)
-  await pass(page, 400)
+  // **떠 있는 판을 걷습니다.** 빈 구석을 손가락으로 두드리던 것은 게임 방법 판을 닫지
+  // 못했고, 그 판이 덮고 있는 동안의 누름은 전부 판이 받았습니다 — 블라인드를 고르지
+  // 못한 채로 「패가 없습니다」 로 끝나고 있었습니다.
+  for (let tries = 0; tries < 3 && (await peek(page)).modalUp === true; tries++) {
+    await page.keyboard.press('Escape')
+    await pass(page, 400)
+  }
   await clickPrimary(page)
   await settle(page)
 
-  const held = (await peek(page)).hand.length
+  const opened = await peek(page)
+  const held = opened.hand.length
   if (held === 0) {
-    console.log('패가 없습니다')
+    console.log(`패가 없습니다 · ${opened.scene} · ${opened.phase}`
+      + ` · 판 ${String(opened.modalUp)} · 자리 ${Object.keys(opened.spots ?? {}).join(',')}`)
     await browser.close()
     await server.close()
     return 1
   }
 
-  // 첫 장의 자리. `harness` 의 셈과 같습니다.
-  const spacing = Math.min(100 + 12, 720 / Math.max(1, held))
-  const cardX = (16 + 264 + 20 + STAGE_W) / 2 - ((held - 1) * spacing) / 2
-  const spot = await at(page, cardX, HAND_Y)
+  // **첫 장의 자리는 화면이 알립니다.** 간격과 시작 자리를 여기서 다시 세고 있었고,
+  // 손패가 겹치도록 고친 날부터 이 도구는 카드 사이의 빈 곳을 눌러 놓고 「고른 수 0」 으로
+  // 끝났습니다 — 세는 곳은 화면 하나입니다.
+  const spot = await spotOf(page, 'hand:0')
 
   // 1. 짧게 누릅니다. 뜨지 않고 골라져야 합니다.
   await tap(page, spot, 120)

@@ -796,6 +796,13 @@ export class ProbePart {
       if (one.node.destroyed || !this.onStage(one.node)) continue
       out[key] = this.spotOf(one.node, one.cx, one.cy)
     }
+    // 로그인 화면의 단추들. **그 화면이 보일 때만입니다.**
+    if (this.game.session.login.visible) {
+      for (const [key, one] of this.game.session.login.toolSpots) {
+        if (one.node.destroyed) continue
+        out[`login:${key}`] = this.spotOf(one.node, one.cx, one.cy)
+      }
+    }
     // 타이틀의 단추들. **그 화면이 보일 때만입니다.**
     if (this.game.session.title.visible) {
       for (const [key, one] of this.game.session.title.toolSpots) {

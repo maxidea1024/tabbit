@@ -4,8 +4,11 @@
 // 카드를 만들고 부수고 바꾸는 조커는 발동해도 이벤트를 하나도 내지 않았습니다 — 화면은
 // 받을 것이 없으므로 딱지가 흔들리지도 글이 뜨지도 않았습니다.
 //
-// `hothouse` 로 잽니다. 라운드 끝에 확률 없이 두 줄이 도는 조커라, 이기면 반드시 두 번
-// 발동합니다.
+// `wanderer` 로 잽니다. 낸 카드마다 확률 없이 그 카드를 바꾸는 조커라, 한 장만 내도
+// 반드시 한 번 발동합니다.
+//
+// **`hothouse` 로 재던 것을 옮겼습니다.** 그 조커가 없어진 뒤로 이 도구는 아무것도 걸지
+// 못한 채 「바꾸는 갈래의 말이 떴는가 false」 로 끝나고 있었습니다.
 import * as path from 'path'
 import { fileURLToPath } from 'url'
 import { chromium } from 'playwright'
@@ -30,8 +33,8 @@ async function main(): Promise<number> {
   await pass(page, 1500)
 
   await openRun(page)
-  // **덱 안의 카드를 바꾸는 조커입니다.** 값은 하나도 내지 않습니다.
-  await grantJoker(page, 'hothouse')
+  // **카드를 바꾸는 조커입니다.** 값은 하나도 내지 않습니다.
+  await grantJoker(page, 'wanderer')
   await pass(page, 400)
 
   const before = await peek(page)
@@ -54,7 +57,7 @@ async function main(): Promise<number> {
   // **바뀐 것이 실제로 있어야 합니다.** 몸짓만 확인하면 아무 일도 없는데 나는 것을
   // 지나칩니다 — 코어가 「아무것도 바꾸지 못한 것은 발동이 아니다」로 거르는 자리입니다.
   // **갈래의 말이 떠야 합니다.** 다섯 갈래가 다 「발동」 하나였을 때는 만든 것과 부순
-  // 것이 같은 글이었습니다 — `hothouse` 는 덱의 카드를 바꾸는 조커입니다.
+  // 것이 같은 글이었습니다 — `wanderer` 는 카드를 바꾸는 조커입니다.
   const acted = said.has('바꿉니다')
   const cue = heard.has('card_flip')
   console.log('바꾸는 갈래의 말이 떴는가', acted, '· 그 갈래의 소리가 났는가', cue)
