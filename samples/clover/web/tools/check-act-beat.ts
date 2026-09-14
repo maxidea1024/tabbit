@@ -13,7 +13,7 @@ import * as path from 'path'
 import { fileURLToPath } from 'url'
 import { chromium } from 'playwright'
 import { createServer } from 'vite'
-import { grantJoker, openRun, pass, peek, skipLogin, winRound } from './harness'
+import { grantJoker, openRun, pass, peek, skipLogin, takePayout } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const PORT = 5232
@@ -38,17 +38,29 @@ async function main(): Promise<number> {
   await pass(page, 400)
 
   const before = await peek(page)
-  await winRound(page)
 
-  // 라운드 끝의 박자들이 도는 동안을 봅니다.
+  // **연출이 도는 동안 봅니다.** `winRound` 는 박자가 다 끝날 때까지 기다리고 돌아오므로,
+  // 그 뒤에 읽는 것은 지나간 것을 들고 있는 로그뿐입니다 — 소리 로그는 마지막 48개라,
+  // 라운드 끝에 동전이 여남은 번 나면 그 앞의 카드 소리가 밀려 나갑니다. 도구가 재던 것이
+  // 「났는가」가 아니라 「로그에 아직 남아 있는가」였고, 연출에 소리 하나를 더한 날
+  // 어긋났습니다.
+  await page.evaluate(() => {
+    const hook = (window as unknown as { __clover: { clearBlind?(): void } }).__clover
+    hook.clearBlind?.()
+  })
+
   const said = new Set<string>()
   const heard = new Set<string>()
-  for (let i = 0; i < 90; i++) {
+  for (let i = 0; i < 400; i++) {
     const now = await peek(page)
     for (const [text] of now.pops ?? []) said.add(text)
     for (const cue of now.sounds ?? []) heard.add(cue)
+    if (i > 4 && !now.busy) break
     await pass(page, 30)
   }
+
+  await takePayout(page)
+  await pass(page, 1400)
 
   const after = await peek(page)
   console.log('뜬 글', [...said].join(' · ') || '없음')

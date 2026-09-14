@@ -65,13 +65,14 @@ async function main(): Promise<number> {
   // 뒷면이 보인 표본 수. 장마다 셉니다 — 한 프레임만 스쳐서는 뒤집힌 것으로 읽히지 않습니다.
   const backFor = new Map<number, number>()
   const popsBefore = new Set(((await peek(page)).pops ?? []).map(one => one.join('|')))
-  // **창이 뒤집기보다 길어야 합니다.** 뒷면을 거치게 되며 한 장이 도는 데 1초가 되었고,
-  // 220 표본(6.6초)에서는 마지막 판이 걷히기 전에 재기가 끝났습니다.
-  //
-  // **낸 카드마다 한 번씩 섭니다.** 다섯 장이면 판이 다섯 번 서고 그 사이가 49 표본이라,
-  // 300 표본에서는 마지막 판이 아직 떠 있는 채로 끝났습니다 — 「판을 다 걷었는가」 는 그
-  // 마지막 판까지 걷힌 것을 재는 값이므로 창이 그만큼 넉넉해야 합니다.
-  for (let i = 0; i < 420; i++) {
+  // **연출이 끝나고 판이 다 걷힐 때까지입니다.** 표본 수를 세어 두면 그 수는 그때의 박자
+  // 길이에 매인 값입니다 — 220 에서 300 으로, 다시 420 으로 올린 자리이고, 연출을 느리게
+  // 한 날 또 어긋납니다. 재는 것은 「걷혔는가」이지 「몇 표본 안에 걷혔는가」가 아닙니다.
+  let samples = 0
+  // **조용한 것이 이어져야 끝입니다.** 판과 판 사이에도 한 표본쯤은 비어 있어서, 한 번
+  // 조용한 것으로 끊으면 뒤에 올 판들을 보지 못한 채 끝납니다.
+  let quiet = 0
+  for (let i = 0; i < 1_200; i++) {
     const now = await peek(page)
     const out = now.changeCards ?? []
     mostOut = Math.max(mostOut, out.length)
@@ -86,6 +87,11 @@ async function main(): Promise<number> {
     if (now.deckPeek === true) peeked++
     shows = Math.max(shows, now.cardShows ?? 0)
     for (const cue of now.sounds ?? []) heard.add(cue)
+    samples = i + 1
+    // **판이 한 번은 섰어야 끝입니다.** 누른 직후에는 아직 아무것도 서지 않았고, 그때의
+    // 「떠 있는 것이 없다」 는 걷힌 것이 아닙니다.
+    quiet = shows >= 1 && !now.busy && out.length === 0 ? quiet + 1 : 0
+    if (quiet >= 30) break
     await pass(page, 30)
   }
   const pops = ((await peek(page)).pops ?? []).filter(one => !popsBefore.has(one.join('|')))
@@ -94,7 +100,7 @@ async function main(): Promise<number> {
   console.log('판이 선 횟수', shows)
   console.log('판 위에 한꺼번에 나온 장수', mostOut, '· 갈래', [...kinds].join(' · ') || '없음')
   console.log('제 줄에 안착했는가', rows.size > 0, '· 그 줄', [...rows].join(' ') || '없음')
-  console.log('덱이 나와 있던 표본', peeked, '/ 420')
+  console.log('덱이 나와 있던 표본', peeked, '/', samples)
   console.log('난 소리', [...heard].filter(one => one.startsWith('card_')).join(' · '))
   console.log('덱', before.deckSize, '→', after.deckSize, '· 판을 다 걷었는가',
               (after.changeCards ?? []).length === 0)
