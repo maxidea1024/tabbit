@@ -902,6 +902,8 @@
 	ui.deck.added	덱에 더해졌습니다	Added to the deck	デッキに加わりました	已加入牌组	已加入牌組	Zum Deck hinzugefügt
 	ui.deck.removed	덱에서 빠졌습니다	Removed from the deck	デッキから抜けました	已从牌组移除	已從牌組移除	Aus dem Deck entfernt
 	ui.deck.changed	덱의 카드가 달라졌습니다	Cards in the deck changed	デッキのカードが変わりました	牌组中的牌发生了变化	牌組中的牌發生了變化	Karten im Deck haben sich geändert
+	ui.cast.debuffed	{n}장이 무력해졌습니다	{n} cards debuffed	{n} 枚が無力化されました	{n} 张被削弱	{n} 張被削弱	{n} Karten geschwächt
+	ui.cast.hidden	{n}장이 엎어졌습니다	{n} cards turned face down	{n} 枚が裏返りました	{n} 张被翻面	{n} 張被翻面	{n} Karten umgedreht
 	ui.note.rest_of_run	런 내내 남습니다	Lasts the whole run	ラン中ずっと残ります	本次运行内一直有效	本次運行內一直有效	Gilt den ganzen Lauf
 	ui.note.applies_all_run	이번 런 내내 적용됩니다	Applies for the whole run	このラン中ずっと適用されます	本次运行内始终生效	本次運行內始終生效	Gilt für den ganzen Lauf
 	ui.note.disabled_this_round	이번 라운드에는 무력화되어 있습니다	Disabled for this round	このラウンドは無効になっています	本轮被禁用	本輪被禁用	In dieser Runde deaktiviert

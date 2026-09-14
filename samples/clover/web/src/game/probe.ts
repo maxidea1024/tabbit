@@ -441,6 +441,21 @@ export class ProbePart {
           this.game.state.target = this.game.state.score + 1_000_000
           this.game.act({ t: 'play', cards: this.game.state.hand.slice(0, 1) })
         },
+        /**
+         * 손패의 앞 몇 장에 보스가 거는 것을 그 자리에서 겁니다.
+         *
+         * **보스를 만나야만 볼 수 있는 연출입니다.** 안테 1의 스몰에서 시작해 보스까지
+         * 가야 하고, 그 보스가 무력화를 거는 것이어야 하고, 그 무늬가 손에 있어야
+         * 합니다 — 눈으로 다듬는 동안 그 길을 매번 지나갈 수는 없습니다.
+         */
+        castOnHand: (kind: string, many: number) => {
+          // **판을 건드리지 않습니다.** 상태를 먼저 바꾸면 다음 `refresh` 가 그 카드를
+          // 죽은 얼굴로 다시 그려서, 연출이 시작되기도 전에 회색이 되어 있습니다 —
+          // 실제로는 박자가 닿기 전까지 `pendingCards` 가 앞의 모습을 들고 있습니다.
+          const uids = this.game.shown.hand.slice(0, Math.max(1, many))
+          if (kind === 'hide') this.game.cards.hideCards(uids)
+          else this.game.cards.witherCards(uids)
+        },
         grantActive: () => {
           this.game.state.tagsPending = ['voucher', 'juggle']
           this.game.state.vouchers = this.game.data.tables.voucher.records.slice(0, 2)

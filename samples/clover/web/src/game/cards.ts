@@ -32,6 +32,15 @@ import { type Game } from './game'
  */
 type CastKind = 'wither' | 'hide'
 
+/**
+ * 미뤄 둔 것이 깔릴 카드를 기다리는 시간.
+ *
+ * **보스는 패를 깔기 전에 겁니다.** 거는 그 순간에는 깔 것이 예약되지도 않았으므로, 「깔
+ * 것이 없다」로 곧바로 판정하면 판이 시작할 때의 보스가 전부 덱의 수로만 알려집니다 —
+ * 깔기가 시작되기까지를 기다린 뒤에야 남은 것이 정말 덱 안의 것입니다.
+ */
+const CAST_HOLD = 0.5
+
 /** 갈래마다 다른 것은 색과 소리와 글뿐입니다. */
 const CAST: Record<CastKind, { tint: number; cue: string; note: string }> = {
   wither: { tint: UI.bad, cue: 'boss_reveal', note: 'ui.cast.debuffed' },
@@ -580,6 +589,11 @@ export class CardsPart {
     // **깔리는 동안 하나만 냅니다.** 여덟 장이 35ms 간격으로 나오고 25ms 간격으로
     // 뒤집히므로, 낱장마다 내면 0.28초에 16개입니다 — 같은 소리를 60ms 에 한 번으로
     // 줄여 두었어도 0.6초짜리 음원 다섯이 겹치는 것은 그대로였습니다.
+    // **기다리다 깔리지 않으면 덱이 알립니다.** 판이 도는 중에 거는 보스는 그 뒤에 깔릴
+    // 카드가 없고, 그때도 기다리면 다음 판까지 아무 데도 알리지 않습니다.
+    if (this.castSoon.size > 0 && !this.dealing && this.deals.length === 0
+        && this.game.clock >= this.castHold) this.castPending()
+
     if (this.deals.length > 0 || this.game.clock < this.dealtUntil) {
       this.game.audio.sweep('deal', 0.14)
       this.dealing = true
@@ -1061,7 +1075,14 @@ export class CardsPart {
       else this.castSoon.set(uid, kind)
     }
     if (here.length > 0) this.runCast(here, kind)
+    // **깔릴 것을 기다립니다.** 보스는 패를 깔기 전에 걸므로 이 자리에서는 아직 깔 것이
+    // 예약되지도 않았습니다 — 여기서 바로 덱으로 보냈더니 손패가 한 장도 시들지 않고
+    // 전부 덱의 수로만 알려졌습니다.
+    if (this.castSoon.size > 0) this.castHold = this.game.clock + CAST_HOLD
   }
+
+  /** 미뤄 둔 것이 깔릴 것을 기다리는 끝. 그때까지 깔리지 않으면 덱이 알립니다. */
+  private castHold = 0
 
   /**
    * 미뤄 둔 것을 겁니다. **패가 다 깔린 그 자리에서 부릅니다.**
@@ -1119,7 +1140,9 @@ export class CardsPart {
     // **글은 마지막 장이 걸린 뒤입니다.** 번지는 동안 띄우면 글과 그림이 같은 자리에서
     // 겹치고, 글이 먼저 사라집니다.
     const middle = uids.reduce((sum, uid) => sum + (this.views.get(uid)?.x ?? 0), 0) / shown
-    const top = (last.y) - RISER_ON_CARD
+    // **카드 위가 아니라 카드 너머입니다.** 카드 위에 두면 번지는 그림과 글이 같은 자리에
+    // 겹쳐 둘 다 읽히지 않습니다.
+    const top = last.y - SIZE.cardHeight / 2 - 14
     this.game.later.push({
       at: this.game.clock + (shown - 1) * gap + 0.2,
       run: () => this.game.show.popAt({ x: middle, y: top },

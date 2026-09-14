@@ -283,8 +283,8 @@ export const [JOKER_TRAY, CONSUMABLE_TRAY] = splitX(
  * **넘치면 겹칩니다.** 자리에 맞는 간격까지 좁히고 그 뒤로는 서로 겹쳐 서므로, 몇 개가
  * 되어도 자리 밖으로 나가지 않습니다 — 손패가 같은 규칙입니다.
  *
- * **가운데에 모입니다.** 왼쪽부터 채우면 자리의 오른쪽이 늘 비어 보이고, 그 빈 자리가
- * 자리의 테두리와 함께 「아직 못 채운 칸」으로 읽힙니다.
+ * **왼쪽부터 채웁니다.** 아래에 그 까닭이 적혀 있습니다. 여기에는 한동안 「가운데에
+ * 모입니다」가 적혀 있었고, 셈과 어긋난 채였습니다.
  */
 export function trayRow(tray: Box, count: number): { startX: number; spacing: number } {
   const room = tray.width - TRAY_PAD_X * 2

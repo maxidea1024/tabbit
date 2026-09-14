@@ -1055,10 +1055,13 @@ export class TrayPart {
         spot = this.jokerSpot(this.game.state.jokers.indexOf(last))
       }
     } else {
+      // **칸에서 읽지 않습니다.** `placeArriving` 이 그 칸을 자리로 밀어 넣는 중이라,
+      // 지금 그 칸이 있는 자리는 오는 길 위입니다 — 이름이 카드의 가운데에서 왼쪽 아래로
+      // 29픽셀 · 21픽셀 비켜서 뜨던 것이 그것이었습니다. 자리를 세는 곳은 `itemSpot`
+      // 하나이고, 도구에 알리는 자리(`publishRowSpots`)도 같은 값입니다.
       const uid = newest(this.game.state.consumables)?.uid
-      const last = this.consumableTiles.find(one => one.uid === uid)
-      if (last) spot = this.game.probe.spotOf(last.tile, SIZE.jokerWidth / 2,
-        SIZE.jokerHeight / 2)
+      const index = this.game.state.consumables.findIndex(one => one.uid === uid)
+      if (index >= 0) spot = this.itemSpot(index)
       if (this.itemArrive) {
         this.itemArrive.glow = 1
         this.itemArrive.warp = 0
