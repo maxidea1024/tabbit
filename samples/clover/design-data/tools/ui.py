@@ -45,7 +45,7 @@ BAKE = 2
 RUNGS = [('button-sm', 36, 12, 8),
          ('button', 48, 24, 10),
          ('button-lg', 60, 24, 12),
-         ('button-xl', 72, 36, 14)]
+         ('button-xl', 72, 24, 14)]
 
 # 판의 컷입니다. **하나로 못박습니다** — 판마다 다르면 같은 판으로 보이지 않습니다.
 PLATE_CUT = 20
@@ -202,8 +202,8 @@ def edges():
 SOURCE_FILES = {
     'plate': 'plate-source.png',
     'well': 'well-source.png',
-    'button': 'button-source.png',
-    'hud-shell': 'hud-shell-v2-source.png',
+    'button': 'button-v2-source.png',
+    'hud-shell': 'hud-shell-v3-source.png',
     'blind-badge': 'blind-badge-source.png',
 }
 
@@ -221,14 +221,31 @@ RUN_FILES = {
 
 ILLUSTRATION_FILES = {**TITLE_FILES, **RUN_FILES}
 
+
+def foreground_bbox(alpha, path):
+    """고립된 크로마 노이즈를 버리고 실제 부품의 경계를 찾습니다."""
+    pxs = alpha.load()
+    min_col = max(2, round(alpha.height * 0.05))
+    min_row = max(2, round(alpha.width * 0.05))
+    columns = [x for x in range(alpha.width)
+               if sum(1 for y in range(alpha.height) if pxs[x, y] > 48) >= min_col]
+    rows = [y for y in range(alpha.height)
+            if sum(1 for x in range(alpha.width) if pxs[x, y] > 48) >= min_row]
+    if not columns or not rows:
+        raise RuntimeError('UI 원화의 전경을 찾지 못했습니다: %s' % path)
+    return min(columns), min(rows), max(columns) + 1, max(rows) + 1
+
+
 def source_image(name):
     """마젠타 바탕을 실제 알파로 바꾼 회색조 원화를 읽습니다.
 
-    생성된 가장자리 픽셀은 전경 회색과 마젠타가 섞여 있습니다. 배경이 (255, 0, 255), 전경이
-    회색이라고 두면 `alpha = 1 - (red - green) / 255` 이므로 가장자리의 반투명도와 본래
-    회색을 함께 되찾을 수 있습니다. 단순 색상 문턱보다 분홍 테가 남지 않습니다.
+    생성된 가장자리 픽셀은 전경 회색과 마젠타가 섞여 있습니다. 생성기가 마젠타를 정확한
+    (255, 0, 255)로 내지 않을 때도 있으므로 네 모서리에서 실제 배경의 색차와 초록값을
+    구합니다. 그 합성식을 거꾸로 풀어 반투명도와 본래 회색을 함께 되찾습니다. 단순 색상
+    문턱보다 분홍 테가 남지 않고, 배경 밝기가 전경에 섞여 뿌옇게 남지도 않습니다.
     """
     from PIL import Image
+    from statistics import median
 
     path = os.path.join(SOURCE, SOURCE_FILES[name])
     raw = Image.open(path).convert('RGBA')
@@ -237,28 +254,49 @@ def source_image(name):
     if raw.getchannel('A').getextrema()[0] < 255:
         gray = raw.convert('L')
         keyed = Image.merge('RGBA', (gray, gray, gray, raw.getchannel('A')))
-        bbox = keyed.getchannel('A').point(lambda a: 255 if a > 3 else 0).getbbox()
-        if bbox is None:
-            raise RuntimeError('UI 원화의 전경을 찾지 못했습니다: %s' % path)
+        bbox = foreground_bbox(keyed.getchannel('A'), path)
         return keyed.crop(bbox)
 
     image = raw.convert('RGB')
+
+    # 원화의 잘린 귀 때문에 꼭짓점 한 픽셀만 읽지 않고, 네 귀의 작은 면을 함께 봅니다.
+    # 전경의 중성 회색은 R/B와 G의 차가 거의 없으므로 중앙값에서 자연스럽게 밀려납니다.
+    sx = max(2, round(image.width * 0.04))
+    sy = max(2, round(image.height * 0.04))
+    corners = [
+        (0, 0, sx, sy),
+        (image.width - sx, 0, image.width, sy),
+        (0, image.height - sy, sx, image.height),
+        (image.width - sx, image.height - sy, image.width, image.height),
+    ]
+    background = []
+    for box in corners:
+        for r, g, b in image.crop(box).get_flattened_data():
+            spill = ((r + b) / 2) - g
+            if spill > 32:
+                background.append((spill, g))
+    if not background:
+        raise RuntimeError('UI 원화의 마젠타 바탕을 찾지 못했습니다: %s' % path)
+    bg_spill = max(1.0, float(median(pair[0] for pair in background)))
+    bg_green = float(median(pair[1] for pair in background))
+
     out = []
     for r, g, b in image.get_flattened_data():
         # R/B 둘 중 하나에 압축 오차가 있어도 한쪽만으로 가장자리가 들쭉날쭉하지 않게 합니다.
-        spill = max(0, ((r + b) // 2) - g)
-        alpha = max(0, min(255, 255 - spill))
-        if alpha <= 3:
+        spill = max(0.0, ((r + b) / 2) - g)
+        alpha_f = max(0.0, min(1.0, 1.0 - spill / bg_spill))
+        alpha = round(alpha_f * 255)
+        # 배경의 미세한 색 노이즈는 1~수십 알파의 먼지로 바뀝니다. 이 영역은 전경의
+        # 안티앨리어싱이 아니라 생성기의 평평한 크로마 면이므로 완전히 걷습니다.
+        if alpha <= 48:
             out.append((255, 255, 255, 0))
             continue
-        gray = max(0, min(255, round(g * 255 / alpha)))
+        gray = max(0, min(255, round((g - (1.0 - alpha_f) * bg_green) / alpha_f)))
         out.append((gray, gray, gray, alpha))
     keyed = Image.new('RGBA', image.size)
     keyed.putdata(out)
     alpha = keyed.getchannel('A')
-    bbox = alpha.point(lambda a: 255 if a > 10 else 0).getbbox()
-    if bbox is None:
-        raise RuntimeError('UI 원화의 전경을 찾지 못했습니다: %s' % path)
+    bbox = foreground_bbox(alpha, path)
     return keyed.crop(bbox)
 
 
@@ -269,13 +307,21 @@ def crop_ratio(image, area):
                        round(image.width * x1), round(image.height * y1)))
 
 
-def fit_source(image, width, height, pad=0):
-    """원화 한 장을 그 부품의 2배 크기로 맞추고 바깥 여백을 둡니다."""
+def fit_source(image, width, height, pad=0, preserve_shape=False):
+    """원화 한 장을 그 부품의 2배 크기로 맞추고 바깥 여백을 둡니다.
+
+    완성된 외곽선 원화는 자르지 않고 규격에 맞춰 접습니다. 재질을 빌려 쓰는 원화만 가운데를
+    잘라 채웁니다. 외곽선을 `ImageOps.fit`에 넣으면 긴 단추의 양쪽 귀와 긴 판의 위아래가
+    통째로 잘립니다.
+    """
     from PIL import Image, ImageOps
 
     target = (width * BAKE, height * BAKE)
-    fitted = ImageOps.fit(image, target, method=Image.Resampling.LANCZOS,
-                          centering=(0.5, 0.5))
+    if preserve_shape:
+        fitted = image.resize(target, Image.Resampling.LANCZOS)
+    else:
+        fitted = ImageOps.fit(image, target, method=Image.Resampling.LANCZOS,
+                              centering=(0.5, 0.5))
     if pad <= 0:
         return fitted
     canvas = Image.new('RGBA', ((width + pad * 2) * BAKE, (height + pad * 2) * BAKE),
@@ -296,7 +342,8 @@ def bake_sources():
     shell_art = source_image('hud-shell')
     badge_art = source_image('blind-badge')
 
-    fit_source(shell_art, 264, 756).save(os.path.join(OUT, 'hud-shell.png'), optimize=True)
+    fit_source(shell_art, 264, 756, preserve_shape=True).save(
+        os.path.join(OUT, 'hud-shell.png'), optimize=True)
     made.append('hud-shell')
     fit_source(badge_art, 264, 212).save(os.path.join(OUT, 'blind-badge.png'), optimize=True)
     made.append('blind-badge')
@@ -325,11 +372,13 @@ def bake_sources():
     # 버튼 네 계단은 같은 원화에서 굽습니다. 모양과 재질은 같고 높이만 계단을 따릅니다.
     for name, h, _font, _cut in RUNGS:
         w = h * 3
-        fit_source(button_art, w, h, PAD).save(os.path.join(OUT, name + '.png'), optimize=True)
+        fit_source(button_art, w, h, PAD, preserve_shape=True).save(
+            os.path.join(OUT, name + '.png'), optimize=True)
         made.append(name)
 
     # 키캡도 같은 누름 재질을 쓰되 작은 단추의 비율로 접습니다.
-    fit_source(button_art, 64, 36, PAD).save(os.path.join(OUT, 'keycap.png'), optimize=True)
+    fit_source(button_art, 64, 36, PAD, preserve_shape=True).save(
+        os.path.join(OUT, 'keycap.png'), optimize=True)
     made.append('keycap')
 
     # 게이지는 값 칸 원화의 파인 면을 그대로 축소합니다. 채움은 판의 조용한 면입니다.
@@ -402,7 +451,7 @@ def torn_wave(length_px, seed):
 
 def bake_torn(index, path):
     import random
-    from PIL import Image, ImageDraw, ImageFilter
+    from PIL import Image, ImageDraw
 
     seed = index * 101
     rnd = random.Random(seed)
@@ -443,10 +492,11 @@ def bake_torn(index, path):
             d.polygon([(pad + x, pad + y - wide / 2), (pad + x, pad + y + wide / 2),
                        (pad + x + dx, pad + y)], fill=0)
 
-    img = img.filter(ImageFilter.GaussianBlur(s6 * 0.3))
-    # 여백을 잘라 내고 2배로 줄입니다 — 놓는 쪽은 카드 크기로 늘려 씁니다.
+    # 고배율에서 만든 모양을 한 번 줄이는 것만으로 1픽셀 안티앨리어싱이 생깁니다. 별도의
+    # 가우시안 블러를 더하면 카드 안쪽까지 반투명해져 종이와 숫자가 뿌옇게 보입니다.
     img = img.crop((pad, pad, pad + bw, pad + bh))
     small = img.resize((CARD_W * BAKE, CARD_H * BAKE), Image.LANCZOS)
+    small = small.point(lambda a: 0 if a < 48 else 255 if a > 207 else a)
     rgba = Image.new('RGBA', small.size, (255, 255, 255, 0))
     rgba.putalpha(small)
     rgba.save(path, optimize=True)

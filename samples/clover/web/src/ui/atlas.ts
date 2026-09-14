@@ -43,7 +43,7 @@ export const RUNG = {
   'button-sm': { height: 36, font: 12, cut: 8 },
   'button': { height: 48, font: 24, cut: 10 },
   'button-lg': { height: 60, font: 24, cut: 12 },
-  'button-xl': { height: 72, font: 36, cut: 14 }
+  'button-xl': { height: 72, font: 24, cut: 14 }
 } as const
 
 export type RungName = keyof typeof RUNG

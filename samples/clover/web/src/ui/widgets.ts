@@ -383,11 +383,13 @@ export class Button extends Container {
     this.caption.style.fontSize = this.textSize
     this.caption.text = value
 
-    // 양쪽에 8픽셀씩 남깁니다. 글이 테두리에 닿으면 칸이 터진 것으로 보입니다.
+    // 잘린 귀 전체와 그 안쪽의 숨 쉴 자리를 비웁니다. 단순히 양쪽 8픽셀만 빼면 큰 단추의
+    // 글이 사선과 아래 턱까지 차서, 글자 수가 적어도 버튼보다 먼저 보입니다.
     //
     // **줄일 때에도 계단을 밟습니다.** 한 픽셀씩 내리면 12의 배수를 벗어나 획이 격자에서
     // 어긋납니다 — 픽셀 서체는 그 사이 값에서 굵기가 자리마다 달라집니다.
-    const room = this.boxWidth - 16
+    const safeInset = rungOf(this.rung).cut + 10
+    const room = Math.max(24, this.boxWidth - safeInset * 2)
     let size = this.textSize
     while (size > 12 && this.caption.width > room) {
       size -= 12
