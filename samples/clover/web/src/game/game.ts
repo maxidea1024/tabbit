@@ -32,7 +32,7 @@ import { type ToolSpot } from '../ui/layout'
 import { OptionsPanel, saveOptions } from '../ui/options'
 import {
   BLIND_ENTER_TOTAL, BOARD_X, BUTTON_GAP, BUTTON_Y, CLEAR_W, DECK_MEET, FOOT_BTN_H,
-  HELD_RISE, ITEM_LINGER, ITEM_SETTLE, JOKER_Y, LEFT, PANEL_INFO_W, PANEL_MENU_W,
+  HELD_RISE, ITEM_LINGER, ITEM_SETTLE, JOKER_Y, LEFT, PANEL_BTN_W,
   PANEL_FOOT_Y, PANEL_W, PLAY_H, PLAY_W, PLAY_Y, SORT_GAP, SORT_H, SORT_W, STEP_MS,
   DISCARD_W, IN_X, PANEL_BTN_GAP,
 } from './metrics'
@@ -486,16 +486,16 @@ export class Game {
     // 위의 칸들과 같은 격자입니다 — 너비도 자리도.
     // **「족보 목록」 이 아니라 「런 정보」 입니다.** 족보는 그 안의 한 갈래가 되었습니다.
     // **런 정보가 밝고 넓습니다.** 판 안에서 자주 여는 쪽이고, 메뉴는 곁의 단추입니다.
-    this.chrome.infoButton = new Button(t('ui.run_info.title'), PANEL_INFO_W, FOOT_BTN_H,
+    this.chrome.infoButton = new Button(t('ui.run_info.title'), PANEL_BTN_W, FOOT_BTN_H,
       'select',
       () => this.cards.toggleHandList())
-    this.chrome.menuButton = new Button(t('ui.button.menu'), PANEL_MENU_W, FOOT_BTN_H, 'neutral',
+    this.chrome.menuButton = new Button(t('ui.button.menu'), PANEL_BTN_W, FOOT_BTN_H, 'neutral',
       () => this.panels.openMenu())
     // **자리는 화면이 알립니다.** 도구가 좌표를 베껴 적으면 판을 고칠 때 한쪽만 고쳐집니다.
     const footCy = FOOT_BTN_H / 2
-    this.spotNodes.set('runInfo', { node: this.chrome.infoButton, cx: PANEL_INFO_W / 2,
+    this.spotNodes.set('runInfo', { node: this.chrome.infoButton, cx: PANEL_BTN_W / 2,
       cy: footCy })
-    this.spotNodes.set('menu', { node: this.chrome.menuButton, cx: PANEL_MENU_W / 2, cy: footCy })
+    this.spotNodes.set('menu', { node: this.chrome.menuButton, cx: PANEL_BTN_W / 2, cy: footCy })
     this.spotNodes.set('sort:rank',
                        { node: this.chrome.sortRankButton, cx: SORT_W / 2, cy: SORT_H / 2 })
     this.spotNodes.set('sort:suit',
@@ -555,7 +555,7 @@ export class Game {
     // **판의 밑단에 붙입니다.** 위에 두면 그 아래가 통째로 빈 자리로 남습니다 — 왼쪽 판은
     // 화면 아래 22픽셀까지 내려오고, 버튼은 그 안쪽에 있으면 됩니다.
     this.chrome.infoButton.position.set(IN_X, PANEL_FOOT_Y)
-    this.chrome.menuButton.position.set(IN_X + PANEL_INFO_W + PANEL_BTN_GAP, PANEL_FOOT_Y)
+    this.chrome.menuButton.position.set(IN_X + PANEL_BTN_W + PANEL_BTN_GAP, PANEL_FOOT_Y)
 
     // **창 전체의 예외도 받아 둡니다.** F12 를 열지 않아도 `__clover.errors` 로 읽힙니다.
     window.addEventListener('error',
@@ -1455,6 +1455,8 @@ export class Game {
     this.chrome.anteSlot.text = `${state.ante}/${this.data.run.winAnte}`
     this.chrome.deckLabel.text = tf('ui.stat.deck', { left: state.drawPile.length,
       all: state.deck.length })
+    // **더미의 두께도 그 수입니다.** 수를 읽지 않고도 얼마나 남았는지가 보여야 합니다.
+    this.cards.syncDeckThickness()
     this.chrome.jokerCount.text = `${state.jokers.length} / ${state.rules.jokerSlots}`
     this.chrome.consumableCount.text =
       `${state.consumables.length} / ${state.rules.consumableSlots}`

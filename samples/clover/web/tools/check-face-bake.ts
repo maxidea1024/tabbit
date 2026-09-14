@@ -56,9 +56,9 @@ async function main(): Promise<number> {
   // **한 왕복은 버립니다.** 그림은 늦게 옵니다(`onArtReady`) — 없을 때 구운 것과 온 뒤에
   // 구운 것이 다른 그림이므로 카드마다 한 번 더 굽고, 그것은 낭비가 아니라 그림이 온
   // 것입니다. 재는 것은 그 뒤부터입니다.
-  await clickCards(page, [0], held)
+  await clickCards(page, [0])
   await pass(page, 200)
-  await clickCards(page, [0], held)
+  await clickCards(page, [0])
   await pass(page, 200)
   const dealt = (await peek(page)).faceBakes
   if (!dealt) {
@@ -72,9 +72,9 @@ async function main(): Promise<number> {
   check('앞면을 굽습니다', dealt.baked > 0, `${dealt.baked}장`)
 
   for (let round = 0; round < ROUNDS; round++) {
-    await clickCards(page, [0], held)
+    await clickCards(page, [0])
     await pass(page, 120)
-    await clickCards(page, [0], held)
+    await clickCards(page, [0])
     await pass(page, 120)
   }
 

@@ -1,7 +1,7 @@
 import { Container, Graphics } from 'pixi.js'
 import { EditionKind } from '../generated/enums/edition-kind'
 import { describe } from '../core/describe'
-import { nameOf } from '../core/strings'
+import { nameOf, tf } from '../core/strings'
 import { type CardInstance, type JokerInstance } from '../core/state'
 import { ArriveFilter } from '../shader/arrive'
 import { ErodeFilter } from '../shader/erode'
@@ -17,12 +17,27 @@ import { SIZE, UI } from '../render/theme'
 import { borrowedFrom } from '../core/vm'
 import { type ModalPanel } from '../ui/modal'
 import {
-  BOARD_X, DEALER, DECK_LINGER, DECK_PEEK, DECK_X, DECK_Y, DRAG_Z, EMBER, HAND_Y, HELD_RISE,
+  BOARD_X, DEALER, DECK_LINGER, DECK_PEEK, deckSheets, DECK_X, DECK_Y, DRAG_Z, EMBER,
+  handSpacing, HAND_Y, HELD_RISE,
   HOVER_Z, ITEM_LINGER, ITEM_SETTLE, JOKER_TRAY, JOKER_Y, PICK_TINT, PICK_Z, PLAY_Y, RECALL_STEP,
   RETIRE_TAIL, RISER_ON_CARD, ROW_Z, SHOW_CLEAR, SHOW_Y, SHOW_Z, trayRow,
 } from './metrics'
 import { type CardShow } from './types'
 import { type Game } from './game'
+/**
+ * 보스가 카드에 거는 것의 갈래.
+ *
+ * **둘뿐이고 규칙이 같습니다** — 여러 장에 한 번에 걸리고, 걸린 뒤의 모습이 그 카드의
+ * 얼굴에 남고, 어느 장이 걸렸는지가 보여야 합니다.
+ */
+type CastKind = 'wither' | 'hide'
+
+/** 갈래마다 다른 것은 색과 소리와 글뿐입니다. */
+const CAST: Record<CastKind, { tint: number; cue: string; note: string }> = {
+  wither: { tint: UI.bad, cue: 'boss_reveal', note: 'ui.cast.debuffed' },
+  hide: { tint: UI.inkDim, cue: 'card_flip', note: 'ui.cast.hidden' },
+}
+
 export class CardsPart {
   constructor(private readonly game: Game) {}
 
@@ -287,16 +302,44 @@ export class CardsPart {
    *
    * 매 프레임이 아니라 뒷면이 바뀔 때만 부릅니다.
    */
+  /**
+   * 덱 더미.
+   *
+   * **두께가 남은 장수입니다.** 다섯 장으로 고정해 두었더니 52장이 남은 더미와 3장이 남은
+   * 더미가 같은 두께였고, 그 아래의 `44 / 52` 만 그것을 알리고 있었습니다 — 화면에서 수를
+   * 읽지 않고도 판이 얼마나 남았는지가 보여야 하는 자리입니다.
+   *
+   * **두 장 아래로는 얇아지지 않습니다.** 한 장이 되면 더미가 아니라 낱장이 되어 손패의
+   * 카드와 같은 물건으로 보입니다.
+   */
   drawDeckPile(): void {
+    const state = this.game.state
+    const sheets = deckSheets(state.drawPile.length, state.deck.length)
+    this.deckSheetsDrawn = sheets
     this.game.chrome.deckPile.removeChildren().forEach(child => child.destroy())
     const look = cardBack()
-    for (let i = 4; i >= 0; i--) {
+    for (let i = sheets - 1; i >= 0; i--) {
       const sheet = new Container()
       sheet.position.set(DECK_X - SIZE.cardWidth / 2 + i * 2,
                          DECK_Y - SIZE.cardHeight / 2 - i * 3)
       drawCardBack(sheet, SIZE.cardWidth, SIZE.cardHeight, SIZE.cardRadius, look)
       this.game.chrome.deckPile.addChild(sheet)
     }
+  }
+
+  /** 마지막으로 그린 더미의 장 수. 같으면 다시 그리지 않습니다. */
+  private deckSheetsDrawn = -1
+
+  /**
+   * 남은 장수가 더미의 두께를 바꾸었으면 다시 그립니다.
+   *
+   * **매 장마다 다시 그리지 않습니다.** 두께는 열 단계뿐이므로 한 판에 아홉 번 바뀝니다 —
+   * 카드를 뽑을 때마다 뒷면 열 장을 다시 굽는 것은 그 아홉 번을 위한 값이 아닙니다.
+   */
+  syncDeckThickness(): void {
+    const state = this.game.state
+    if (deckSheets(state.drawPile.length, state.deck.length) === this.deckSheetsDrawn) return
+    this.drawDeckPile()
   }
 
   /**
@@ -544,6 +587,9 @@ export class CardsPart {
       // **다 깔린 자리에 맺음 하나.** 지속 보이스는 끝을 알리지 않습니다.
       this.dealing = false
       this.game.audio.play('card_place', 0, 0, -3)
+      // **보스가 걸어 둔 것이 여기서 걸립니다.** 깔리는 도중에 장마다 걸던 동안에는
+      // 카드가 아직 날아오는 중이라 눈이 그 줄에 와 있지 않았습니다.
+      this.castPending()
     }
 
     if (!dealt) return
@@ -973,24 +1019,114 @@ export class CardsPart {
    *
    * 금이 가운데에서 바깥으로 번지고 색이 빠집니다 — 죽어 있는 모습은 카드의 얼굴이 이미
    * 들고 있으므로, 여기서 보이는 것은 그 사이의 한 몸짓입니다.
-   *
-   * **한 장씩 차례로 걸립니다.** 손패 여덟 장이 한 프레임에 회색이 되면 한 덩어리가 죽은
-   * 것으로 보이고, 어느 장이 걸린 것인지 눈이 따라가지 못합니다.
-   *
-   * 손패에 없는 카드는 건너뜁니다 — 덱 전체에 거는 보스가 있고, 그 순간 화면에 있는 것은
-   * 손에 든 몇 장뿐입니다.
    */
   witherCards(uids: readonly number[]): void {
-    const shown = this.stagger(uids, 'wither', (view, uid) => this.witherOne(view, uid))
-    // **화면에 한 장도 없으면 덱이 알립니다.** 덱 전체에 거는 보스가 그렇습니다 — 무늬
-    // 하나면 13장이고, 그 13장은 아직 덱 안에 있습니다.
-    if (shown === 0) {
-      this.tellDeck(uids.length, UI.bad, 'boss_reveal')
-      return
+    this.castCards(uids, 'wither')
+  }
+
+  /**
+   * 카드 몇 장이 엎어집니다. **보스가 거는 것입니다.**
+   *
+   * 그 자리에서 한 번 뒤집혀 뒷면으로 돌아옵니다 — 이미 엎어진 채로 그려지면 카드가
+   * 처음부터 그랬던 것으로 보입니다.
+   */
+  hideCards(uids: readonly number[]): void {
+    this.castCards(uids, 'hide')
+  }
+
+  /**
+   * 보스가 카드 몇 장에 거는 것. **무력화와 엎어짐이 같은 규칙입니다.**
+   *
+   * 갈래가 둘뿐이고 둘이 하는 일이 같습니다 — 여러 장에 한 번에 걸리고, 걸린 뒤의 모습이
+   * 그 카드의 얼굴에 남고, 어느 장이 걸렸는지가 보여야 합니다. 갈라 두었더니 한쪽만
+   * 고쳐지는 자리가 생겼습니다.
+   *
+   * **다 깔린 뒤에 겁니다.** 카드가 깔리는 도중에 장마다 걸던 동안에는 여덟 장이 덱에서
+   * 날아오는 중에 그중 몇 장이 번쩍였고, 눈이 아직 그 줄에 와 있지 않았습니다 — 무엇이
+   * 일어난 것인지 볼 수 없는 자리에서 일어나고 있었습니다.
+   *
+   * **한 장씩 차례로입니다.** 여덟 장이 한 프레임에 회색이 되면 한 덩어리가 죽은 것으로
+   * 보이고, 어느 장이 걸린 것인지 눈이 따라가지 못합니다.
+   *
+   * **글이 함께 뜹니다.** 조커가 꺼질 때는 「꺼졌습니다」가 그 자리에 뜨는데 카드에는
+   * 아무 말도 없어서, 번지는 것이 무엇을 뜻하는지가 화면에 하나도 없었습니다.
+   */
+  private castCards(uids: readonly number[], kind: CastKind): void {
+    if (uids.length === 0) return
+    // **아직 깔리기 전인 카드는 미뤄 둡니다.** 보스는 패를 깔기 전에 걸므로 화면에 있는
+    // 카드가 하나도 없을 때가 대부분입니다.
+    const here: number[] = []
+    for (const uid of uids) {
+      if (this.views.has(uid)) here.push(uid)
+      else this.castSoon.set(uid, kind)
     }
-    this.game.audio.play('boss_reveal')
-    this.game.show.jolt(6 + Math.min(shown, 6), 1.7, 0.4)
-    this.game.show.flashPanel(UI.bad, 0.75)
+    if (here.length > 0) this.runCast(here, kind)
+  }
+
+  /**
+   * 미뤄 둔 것을 겁니다. **패가 다 깔린 그 자리에서 부릅니다.**
+   *
+   * 갈래별로 모아 한 줄씩 돌립니다 — 무력해진 것과 엎어진 것이 한 판에 함께 오면 그 둘은
+   * 다른 일이므로 섞어서 한 줄로 세우면 무엇이 일어난 것인지가 갈리지 않습니다.
+   */
+  castPending(): void {
+    if (this.castSoon.size === 0) return
+    for (const kind of ['wither', 'hide'] as const) {
+      // **손패의 차례대로입니다.** 걸린 차례가 아니라 놓인 차례여야 눈이 왼쪽에서
+      // 오른쪽으로 한 번 지나갑니다.
+      const here = this.game.shown.hand.filter(uid => this.castSoon.get(uid) === kind)
+      for (const uid of here) this.castSoon.delete(uid)
+      if (here.length > 0) this.runCast(here, kind)
+    }
+    // **아직 덱 안에 있는 것은 덱이 알립니다.** 무늬 하나에 거는 보스면 그 무늬의 남은
+    // 장수이고, 그 카드들은 화면에 없습니다.
+    for (const kind of ['wither', 'hide'] as const) {
+      const left = [...this.castSoon].filter(([, one]) => one === kind).length
+      if (left > 0) this.tellDeck(left, kind)
+    }
+    this.castSoon.clear()
+  }
+
+  /**
+   * 한 줄에 차례로 겁니다.
+   *
+   * **간격은 낸 카드가 올라갈 때의 것과 같습니다.** 새 상수를 두지 않는 것은 이것도 카드
+   * 여럿이 차례로 무엇을 하는 일이기 때문입니다.
+   *
+   * **글은 한 번입니다.** 장마다 띄우면 여덟 줄이 90ms 간격으로 겹쳐 아무것도 읽히지
+   * 않습니다 — 걸린 것들의 한가운데에 「{n}장이 …」 한 줄입니다.
+   */
+  private runCast(uids: readonly number[], kind: CastKind): void {
+    const look = CAST[kind]
+    const gap = this.game.feel.playStaggerMs / 1000
+    let last: CardView | undefined
+    uids.forEach((uid, index) => {
+      const view = this.views.get(uid)
+      if (!view) return
+      last = view
+      this.game.later.push({
+        at: this.game.clock + index * gap,
+        run: () => {
+          if (view.destroyed) return
+          if (kind === 'wither') this.witherOne(view, uid)
+          else this.hideOne(view, uid)
+          this.game.audio.play(look.cue, index === 0 ? 0 : -3)
+        },
+      })
+    })
+    if (!last) return
+    const shown = uids.length
+    // **글은 마지막 장이 걸린 뒤입니다.** 번지는 동안 띄우면 글과 그림이 같은 자리에서
+    // 겹치고, 글이 먼저 사라집니다.
+    const middle = uids.reduce((sum, uid) => sum + (this.views.get(uid)?.x ?? 0), 0) / shown
+    const top = (last.y) - RISER_ON_CARD
+    this.game.later.push({
+      at: this.game.clock + (shown - 1) * gap + 0.2,
+      run: () => this.game.show.popAt({ x: middle, y: top },
+        tf(look.note, { n: shown }), look.tint, 0.5),
+    })
+    this.game.show.jolt(4 + Math.min(shown, 6) * 0.8, 1.4, 0.3)
+    this.game.show.flashPanel(look.tint, kind === 'wither' ? 0.75 : 0.6)
   }
 
   /**
@@ -999,64 +1135,22 @@ export class CardsPart {
    * **덱은 라운드 사이에 화면 오른쪽으로 물러나 있습니다.** 그래서 덱 안의 카드를
    * 건드리는 것은 일어난 자리가 화면에 없습니다 — 덱이 나와 한 번 눌리고, 그 위에 몇
    * 장인지가 뜹니다. 어느 장인지는 그 카드가 깔릴 때 그 자리에서 보입니다.
+   *
+   * **수만 적지 않습니다.** 맨 숫자 하나는 무엇의 수인지가 없어서, 판을 보는 사람에게는
+   * 「왜 숫자가 뜨지」 하나로 남습니다 — 덱에 카드를 넣으면 「덱에 더해졌습니다」가 뜨는
+   * 그 자리이고, 문법이 같아야 합니다.
    */
-  private tellDeck(count: number, tint: number, cue: string): void {
+  private tellDeck(count: number, kind: CastKind): void {
     if (count <= 0) return
+    const look = CAST[kind]
     this.deckPeekUntil = Math.max(this.deckPeekUntil, this.game.clock + DECK_PEEK)
     this.game.chrome.deckBump.kick(220)
-    this.game.audio.play(cue)
-    this.game.show.particles.burst(DECK_X, DECK_Y, 16, tint, 1, 0.9)
-    this.game.show.popAt({ x: DECK_X - 36, y: DECK_Y - RISER_ON_CARD }, `${count}`, tint, 0.5)
+    this.game.audio.play(look.cue)
+    this.game.show.particles.burst(DECK_X, DECK_Y, 16, look.tint, 1, 0.9)
+    this.game.show.popAt({ x: DECK_X - 36, y: DECK_Y - RISER_ON_CARD },
+      tf(look.note, { n: count }), look.tint, 0.5)
     this.game.show.jolt(6, 1.5, 0.35)
-    this.game.show.flashPanel(tint, 0.7)
-  }
-
-  /**
-   * 손패의 카드들이 엎어집니다. **보스가 거는 것입니다.**
-   *
-   * 그 자리에서 한 번 뒤집혀 뒷면으로 돌아옵니다 — 이미 엎어진 채로 그려지면 카드가 처음
-   * 부터 그랬던 것으로 보입니다.
-   */
-  hideCards(uids: readonly number[]): void {
-    const shown = this.stagger(uids, 'hide', (view, uid) => this.hideOne(view, uid))
-    if (shown === 0) {
-      this.tellDeck(uids.length, UI.inkDim, 'card_flip')
-      return
-    }
-    this.game.audio.play('card_flip')
-    this.game.audio.tone('pluck', -4, 0.6)
-    this.game.show.jolt(5 + Math.min(shown, 5), 1.4, 0.3)
-    this.game.show.flashPanel(UI.inkDim, 0.6)
-  }
-
-  /**
-   * 손패의 카드들에 차례로 무엇을 겁니다.
-   *
-   * **간격은 낸 카드가 올라갈 때의 것과 같습니다.** 새 상수를 두지 않는 것은 이것도 카드
-   * 여럿이 차례로 무엇을 하는 일이기 때문입니다.
-   */
-  private stagger(uids: readonly number[], kind: 'wither' | 'hide',
-                  run: (view: CardView, uid: number) => void): number {
-    let shown = 0
-    for (const uid of uids) {
-      const view = this.views.get(uid)
-      if (!view) {
-        // **아직 깔리기 전입니다.** 깔릴 때 걸립니다 — 지금 지나가면 그 카드에는 아무
-        // 일도 일어나지 않은 것이 됩니다.
-        this.castSoon.set(uid, kind)
-        continue
-      }
-      const at = this.game.clock + shown * (this.game.feel.playStaggerMs / 1000)
-      this.game.later.push({
-        at,
-        run: () => {
-          if (view.destroyed) return
-          run(view, uid)
-        },
-      })
-      shown++
-    }
-    return shown
+    this.game.show.flashPanel(look.tint, 0.7)
   }
 
   /** 카드 한 장이 시듭니다. */
@@ -1073,31 +1167,6 @@ export class CardsPart {
     if (!now) return
     this.pendingCards.delete(uid)
     view.turnInto(now, this.editionLook(now.edition))
-  }
-
-  /**
-   * 방금 깔린 카드에 미뤄 둔 것이 있으면 겁니다.
-   *
-   * **뒤집히고 나서입니다.** 뒤집히는 중에 걸면 뒷면이 시드는 것으로 보이고, 그것은 그
-   * 카드에 일어난 일로 읽히지 않습니다.
-   */
-  private castOnDealt(uid: number, view: CardView, flipAt: number): void {
-    const kind = this.castSoon.get(uid)
-    if (kind === undefined) return
-    this.castSoon.delete(uid)
-    this.game.later.push({
-      at: flipAt + 0.14,
-      run: () => {
-        if (view.destroyed) return
-        if (kind === 'wither') {
-          this.witherOne(view, uid)
-          this.game.audio.play('boss_reveal', -3)
-        } else {
-          this.hideOne(view, uid)
-          this.game.audio.play('card_flip', -2)
-        }
-      },
-    })
   }
 
   /**
@@ -1174,9 +1243,13 @@ export class CardsPart {
       .map(uid => this.game.state.deck.find(card => card.uid === uid))
       .filter((card): card is CardInstance => card !== undefined)
 
-    const spacing = Math.min(SIZE.cardWidth + 12, 720 / Math.max(1, hand.length))
+    const spacing = handSpacing(hand.length)
     const startX = BOARD_X - ((hand.length - 1) * spacing) / 2
     this.handSpots = { startX, spacing }
+    // **손패를 누를 자리도 화면이 알립니다.** 도구가 같은 셈을 손으로 적어 두고 있었고,
+    // 간격을 고친 날부터 카드 사이의 빈 곳을 눌러 놓고 「고른 것 0장」 으로 지나갔습니다 —
+    // 조커·소모품 줄과 같은 길입니다.
+    this.game.tray.publishRowSpots('hand', this.handSpots, hand.length, HAND_Y)
 
     hand.forEach((card, index) => {
       let view = this.views.get(card.uid)
@@ -1224,8 +1297,11 @@ export class CardsPart {
       view.setPick(chosen ? 1 : this.selected.size === 0 || hint ? 0 : -1, PICK_TINT)
 
       // **한 줄로 폅니다.** 가운데를 높이고 양끝을 기울여 부채꼴로 폈는데, 여덟 장이
-      // 늘어서면 그 곡선이 카드마다 다른 높이와 기울기가 되어 줄이 고르지 않게 보입니다 —
-      // 손패는 늘어놓은 것이지 쥐고 있는 것이 아닙니다.
+      // 늘어서면 그 곡선이 카드마다 다른 높이와 기울기가 되어 줄이 고르지 않게 보입니다.
+      //
+      // **겹치는 것은 그것과 다릅니다.** 밑변이 한 줄로 고르고 기울기가 없는 채로 오른쪽
+      // 변만 덮이므로, 줄은 그대로이고 여덟 장이 한 벌로 읽힙니다 — 겹침의 폭은
+      // `HAND_OVERLAP` 입니다.
       const spotX = startX + index * spacing
       const spotY = HAND_Y
       const tilt = 0
@@ -1245,8 +1321,6 @@ export class CardsPart {
           + this.game.feel.drawLandMs / 1000
         this.flipAt.delete(card.uid)
         view.deal(spotX, spotY, tilt, flipAt)
-        // 보스가 걸어 둔 것이 있으면 이 카드가 뒤집힌 뒤에 걸립니다.
-        this.castOnDealt(card.uid, view, flipAt)
       } else {
         view.place(spotX, spotY, tilt)
       }

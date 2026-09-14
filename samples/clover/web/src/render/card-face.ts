@@ -11,7 +11,7 @@
 // 뒷면(`card-back.ts`)과 같은 얼개입니다. 렌더러를 받기 전(타이틀 · 미리보기 도구)에는
 // 선으로 그립니다.
 
-import { COLOR, PAINT } from './ink'
+import { PAINT } from './ink'
 import {
   Container, Graphics, Rectangle, Sprite, Text, type Renderer, type Texture,
 } from 'pixi.js'
@@ -49,8 +49,6 @@ export interface FaceLook {
 
 /** 디버프된 카드의 무늬 색. */
 const DEBUFF_INK = 0x9a9a9a
-/** 디버프된 카드의 테두리 색. */
-const DEBUFF_EDGE = 0x6b6b6b
 /** 디버프된 카드에 덮는 잿빛. */
 const DEBUFF_VEIL = 0x2a2a2a
 /** 디버프된 카드의 그림에 입히는 색. */
@@ -297,11 +295,15 @@ export function drawCardFaceVector(node: Container, width: number, height: numbe
     }
   }
 
-  // 3. 테두리. **얼굴 위에 그립니다** — 종이에 그으면 그림에 가려집니다.
+  // 3. 무늬가 얹히는 자리. **얼굴 위입니다** — 종이에 그으면 그림에 가려집니다.
+  //
+  // **네 변을 두르는 어두운 선은 여기 없습니다.** 카드의 실루엣은 뜯긴 마스크가 정하는데
+  // 이 선은 곧은 사각형이라, 마스크가 1~3픽셀씩 들쭉날쭉 잘라 내고 남은 것이 굵기가
+  // 제각각인 선이 되었습니다 — 어두운 상 위에서는 바탕에 묻혀 보이지 않다가, 손패가
+  // 겹치면서 아래 카드의 크림색 위에 그 들쭉날쭉한 선이 그대로 드러났습니다.
+  // 카드를 가르는 일은 실루엣을 따라가는 그림자(`card-view.ts` 의 `shade`)가 합니다.
   const line = new Graphics()
   node.addChild(line)
-  line.rect(0.5, 0.5, width - 1, height - 1)
-    .stroke({ color: look.debuffed ? DEBUFF_EDGE : COLOR.cardEdge, width: 2 })
 
   // 4. 모서리. 랭크 하나와 그 아래의 작은 무늬 하나이고, 아래쪽은 거꾸로입니다 — 손에
   // 부챗살로 쥐었을 때 보이는 것이 그 둘뿐이기 때문입니다.

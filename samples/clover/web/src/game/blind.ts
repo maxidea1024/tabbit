@@ -4,7 +4,7 @@ import { describe } from '../core/describe'
 import { rewardOf, tagFor, targetOf } from '../core/run'
 import { nameOf, t, tf } from '../core/strings'
 import { piece } from '../ui/chrome'
-import { BlindBadge } from '../render/hud'
+import { BADGE_H, BlindBadge } from '../render/hud'
 import { Motion } from '../render/motion'
 import { artFor } from '../render/art'
 import { blindFace, packInk, packName, shopLabel, tagFace } from '../render/faces'
@@ -714,10 +714,10 @@ export class BlindPart {
       const progress = order.map(kind => kind === state.blind
         ? `**${blindName(kind)}**`
         : blindName(kind)).join('  ·  ')
-      const compact = 160
+      const compact = 168
       this.badge.setInfo(t('ui.run.phase.blindSelect'), t('ui.badge.pick_note'), [progress],
         UI.bar, undefined, chips, compact)
-      const lift = compact - 212
+      const lift = compact - BADGE_H
       this.game.chrome.panelStack.y = lift
       this.game.tray.activeLayer.y = lift
       return
@@ -726,13 +726,15 @@ export class BlindPart {
     const boss = state.blind === BlindKind.Boss
     const bossRow = boss ? this.game.data.tables.bossBlind.findByBossId(state.bossId) : undefined
 
-    // 고르는 중이면 무엇을 하라는 것인지가 여기에도 적힙니다. 보스의 규칙이 있으면 그것이 먼저입니다.
-    // **고르는 판의 안내는 적지 않습니다.** 그 화면에 이미 딱지 셋과 「이 블라인드로 ·
-    // 건너뛴다」가 놓여 있어서 같은 말이 두 번이고, 딱지 안에서는 그 줄이 넷째 줄이라
-    // 수를 한 계단 내려앉혀 판의 주인공을 지웁니다.
+    // 이 블라인드가 무엇을 바꾸는가. **규칙이 없는 판에도 적습니다** — 고르는 화면의 카드
+    // 셋이 이미 「특별한 규칙이 없습니다」를 적고 있고, 같은 자리가 판에서만 비어 있으면
+    // 규칙을 아직 못 읽은 것인지 없는 것인지가 갈리지 않습니다.
+    //
+    // 규칙의 있고 없음으로 위의 줄들이 움직이지 않습니다 — 요구 점수가 한 줄이 되면서
+    // 자리가 어느 판에서나 같아졌습니다.
     const note = bossRow
       ? describe(this.game.data, this.game.data.bossEffects.get(state.bossId) ?? []).join(' · ')
-      : ''
+      : t('ui.note.no_rules')
 
     this.badge.set(
       bossRow
@@ -746,7 +748,10 @@ export class BlindPart {
       // 들고 있는 태그. **딱지 안 아래에 가운데로 놓입니다** — 화면 구석에 따로 두었더니
       // 무엇에 딸린 것인지가 끊겼고, 조커 줄과 덱 사이에 낀 셋째 줄처럼 보였습니다.
       // **위에서 만든 그 칩들입니다.** 다시 만들면 위의 것을 그 자리에서 버립니다.
-      chips)
+      chips,
+      // **갈래는 보스에만 적습니다.** 스몰과 빅은 이름이 곧 갈래라 같은 말이 머리 판에
+      // 두 번 적히고, 보스는 이름이 그 보스의 것이라 갈래가 이름에서 읽히지 않습니다.
+      boss ? tf('ui.blind.named', { name: blindName(BlindKind.Boss) }) : '')
   }
 
   /**

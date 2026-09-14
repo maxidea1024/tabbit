@@ -22,6 +22,7 @@ import { packInk, packInkLit, packName } from '../render/faces'
 import { SIZE, TEXT, UI, WEIGHT } from '../render/theme'
 import { box, CENTER, pointOf, putText, splitX } from '../ui/layout'
 import { Button, Panel } from '../ui/widgets'
+import { GAUGE_H } from '../ui/parts'
 import { RuleBanner, type RuleNote } from '../ui/rule-banner'
 import {
   ACTIVE_GLOW, BLIND_MUSIC_DIM, BLUR_BACK_PX, BLUR_PX, BOARD_X, BUTTON_Y, CHIPS_GAP, CHIPS_H, CHIPS_Y, CONSUMABLE_TRAY, DEALER, DECK_X, DECK_Y, DELTA_LIFE, DELTA_POOL, EMBER, HAND_INFO_Y, HAND_Y, JOKER_TRAY, JOKER_Y, LAND_AT, LEFT, PACK_TITLE_Y, PACK_X, PANEL_ROWS, PANEL_W, PLAY_H, PLAY_W, PLAY_Y, RIGHT_COL, RISER_HOLD, RISER_LIFT, RISER_ON_CARD, RISER_SPAN, SELL_WAIT, TRAY_PAD_X, within, IN_X, IN_W, SCORE_H,
@@ -282,11 +283,15 @@ export class ShowPart {
     // **한 번만 그립니다.** 규칙에 따라 달라지는 것이 없으므로 `refresh` 가 다시 부를
     // 이유가 없습니다.
     this.game.chrome.drawFrames()
+    // **줄도 여기서 한 번 긋습니다.** 겉면을 갈아입는 자리에만 두었더니 옵션에 다녀오기
+    // 전까지는 판에 줄이 하나도 없었고, 그동안 여섯 칸이 한 덩어리로 보였습니다.
+    this.game.chrome.drawGrooves()
 
     this.game.blind.badge.position.set(LEFT, 32)
     this.game.chrome.score.position.set(IN_X, PANEL_ROWS.score)
-    // 게이지는 칸의 아랫변 안쪽입니다.
-    this.game.chrome.scoreBar.position.set(IN_X + 12, PANEL_ROWS.score + SCORE_H - 14)
+    // 게이지는 글 줄 아래입니다. **판의 안쪽 폭을 다 씁니다** — 칸의 아랫변 안쪽에 두던
+    // 동안에는 그 칸의 장식이었고, 판에서 길이로 읽히는 것은 이것 하나입니다.
+    this.game.chrome.scoreBar.position.set(IN_X, PANEL_ROWS.score + SCORE_H - GAUGE_H)
     // **자원 넷은 오르내림이 바탕색에 드러납니다.** 라운드 득점과 칩·배수는 오르기만 하므로
     // 그 색이 아무것도 가르지 않습니다.
     //
@@ -803,7 +808,10 @@ export class ShowPart {
         // **국면이 넘어가는 자리입니다.** 흔들림은 판 전체를 움직이므로, 여기서 큰 값을
         // 쓰면 격파한 것이 아니라 땅이 흔들린 것으로 읽힙니다 — 알릴 것은 이미 터지는
         // 것과 번쩍이는 것과 소리 셋이 하고 있습니다.
-        this.jolt(9, 4.2, 1)
+        // **배경은 요동치지 않습니다.** 국면이 넘어가는 자리이고, 알릴 것은 화면
+        // 번쩍임과 터지는 것과 소리가 이미 하고 있습니다 — 배경의 한 방까지 겹치면
+        // 판을 떠나는 순간에 화면이 통째로 씻깁니다.
+        this.jolt(9, 4.2)
         this.flashScreen(UI.good, 0.46)
         this.stop(280)
         this.chain = 0
@@ -843,7 +851,8 @@ export class ShowPart {
         this.game.audio.play('blind_clear')
         this.flourish('bell', 10, { gap: 0.13, after: 0.18, strength: 0.8 })
         this.particles.bills(BOARD_X, SIZE.height / 2, 54, UI.money, 1.3, 1.1)
-        this.jolt(8, 3.4, 1)
+        // 격파와 같습니다 — 국면이 넘어가는 자리의 배경은 조용합니다.
+        this.jolt(8, 3.4)
         this.flashScreen(UI.money, 0.44)
         this.stop(220)
         break

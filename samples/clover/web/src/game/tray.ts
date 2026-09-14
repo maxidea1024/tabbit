@@ -1095,12 +1095,12 @@ export class TrayPart {
    */
   publishRowSpots(prefix: string,
                           row: { startX: number; spacing: number },
-                          count: number): void {
+                          count: number, y = JOKER_Y): void {
     for (const key of Object.keys(this.game.spots)) {
       if (key.startsWith(`${prefix}:`)) delete this.game.spots[key]
     }
     for (let i = 0; i < count; i++) {
-      this.game.spots[`${prefix}:${i}`] = { x: row.startX + i * row.spacing, y: JOKER_Y }
+      this.game.spots[`${prefix}:${i}`] = { x: row.startX + i * row.spacing, y }
     }
   }
 

@@ -1025,10 +1025,9 @@ export async function pickCards(page: Page, picks: number[]): Promise<void> {
   // **다 깔린 뒤에 누릅니다.** 깔리는 중인 카드는 오는 길에 있으므로 셈한 자리에 없고,
   // 그것을 누르면 카드 사이의 빈 곳을 누르는 것이 됩니다.
   await swept(page)
-  const held = (await peek(page)).hand.length
-  // **맞혔는지 봅니다.** 패는 부챗살로 펴지고 그 셈이 여기 적혀 있으므로, 손패의 배치를
-  // 고친 날에 이 도구들은 카드 사이의 빈 곳을 눌러 놓고 「고른 것 0장」 으로 갑니다.
-  await mustHit(page, '손패', () => clickCards(page, picks, held))
+  // **맞혔는지 봅니다.** 화면이 알린 자리는 늘 카드가 있는 자리이지만, 그 카드가 다른
+  // 것에 덮여 있으면 누름이 그쪽으로 갑니다.
+  await mustHit(page, '손패', () => clickCards(page, picks))
 }
 
 export async function pressPlay(page: Page): Promise<void> {
@@ -1039,22 +1038,24 @@ export async function pressPlay(page: Page): Promise<void> {
 }
 
 /** 부채꼴로 편 패에서 몇 장을 누릅니다. */
-export async function clickCards(page: Page, picks: number[], held: number): Promise<void> {
-  const spacing = Math.min(CARD_SPACING, 720 / Math.max(1, held))
-  const startX = BOARD_X - ((held - 1) * spacing) / 2
-
+/**
+ * 손패의 몇 번째 카드들을 누릅니다.
+ *
+ * **자리는 화면이 알립니다.** 간격과 시작 자리를 여기서 다시 세고 있었고, 손패가 겹치도록
+ * 고친 날에 이 도구는 카드 사이의 빈 곳을 눌러 놓고 「고른 것 0장」 으로 지나갔습니다 —
+ * 부챗살로 폈던 시절의 `offset * offset * 1.1` 도 그 셈에 남아 있었습니다.
+ */
+export async function clickCards(page: Page, picks: number[]): Promise<void> {
   for (const i of picks) {
-    const offset = i - (held - 1) / 2
-    const spot = await at(page, startX + i * spacing, HAND_Y + offset * offset * 1.1)
-    await page.mouse.click(spot.x, spot.y)
+    const where = await spot(page, `hand:${i}`)
+    await page.mouse.click(where.x, where.y)
     await pass(page, 80)
   }
 }
 
 /** 고른 것을 버립니다. */
 export async function discardHand(page: Page, picks: number[]): Promise<void> {
-  const held = (await peek(page)).hand.length
-  await clickCards(page, picks, held)
+  await clickCards(page, picks)
   const discard = await at(page, DISCARD_BUTTON.x, DISCARD_BUTTON.y)
   await page.mouse.click(discard.x, discard.y)
 }

@@ -17,6 +17,18 @@ import { roundedMask } from '../shader/mask'
 import { tornSprite, tornTexture } from '../ui/chrome'
 import { PickFilter } from '../shader/pick'
 import { ERODE_SWEEP, ErodeFilter } from '../shader/erode'
+
+/**
+ * 그림자가 카드 밖으로 번지는 폭.
+ *
+ * **네 변을 다 두르는 값입니다.** 카드를 가르는 것이 이것 하나이므로 어느 변에서도
+ * 없어서는 안 되고, 3픽셀이면 겹친 손패에서 위 카드의 윤곽이 읽히면서도 카드 사이에
+ * 어두운 띠가 보이지는 않습니다.
+ */
+const HALO = 3
+
+/** 그림자가 아래로 더 내려앉는 만큼. **빛은 위에서 옵니다.** */
+const DROP = 4
 import { BlightFilter } from '../shader/blight'
 import {
   cardFaceTexture, clearCardFace, drawCardFaceVector, faceInk,
@@ -234,14 +246,20 @@ export class CardView extends Container {
     this.faceSprite.setSize(SIZE.cardWidth, SIZE.cardHeight)
     // **그림자는 한 번만 그립니다.** 카드가 무엇이든 같은 꼴이고, 바뀌는 것은 이 통의
     // 자리와 알파뿐입니다. **뜯긴 변을 따라갑니다** — 마스크 그림을 어둡게 물들인 것입니다.
-    const shade = tornSprite(card.uid, SIZE.cardWidth, SIZE.cardHeight)
+    //
+    // **네 변을 다 두릅니다.** 오른쪽 아래로만 물려 두었더니 손패가 겹쳤을 때 위 카드의
+    // 왼쪽 변에는 그림자가 없어서, 두 장의 크림색이 그 자리에서 이어졌습니다 — 카드를
+    // 가르는 일을 하던 어두운 테두리를 걷었으므로 이제 이것이 그 일을 합니다. 아래가
+    // 더 깊은 것은 빛이 위에서 오기 때문입니다.
+    const shade = tornSprite(card.uid, SIZE.cardWidth + HALO * 2, SIZE.cardHeight + HALO * 2)
     if (shade !== undefined) {
       shade.tint = PAINT.veil
       shade.alpha = 0.35
-      shade.position.set(3, 6)
+      shade.position.set(-HALO, -HALO + DROP)
       this.shadow.addChild(shade)
     } else {
-      this.shadow.rect(3, 6, SIZE.cardWidth, SIZE.cardHeight)
+      this.shadow.rect(-HALO, -HALO + DROP,
+                       SIZE.cardWidth + HALO * 2, SIZE.cardHeight + HALO * 2)
         .fill({ color: PAINT.veil, alpha: 0.35 })
     }
     // **얼굴은 뜯긴 가장자리로 오려 냅니다.** 가위로 자른 네모는 멋이 없고 둥근 모서리는

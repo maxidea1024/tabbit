@@ -187,6 +187,20 @@ export class Button extends Container {
   private fading?: { text: Text; left: number; alpha: number }
   /** 새 글이 드는 정도. 0 이면 아래에서 시작하고 1 이면 제자리입니다. */
   private rising = 1
+
+  /**
+   * 아직 한 프레임도 화면에 나오지 않았는가.
+   *
+   * **처음 나오는 단추는 건너가지 않습니다.** 상태가 바뀌는 것을 0.16초에 건너가게 한 것은
+   * 「방금 무엇이 달라졌다」를 알리기 위한 것인데, 화면에 처음 놓이는 단추에는 달라진 앞
+   * 상태가 없습니다 — 그런데도 건너가므로, 판이 뜰 때마다 단추들이 지어진 색에서 제 색으로
+   * 한 번씩 미끄러졌습니다.
+   *
+   * **무대에 붙었는가로는 가릴 수 없습니다.** 붙이는 것과 상태를 정하는 것은 거의 언제나
+   * 이 차례이고(`buildPanel` 다음에 `refresh`), 그때 이미 붙어 있으므로 첫 상태가 늘
+   * 건너가는 쪽으로 갑니다 — 한 프레임이라도 그려졌는가가 가르는 것입니다.
+   */
+  private fresh = true
   /** 이 단추가 서 있는 높이의 칸. 계단 넷 안에서만 고릅니다. */
   private readonly rung: RungName
   private readonly caption = new Text({
@@ -252,7 +266,9 @@ export class Button extends Container {
     // 않고, 그러면 그 단추만 눌린 색으로 남습니다.
     this.on('pointerup', () => this.release())
     this.on('pointerupoutside', () => this.release())
-    this.on('added', () => { LIVE.add(this); TICKING.add(this) })
+    // **다시 붙는 단추도 처음입니다.** 판을 닫았다 여는 것은 그 단추가 다시 나오는 것이고,
+    // 닫히기 전의 상태에서 건너올 이유가 없습니다.
+    this.on('added', () => { LIVE.add(this); TICKING.add(this); this.fresh = true })
     this.on('removed', () => { LIVE.delete(this); TICKING.delete(this) })
     this.draw()
   }
@@ -306,6 +322,32 @@ export class Button extends Container {
       this.caption.y = this.captionY(this.pushed) + (1 - this.rising) * 10
     }
     this.caption.alpha = this.rising * this.captionAlphaNow
+    // **한 걸음을 옮겼으면 이제 화면에 나온 것입니다.** 다음 상태부터 건너갑니다.
+    this.fresh = false
+  }
+
+  /**
+   * 지금 정해 둔 상태를 그 자리에서 입습니다. **건너가지 않습니다.**
+   *
+   * 판을 세우고 그 안의 단추들을 정한 뒤에 부릅니다 — 세우는 것과 정하는 것이 프레임을
+   * 건너면 첫 상태가 건너가는 쪽으로 가고, 판이 뜨는 동안 단추가 한 번씩 미끄러집니다.
+   */
+  snap(): void {
+    this.fresh = true
+    if (this.tintWant !== undefined) {
+      this.tintLeft = 0
+      this.tintNow = this.tintWant
+      this.tintFrom = this.tintWant
+      if (this.skin !== undefined) (this.skin as { tint: number }).tint = this.tintNow
+    }
+    this.captionAlphaLeft = 0
+    this.captionAlphaNow = this.captionAlphaWant
+    this.captionAlphaFrom = this.captionAlphaWant
+    this.fading?.text.destroy()
+    this.fading = undefined
+    this.rising = 1
+    this.caption.y = this.captionY(this.pushed)
+    this.caption.alpha = this.captionAlphaNow
   }
 
   /** 이 칸의 글자 크기. 글이 길어 줄였다가 되돌릴 때 씁니다. */
@@ -326,7 +368,7 @@ export class Button extends Container {
     // 굽고, 조커 풀은 쪽을 넘길 때마다 단추 7개에 같은 글을 다시 적습니다.
     if (value === this.captionShown) return
     // **옛 글이 올라가며 옅어지고 새 글이 아래에서 듭니다.** 처음 적는 글은 그냥 놓입니다.
-    if (this.captionShown !== undefined && this.caption.text !== '') {
+    if (this.captionShown !== undefined && this.caption.text !== '' && !this.fresh) {
       this.fading?.text.destroy()
       const old = new Text({ text: this.caption.text, style: this.caption.style.clone() })
       old.anchor.set(0.5)
@@ -399,7 +441,7 @@ export class Button extends Container {
     this.alpha = 1
     this.captionAlphaFrom = this.captionAlphaNow
     this.captionAlphaWant = value ? 1 : 0.5
-    this.captionAlphaLeft = TICKING.has(this) ? CROSS : 0
+    this.captionAlphaLeft = this.fresh ? 0 : CROSS
     if (this.captionAlphaLeft === 0) {
       this.captionAlphaNow = this.captionAlphaWant
       this.caption.alpha = this.rising * this.captionAlphaNow
@@ -511,7 +553,7 @@ export class Button extends Container {
     if (this.tintWant !== tintWant) {
       this.tintFrom = this.tintNow ?? tintWant
       this.tintWant = tintWant
-      this.tintLeft = this.tintNow === undefined || !TICKING.has(this) ? 0 : CROSS
+      this.tintLeft = this.tintNow === undefined || this.fresh ? 0 : CROSS
       if (this.tintLeft === 0) this.tintNow = tintWant
     }
     // **그림은 한 번 만들고 고쳐 씁니다.** 상태마다 새로 만들면 새 그림의 자리가 다음

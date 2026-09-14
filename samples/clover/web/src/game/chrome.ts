@@ -1,7 +1,7 @@
 import { Container, Graphics, Text } from 'pixi.js'
 import { t } from '../core/strings'
 import { outlined } from '../ui/font'
-import { piece } from '../ui/chrome'
+import { glowEdge, piece } from '../ui/chrome'
 import { ScoreWave } from '../shader/wave'
 import { Slot } from '../render/hud'
 import { Spring } from '../render/motion'
@@ -11,9 +11,10 @@ import { type Box } from '../ui/layout'
 import { ProgressBar } from '../ui/parts'
 import { Button, Panel } from '../ui/widgets'
 import {
-  BOARD_X, BUTTON_Y, CELL_SLOT_H, CELL_SLOT_W, CHIPS_GAP, CHIPS_H, CHIPS_R, CONSUMABLE_TRAY,
-  COUNT_PULSE, HAND_HINT_SELECTED_RISE, HAND_INFO_Y, IN_W, JOKER_TRAY, PLAY_H, PLAY_Y,
-  SCORE_H, SORT_H, SORT_HIDE,
+  BOARD_X, BUTTON_Y, CELL_RULE_INSET, CELL_SLOT_H, CELL_SLOT_W, CHIPS_GAP, CHIPS_H, CHIPS_R,
+  CONSUMABLE_TRAY, COUNT_PULSE, HAND_HINT_SELECTED_RISE, HAND_INFO_Y, IN_W, IN_X, JOKER_TRAY,
+  PANEL_GROOVES, PANEL_ROWS, PLAY_H, PLAY_Y, RIGHT_COL, SCORE_ROW_H, SORT_H,
+  SORT_HIDE,
 } from './metrics'
 import { boxInk } from './helpers'
 import { type Game } from './game'
@@ -42,7 +43,7 @@ export class ChromePart {
    *
    * 자리가 상수이므로 **한 번 그리고 그대로 둡니다.**
    */
-  readonly panelGrooves = new Graphics()
+  readonly panelGrooves = new Container()
 
   /**
    * 왼쪽 판의 판때기.
@@ -52,14 +53,24 @@ export class ChromePart {
    */
   panelPlate?: Panel
 
-  // 라운드 총점은 자원 네 값보다 한 계단 큽니다. 같은 24픽셀이면 가장 자주 확인하는
-  // 결과가 핸드 수와 같은 위계가 되어, 패널이 값 일곱 개를 나열한 디버그 표처럼 보입니다.
-  readonly score = new Slot(t('ui.slot.round_score'), IN_W, SCORE_H, UI.ink, 36)
+  /**
+   * 라운드 점수.
+   *
+   * **판에서 가장 큰 수입니다.** 요구 점수는 판이 시작할 때 한 번 확인하는 값이고 이것은
+   * 매 수마다 확인하는 값이므로, 계단의 위쪽을 자주 보는 쪽이 가집니다.
+   *
+   * **자기 칸을 그리지 않습니다**(`bare`). 눌린 칸에 담아 두었더니 그 아래의 게이지가
+   * 칸의 아랫변 안쪽으로 들어가 칸의 장식으로 읽혔습니다.
+   */
+  readonly score = new Slot(t('ui.slot.round_score'), IN_W, SCORE_ROW_H, UI.ink, 48, 1, true)
   /**
    * 라운드 점수 아래의 게이지. **눈금의 끝은 요구 점수가 아닙니다** — 넘긴 만큼이 금색으로
    * 보입니다.
+   *
+   * **판의 안쪽 폭을 다 씁니다.** 판에서 길이로 읽히는 것이 이것 하나이고, 좁혀 두면
+   * 그만큼 어디에 딸린 막대인지가 흐려집니다.
    */
-  readonly scoreBar = new ProgressBar(IN_W - 24)
+  readonly scoreBar = new ProgressBar(IN_W)
 
   // **이 둘이 화면에서 가장 큰 두 숫자입니다.** 점수는 이 둘의 곱이고, 나머지 칸들은
   // 그것을 설명하는 것들입니다 — 크기가 그 서열을 그대로 보여야 합니다.
@@ -127,10 +138,10 @@ export class ChromePart {
    * 것이 그 물결이므로, 제 색이 있어야 물결이 보입니다.
    */
   readonly chips =
-    new Slot('', (IN_W - CHIPS_GAP) / 2, CHIPS_H, UI.chips, 36, 1, true, true)
+    new Slot('', (IN_W - CHIPS_GAP) / 2, CHIPS_H, UI.chips, 48, 1, true, true)
 
   readonly mult =
-    new Slot('', (IN_W - CHIPS_GAP) / 2, CHIPS_H, UI.mult, 36, 0, true, true)
+    new Slot('', (IN_W - CHIPS_GAP) / 2, CHIPS_H, UI.mult, 48, 0, true, true)
 
   /**
    * 왼쪽 판의 칸들이 마지막으로 보여 준 수.
@@ -144,6 +155,9 @@ export class ChromePart {
   panelShown: { hands: number; discards: number; ante: number; phase: string } =
     { hands: -1, discards: -1, ante: -1, phase: '' }
 
+  // **값은 24입니다.** 36으로 올려 보았고, 네 값이 라운드 점수와 한 계단 차이가 되어
+  // 판에서 가장 큰 수가 어느 것인지가 흐려졌습니다 — 이 넷은 판이 도는 동안 가끔 보는
+  // 값이고, 라벨과 갈리는 것은 크기 한 계단과 색으로 족합니다.
   readonly hands = new Slot(t('ui.slot.hands'), CELL_SLOT_W, CELL_SLOT_H, UI.good, 24, 1, true)
 
   readonly discards = new Slot(t('ui.slot.discards'), CELL_SLOT_W, CELL_SLOT_H,
@@ -257,6 +271,43 @@ export class ChromePart {
    * 있는 갈래가 정산 뒤에도 오는 것이 이 자리였습니다.
    */
   scoreSettled = false
+
+  /**
+   * 판을 가르는 줄 전부 — 무리 사이 셋과 2×2 칸을 가르는 둘.
+   *
+   * **한 곳에서 그립니다.** 무리 사이의 줄만 그리던 자리와 칸의 줄은 같은 층에 놓이고
+   * 같은 색이므로, 갈라 두면 겉면을 갈아입을 때 한쪽만 남습니다.
+   */
+  drawGrooves(): void {
+    const g = this.panelGrooves
+    g.removeChildren().forEach(child => child.destroy())
+
+    // 고정 구획선은 구워 둔 얇은 빛 조각을 씁니다. 점선은 설계 가이드처럼 보였고,
+    // 패널 외피와 다른 재질이었습니다. 왼쪽에서 시작해 잦아드는 한 줄이면 구획은
+    // 갈리되 프레임이 하나 더 생기지 않습니다.
+    const line = (x: number, y: number, width: number, alpha = 0.34,
+                  rotation = 0): void => {
+      const one = glowEdge(width, UI.hairline)
+      if (one === undefined) return
+      one.position.set(x, y)
+      one.rotation = rotation
+      one.alpha = alpha
+      g.addChild(one)
+    }
+    for (const at of PANEL_GROOVES) line(IN_X, at, IN_W)
+
+    // **2×2 를 가르는 줄 둘.** 바깥 무리선보다 옅게 두어 네 개의 독립 상자가 아니라
+    // 한 표의 행과 열로 읽히게 합니다.
+    const top = PANEL_ROWS.hands
+    const bottom = PANEL_ROWS.money + CELL_SLOT_H
+    const middle = PANEL_ROWS.money
+    line(RIGHT_COL, top + CELL_RULE_INSET,
+      bottom - top - CELL_RULE_INSET * 2, 0.24, Math.PI / 2)
+    line(IN_X + CELL_RULE_INSET, middle,
+      CELL_SLOT_W - CELL_RULE_INSET * 2, 0.24)
+    line(RIGHT_COL + CELL_RULE_INSET, middle,
+      CELL_SLOT_W - CELL_RULE_INSET * 2, 0.24)
+  }
 
   /**
    * 칩과 배수의 상자.

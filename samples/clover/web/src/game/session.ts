@@ -14,7 +14,7 @@ import { ladder } from '../feedback/audio'
 import { type JokerLook, JokerView } from '../render/joker-view'
 import { fraction } from '../render/motion'
 import { setCardSet, setLookOf } from '../render/card-set'
-import { groove, plateTint } from '../render/skin'
+import { plateTint } from '../render/skin'
 import { popupCenter, setUiTheme, SIZE, TEXT, UI, WEIGHT } from '../render/theme'
 import { Button, restyleButtons } from '../ui/widgets'
 import { type ChallengeProgress, loadProgress, saveProgress } from '../ui/challenge'
@@ -37,7 +37,7 @@ import {
 } from '../ui/options'
 import { sceneArt } from '../ui/scene-art'
 import { Toasts } from '../ui/toast'
-import { LEFT, PANEL_GROOVES, PANEL_W, POPUP_X, RANK_TICK, SAVE_GAP, SORT_HIDE } from './metrics'
+import { PANEL_W, POPUP_X, RANK_TICK, SAVE_GAP, SORT_HIDE } from './metrics'
 import { blindName } from './tables'
 import { guestBoot, RANK_MARK } from './helpers'
 import { type Game } from './game'
@@ -260,10 +260,9 @@ export class SessionPart {
     restyleButtons()
     this.title.restyle()
     this.login.relabel()
-    this.game.chrome.panelPlate?.resize(PANEL_W + 24, SIZE.height - 44)
+    this.game.chrome.panelPlate?.resize(PANEL_W, SIZE.height - 44)
     this.game.chrome.drawFrames()
-    this.game.chrome.panelGrooves.clear()
-    for (const at of PANEL_GROOVES) groove(this.game.chrome.panelGrooves, LEFT, at, PANEL_W)
+    this.game.chrome.drawGrooves()
     for (const slot of this.game.chrome.panelSlots) slot.restyle()
     // **칩 × 배수의 바탕도 겉면을 따릅니다.** 파랑·붉음 단색이던 동안은 겉면과 무관해서
     // 여기서 다시 그릴 것이 없었고, 판의 칸 색을 쓰기 시작하면 이 둘만 앞 겉면으로 남습니다.
@@ -1449,7 +1448,9 @@ export class SessionPart {
     this.game.audio.play(won ? 'run_win' : 'run_lose')
     this.game.audio.music.duck(0.6, 1.6)
     this.game.show.haptics.play(won ? 'win' : 'lose')
-    this.game.show.jolt(won ? 8 : 6, won ? 3.4 : 2.6, 1)
+    // **배경은 요동치지 않습니다.** 판이 끝나 화면이 갈리는 자리이고, 럼블과 번쩍임과
+    // 소리가 이미 그 무게를 냅니다.
+    this.game.show.jolt(won ? 8 : 6, won ? 3.4 : 2.6)
     this.game.show.flashScreen(won ? UI.money : UI.bad, won ? 0.5 : 0.34)
     if (won) this.game.show.particles.bills(POPUP_X, SIZE.height / 2, 44, UI.money, 1.3, 1.1)
   }
@@ -1512,7 +1513,7 @@ export class SessionPart {
     // 아닙니다.
     if (line.moved !== undefined && line.moved > 0) {
       this.game.audio.play('blind_clear')
-      this.game.show.jolt(4, 2.2, 1)
+      this.game.show.jolt(4, 2.2)
       if (line.moved >= 25) {
         this.game.show.particles.bills(POPUP_X, SIZE.height / 2, 22, UI.money, 1.1, 1)
       }

@@ -22,8 +22,26 @@ const CAPTION_H = 22
 
 /** 딱지의 머리 판 높이. 이름(24)이 앉는 띠입니다. */
 const HEAD_H = 48
-/** 딱지의 높이. 머리 판과 요구 점수 자리입니다 — 자라지 않습니다. */
-const BADGE_H = 212
+/** 딱지의 몸통이 판 안에서 물러앉는 만큼. 머리 판도 여기서 시작합니다. */
+const BADGE_PAD = 6
+/** 머리 판의 가운데. 이름·문양·갈래 라벨이 이 줄에 앉습니다. */
+const HEAD_MID = BADGE_PAD + HEAD_H / 2
+/** 머리 판 아래의 첫 줄이 시작하는 자리. */
+const BODY_TOP = BADGE_PAD + HEAD_H
+/** 딱지 안쪽의 좌우 여백. 라벨은 왼쪽 끝, 값은 오른쪽 끝에서 이만큼 들어옵니다. */
+const BADGE_ROW_PAD = 26
+/** 머리 판에 붙는 태그 칩의 크기와 간격. */
+const TAG_CHIP = 26
+const TAG_GAP = 4
+const TAG_EDGE = 10
+/**
+ * 딱지의 높이. 머리 판과 라벨·값 두 줄과 규칙 두 줄입니다 — 자라지 않습니다.
+ *
+ * **요구 점수를 한 줄로 내리면서 20픽셀 낮아졌습니다.** 값 하나가 계단의 맨 위(72)를
+ * 쓰던 동안에는 그 수 하나가 딱지의 절반이었고, 그 아래의 격파 보상과 규칙이 남은 자리에
+ * 끼어 있었습니다.
+ */
+export const BADGE_H = 204
 /**
  * 한 줄 칸의 좌우 여백. 이름은 왼쪽 끝, 값은 오른쪽 끝에서 이만큼 들어옵니다.
  */
@@ -898,11 +916,21 @@ export class BlindBadge extends Container {
   })
   private readonly need = new Text({
     text: '',
-    // **그 화면의 주인공 하나입니다** — 계단의 맨 위 칸(72)입니다. 규칙 한 줄이 함께
-    // 놓이는 판(보스)에서는 한 계단 내려갑니다(`fitNeed`) — 72로 두면 그 줄이 딱지
-    // 밖으로 밀려 판의 변을 넘어갑니다.
-    style: { fontSize: STEP[4], fill: UI.bad, fontWeight: WEIGHT.bold, fontFamily: NUMERALS },
+    // **라벨과 값 한 줄입니다.** 계단의 맨 위(72)를 쓰던 동안 이 수 하나가 딱지의 절반을
+    // 차지했고, 그 아래의 격파 보상과 규칙이 남은 자리에 끼어 있었습니다 — 판이 시작할
+    // 때 한 번 확인하는 값이므로, 매 수마다 확인하는 라운드 점수에 계단의 위쪽을 넘깁니다.
+    style: { fontSize: STEP[2], fill: UI.bad, fontWeight: WEIGHT.bold, fontFamily: NUMERALS },
   })
+  /**
+   * 머리 판 오른쪽 끝의 갈래.
+   *
+   * **보스에만 붙습니다.** 스몰과 빅은 이름이 곧 갈래라 같은 말이 한 줄에 두 번 적히고,
+   * 보스는 이름이 그 보스의 것이라 갈래가 이름에서 읽히지 않습니다.
+   */
+  private readonly kind = new Text({
+    text: '', style: { fontSize: TEXT.micro, fill: UI.ink, fontWeight: WEIGHT.normal },
+  })
+
   /** 요구 점수라는 것을 적는 작은 글. */
   private readonly caption = new Text({
     text: '',
@@ -948,19 +976,20 @@ export class BlindBadge extends Container {
    * 높이는 마지막 줄의 글자 높이까지라 그것으로 재면 줄마다 조금씩 어긋납니다.
    */
   private fill(into: Container, lines: readonly string[], style: RichStyle,
-               lineHeight: number, top: number): number {
+               lineHeight: number, top: number, align: 'center' | 'left' = 'center'): number {
     into.removeChildren().forEach(child => child.destroy({ children: true }))
     if (lines.length === 0 || lines.every(one => one === '')) return 0
-    const block = richBlock(lines, style, lineHeight, this.boxWidth - 10, 'center')
+    const left = align === 'left' ? BADGE_ROW_PAD : 5
+    const block = richBlock(lines, style, lineHeight, this.boxWidth - left * 2, align)
     into.addChild(block)
-    into.position.set(5, top)
+    into.position.set(left, top)
     return rowsOf(block)
   }
 
   constructor(private readonly boxWidth: number) {
     super()
-    this.body.addChild(this.title, this.caption, this.need, this.rewardLabel, this.rewardValue,
-      this.note, this.lead, this.info)
+    this.body.addChild(this.title, this.kind, this.caption, this.need, this.rewardLabel,
+      this.rewardValue, this.note, this.lead, this.info)
     this.addChild(this.plate, this.body)
   }
 
@@ -1009,29 +1038,81 @@ export class BlindBadge extends Container {
   private dressPlate(height: number, mark = UI.mark): void {
     this.skin?.destroy()
     this.band?.destroy()
+    this.band = undefined
     // 바깥 HUD가 이미 화면의 외곽을 정합니다. 이 안에 다시 문장·점수·보상 모양을 따라
     // 장식 테를 두르면 정보보다 프레임이 먼저 보입니다 — 한 장의 조용한 반투명 면만
     // 깔고, 구획은 글의 크기와 여백으로 가릅니다.
-    this.skin = piece('tray', this.boxWidth - 24, height - 12, wellTint(UI.cell))
+    this.skin = piece('tray', this.boxWidth - 24, height - BADGE_PAD * 2, wellTint(UI.cell))
     if (this.skin === undefined) {
-      plate(this.plate, this.boxWidth - 24, height - 12, {
+      plate(this.plate, this.boxWidth - 24, height - BADGE_PAD * 2, {
         top: UI.cell, bottom: UI.cell, border: UI.cell, radius: 0, weight: 0,
       })
-      this.plate.position.set(12, 6)
+      this.plate.position.set(12, BADGE_PAD)
+      this.title.style.fill = mix(mark, UI.ink, 0.35)
       return
     }
     this.plate.position.set(0, 0)
-    this.skin.position.set(12, 6)
+    this.skin.position.set(12, BADGE_PAD)
     this.skin.alpha = 0.42
     const home = this.plate.parent ?? this
     home.addChildAt(this.skin, 0)
-    this.title.style.fill = mix(mark, UI.ink, 0.35)
+    // **머리 판은 채워집니다.** 색을 글자에만 두었더니 이름 한 줄이 판 안에 떠 있었고,
+    // 무엇의 머리인지를 아래의 빈자리 넓이로만 가리고 있었습니다 — 색은 면과 글자에
+    // 들어야 게임 화면이 됩니다.
+    this.band = piece('head', this.boxWidth - 24, HEAD_H, mix(mark, UI.panel, 0.62))
+    if (this.band !== undefined) {
+      this.band.position.set(12, BADGE_PAD)
+      home.addChildAt(this.band, home.getChildIndex(this.skin) + 1)
+    }
+    // **채워진 머리 판 위에서는 이름이 흰 글입니다.** 판이 이미 갈래의 색이므로 글자까지
+    // 그 색이면 글이 면에 잠깁니다.
+    this.title.style.fill = this.band === undefined ? mix(mark, UI.ink, 0.35) : UI.ink
   }
 
   /** 이름·점수·보상 구획이 한 장에 이어진 전용 몸통. */
   private skin?: Container
   /** 이전 머리 판을 안전하게 걷기 위한 자리. 전용 몸통에서는 따로 만들지 않습니다. */
   private band?: Container
+
+  /** 태그가 차지한 오른쪽 폭. 이름·갈래가 이 영역을 침범하지 않게 합니다. */
+  private static tagWidth(count: number): number {
+    return count > 0 ? count * TAG_CHIP + (count - 1) * TAG_GAP : 0
+  }
+
+  /**
+   * 머리 판 한 줄을 문양 | 이름 | 갈래 | 태그 순으로 정돈합니다.
+   *
+   * 태그는 획득 연출의 도착점이어서 없앨 수 없습니다. 대신 태그가 있을 때만 이름이 쓸 수
+   * 있는 구간을 줄여, 보스 갈래와 태그가 같은 오른쪽 자리를 서로 덮지 않게 합니다.
+   */
+  private layoutHeader(name: string, kind: string, tagCount: number): void {
+    const tagWidth = BlindBadge.tagWidth(tagCount)
+    const tagLeft = this.boxWidth - TAG_EDGE - tagWidth
+
+    this.kind.text = kind
+    this.kind.anchor.set(1, 0.5)
+    this.kind.scale.set(1)
+    this.kind.position.set(
+      tagCount > 0 ? tagLeft - TAG_GAP * 2 : this.boxWidth - BADGE_ROW_PAD,
+      HEAD_MID,
+    )
+    this.kind.style.fill = kind === '' ? UI.ink : mix(UI.ink, UI.panel, 0.3)
+
+    this.title.text = name
+    this.title.anchor.set(0.5, 0.5)
+    this.title.scale.set(1)
+
+    const left = 40
+    const right = kind !== ''
+      ? this.kind.x - this.kind.width - 10
+      : tagCount > 0 ? tagLeft - 10 : this.boxWidth - 40
+    const room = Math.max(44, right - left)
+    if (this.title.width > room) this.title.scale.set(room / this.title.width)
+
+    // 태그가 없을 때는 기존처럼 판 한가운데에 둡니다. 태그가 붙은 동안에만 실제 남은
+    // 구간의 가운데로 물러나며, 그 덕분에 이름·갈래·태그가 각각 독립된 덩어리로 읽힙니다.
+    this.title.position.set(tagCount > 0 ? left + room / 2 : this.boxWidth / 2, HEAD_MID)
+  }
 
   setInfo(name: string, lead: string, lines: string[], mark: number, seal?: Container,
           tags: Container[] = [], height = BADGE_H): void {
@@ -1045,16 +1126,11 @@ export class BlindBadge extends Container {
     this.seal = undefined
     if (seal) {
       this.seal = seal
-      seal.position.set(20, HEAD_H / 2)
+      seal.position.set(20, HEAD_MID)
       this.body.addChild(seal)
     }
 
-    this.title.text = name
-    this.title.anchor.set(0.5, 0.5)
-    this.title.scale.set(1)
-    const room = this.boxWidth - 40 * 2
-    if (this.title.width > room) this.title.scale.set(room / this.title.width)
-    this.title.position.set(this.boxWidth / 2, HEAD_H / 2)
+    this.layoutHeader(name, '', tags.length)
 
     // 요구 점수 쪽은 비웁니다. 자리는 그대로이고 글만 없습니다.
     this.caption.text = ''
@@ -1063,10 +1139,10 @@ export class BlindBadge extends Container {
     this.rewardValue.text = ''
     this.fill(this.note, [], BlindBadge.infoRich(), richLeading('note'), 0)
 
-    const rows = this.fill(this.lead, [lead], BlindBadge.leadRich(), richLeading('body'), HEAD_H + 24)
+    const rows = this.fill(this.lead, [lead], BlindBadge.leadRich(), richLeading('body'), BODY_TOP + 14)
     // 굵은 줄 바로 아래입니다. 굵은 줄이 두 줄이면 그만큼 내려섭니다.
     this.fill(this.info, lines, BlindBadge.infoRich(), richLeading('note'),
-              HEAD_H + 24 + rows * richLeading('body') + 10)
+              BODY_TOP + 14 + rows * richLeading('body') + 10)
 
     this.setTags(tags)
   }
@@ -1080,7 +1156,8 @@ export class BlindBadge extends Container {
   boxHeight = BADGE_H
 
   set(name: string, target: number, reward: number, note: string,
-      boss: boolean, big = false, seal?: Container, tags: Container[] = []): void {
+      boss: boolean, big = false, seal?: Container, tags: Container[] = [],
+      kind = ''): void {
     this.settle(`blind|${name}|${target}|${reward}|${note}`)
     this.fill(this.lead, [], BlindBadge.leadRich(), richLeading('body'), 0)
     this.fill(this.info, [], BlindBadge.infoRich(), richLeading('note'), 0)
@@ -1114,18 +1191,13 @@ export class BlindBadge extends Container {
     // 그러면 보스일 때만 이름이 다른 자리에 있습니다 — 띠에 얹히는 것들은 이름의 옆에
     // 서는 것이 아니라 띠의 양 끝에 서는 것이고, 이름은 그것과 무관하게 띠의 가운데입니다.
     // 고르기 판의 칸 셋도 같은 규칙입니다.
-    this.title.text = name
-    this.title.anchor.set(0.5, 0.5)
-    this.title.scale.set(1)
-    // **문양과 태그를 밀지 않습니다.** 긴 이름은 그 사이에 들어가는 만큼 줄입니다 — 말에
-    // 따라 이름의 길이가 배로 달라집니다.
-    const room = this.boxWidth - 40 * 2
-    if (this.title.width > room) this.title.scale.set(room / this.title.width)
-    this.title.position.set(this.boxWidth / 2, HEAD_H / 2)
+    // **갈래는 머리 판의 오른쪽 끝입니다.** 이름과 한 줄로 세우면 긴 보스 이름에서 둘이
+    // 붙고, 이름은 갈래와 무관하게 띠의 가운데입니다.
+    this.layoutHeader(name, kind, tags.length)
 
     if (seal) {
       this.seal = seal
-      seal.position.set(20, HEAD_H / 2)
+      seal.position.set(20, HEAD_MID)
       this.body.addChild(seal)
     }
 
@@ -1135,45 +1207,43 @@ export class BlindBadge extends Container {
   }
 
   /**
-   * 이름 밑의 세 줄 — 무엇의 수인가 · 그 수 · 격파 보상. 규칙 한 줄이 있으면 그 밑입니다.
+   * 머리 판 밑의 줄들 — 요구 점수 · 격파 보상, 그리고 규칙이 있으면 그 밑입니다.
    *
-   * **줄의 자리가 규칙 한 줄의 있고 없음으로 갈립니다.** 딱지의 높이는 어느 판에서나
-   * 같으므로(`BADGE_H`), 넷째 줄이 들어오는 판에서는 위의 셋이 함께 올라가고 수가 한
-   * 계단 내려갑니다 — 자리를 고정해 두었더니 보스의 규칙과 고르는 판의 안내가 딱지
-   * 밖으로 밀려 판의 변을 넘었습니다.
+   * **셋 다 라벨 왼쪽, 값 오른쪽 한 줄입니다.** 요구 점수만 라벨을 위에 얹고 값을 아래에
+   * 크게 두었고, 그러면 판의 맨 위 한 자리만 다른 문법이었습니다 — 줄의 자리가 규칙의
+   * 있고 없음으로 갈리던 것도 그 배치의 산물입니다. 지금은 어느 판에서나 같은 자리입니다.
    */
   private layoutValue(caption: string, value: string, reward: number, note: string): void {
-    const dense = note !== ''
+    const right = this.boxWidth - BADGE_ROW_PAD
     this.caption.text = caption
-    this.caption.anchor.set(0.5, 0)
-    this.caption.position.set(this.boxWidth / 2, HEAD_H + 22)
+    this.caption.anchor.set(0, 0.5)
+    this.caption.position.set(BADGE_ROW_PAD, BODY_TOP + 24)
 
-    this.need.style.fontSize = dense ? STEP[3] : STEP[4]
+    this.need.style.fontSize = STEP[2]
     this.need.text = value
-    this.need.anchor.set(0.5, 0)
-    this.need.position.set(this.boxWidth / 2, HEAD_H + (dense ? 36 : 40))
+    this.need.anchor.set(1, 0.5)
+    this.need.position.set(right, BODY_TOP + 24)
 
-    // **한 줄을 마지막 빈칸에서 가릅니다.** 앞은 이름이고 뒤는 값입니다 — 값만 크고 금색입니다.
+    // **한 줄을 마지막 빈칸에서 가릅니다.** 앞은 이름이고 뒤는 값입니다 — 값만 금색입니다.
     const rewardText = tf('ui.blind.reward', { n: reward })
     const cut = rewardText.lastIndexOf(' ')
     this.rewardLabel.text = cut > 0 ? rewardText.slice(0, cut).trim() : ''
     this.rewardValue.text = cut > 0 ? rewardText.slice(cut + 1) : rewardText
-    const between = this.rewardLabel.text === '' ? 0 : 8
-    const span = this.rewardLabel.width + between + this.rewardValue.width
-    const start = (this.boxWidth - span) / 2
-    const rewardY = HEAD_H + (dense ? 100 : 148)
     this.rewardLabel.anchor.set(0, 0.5)
-    this.rewardLabel.position.set(start, rewardY)
-    this.rewardValue.anchor.set(0, 0.5)
-    this.rewardValue.position.set(start + this.rewardLabel.width + between, rewardY)
+    this.rewardLabel.position.set(BADGE_ROW_PAD, BODY_TOP + 62)
+    this.rewardValue.anchor.set(1, 0.5)
+    this.rewardValue.position.set(right, BODY_TOP + 62)
 
+    // **규칙은 왼쪽 정렬입니다.** 두 줄로 접히는 문장이고, 가운데 정렬에서는 줄마다
+    // 시작하는 자리가 달라 한 문장이 아니라 표제 둘로 읽힙니다.
+    //
     // **딱지 안에 들어오는 만큼만 적습니다.** 넘치는 줄은 딱지 밖으로 나가 판의 변을
     // 넘어가므로, 들어갈 줄 수를 남은 높이에서 셉니다.
-    const top = HEAD_H + 118
-    const room = Math.max(0, BADGE_H - top - 8)
+    const top = BODY_TOP + 86
+    const room = Math.max(0, BADGE_H - top - 10)
     const rows = Math.floor(room / richLeading('note'))
-    this.fill(this.note, dense && rows > 0 ? [note] : [], BlindBadge.infoRich(),
-              richLeading('note'), top)
+    this.fill(this.note, note !== '' && rows > 0 ? [note] : [], BlindBadge.infoRich(),
+              richLeading('note'), top, 'left')
   }
 
   /**
@@ -1196,16 +1266,11 @@ export class BlindBadge extends Container {
     this.seal = undefined
     if (seal) {
       this.seal = seal
-      seal.position.set(20, HEAD_H / 2)
+      seal.position.set(20, HEAD_MID)
       this.body.addChild(seal)
     }
 
-    this.title.text = name
-    this.title.anchor.set(0.5, 0.5)
-    this.title.scale.set(1)
-    const room = this.boxWidth - 40 * 2
-    if (this.title.width > room) this.title.scale.set(room / this.title.width)
-    this.title.position.set(this.boxWidth / 2, HEAD_H / 2)
+    this.layoutHeader(name, '', tags.length)
 
     this.layoutValue(caption, target.toLocaleString('en-US'), reward, '')
     this.setTags(tags)
@@ -1220,8 +1285,6 @@ export class BlindBadge extends Container {
    * 스킵의 태그가 보이지 않고 다음 스킵에서야 그 앞의 것이 뜨던 것이 그것입니다.
    */
   setTags(tags: Container[]): void {
-    const chips = 26
-
     // **이미 달려 있는 그 칩들이면 그대로 둡니다.** 딱지 전체를 다시 그리는 길이 태그를
     // 한 번 더 넘기는데, 같은 것을 걷고 다시 달면 만든 것을 그 자리에서 버리는 일입니다.
     if (tags.length === this.tags.length && tags.every((one, i) => one === this.tags[i])) return
@@ -1231,14 +1294,13 @@ export class BlindBadge extends Container {
     this.tags.length = 0
 
     // 머리띠의 오른쪽 끝에서 왼쪽으로 쌓습니다. 새로 받은 것이 바깥쪽입니다.
-    const gap = 4
-    let x = this.boxWidth - 10 - chips
+    let x = this.boxWidth - TAG_EDGE - TAG_CHIP
     for (const one of tags) {
       // **피벗만큼 되돌립니다.** 발동할 때 가운데를 기준으로 부풀리려고 피벗을 옮기는데,
       // 자리를 그대로 두면 그 옮긴 만큼 왼쪽 위로 밀립니다 — 발동이 끝나 피벗이 돌아오면
       // 다시 제자리로 튀고, 그것이 「안착했다가 한 번 튄다」로 보입니다.
-      one.position.set(x + one.pivot.x, 22 - chips / 2 + one.pivot.y)
-      x -= chips + gap
+      one.position.set(x + one.pivot.x, HEAD_MID - TAG_CHIP / 2 + one.pivot.y)
+      x -= TAG_CHIP + TAG_GAP
       this.addChild(one)
       this.tags.push(one)
     }
