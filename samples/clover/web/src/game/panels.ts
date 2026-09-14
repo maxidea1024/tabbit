@@ -90,7 +90,7 @@ interface ActiveEntry {
 }
 
 /** 「적용 중」 목록의 줄 높이. 머리글(12)과 첫 줄 사이가 22 이고, 그다음은 이 간격입니다. */
-const ACTIVE_ROW_H = 34
+const ACTIVE_ROW_H = 28
 export class PanelsPart {
   constructor(private readonly game: Game) {}
 
