@@ -25,7 +25,7 @@ import { Button, Panel } from '../ui/widgets'
 import { GAUGE_H } from '../ui/parts'
 import { RuleBanner, type RuleNote } from '../ui/rule-banner'
 import {
-  ACTIVE_GLOW, BLIND_MUSIC_DIM, BLUR_BACK_PX, BLUR_PX, BOARD_X, BUTTON_Y, CHIPS_GAP, CHIPS_H, CHIPS_Y, CONSUMABLE_TRAY, DEALER, DECK_X, DECK_Y, DELTA_LIFE, DELTA_POOL, EMBER, HAND_INFO_Y, HAND_Y, JOKER_TRAY, JOKER_Y, LAND_AT, LEFT, PACK_TITLE_Y, PACK_X, PANEL_ROWS, PANEL_W, PLAY_H, PLAY_W, PLAY_Y, RIGHT_COL, RISER_HOLD, RISER_LIFT, RISER_ON_CARD, RISER_SPAN, SELL_WAIT, TRAY_PAD_X, within, IN_X, IN_W, SCORE_H,
+  ACTIVE_GLOW, BLIND_MUSIC_DIM, BLUR_BACK_PX, BLUR_PX, BOARD_X, BUTTON_Y, CHIPS_GAP, CHIPS_H, CHIPS_Y, CONSUMABLE_TRAY, DEALER, DECK_X, DECK_Y, DELTA_LIFE, DELTA_POOL, EMBER, HAND_INFO_Y, HAND_Y, JOKER_TRAY, JOKER_Y, LAND_AT, LEFT, PACK_TITLE_Y, PACK_X, PANEL_ROWS, PANEL_W, PLAY_H, PLAY_W, PLAY_Y, RIGHT_COL, BOSS_SAY_MS, HAND_READ_MS, RISER_HOLD, RISER_LIFT, RISER_ON_CARD, RISER_SPAN, RISER_YIELD, SELL_WAIT, TRAY_PAD_X, within, IN_X, IN_W, SCORE_H,
 } from './metrics'
 import { ACT_KINDS, ACT_LOOK, moneyReason, ruleChange, SCORING_BEATS, VALUE_OPS } from './tables'
 import { edgeBlur, rgbOf } from './helpers'
@@ -481,10 +481,26 @@ export class ShowPart {
       // 한 장씩 나와 한 장씩 뒤집었더니 여덟 장에 1.3초였고, 그 시간 동안 할 수 있는 것이
       // 없었습니다. 한꺼번에 깔리면 뽑았다는 것이 없어지므로, 간격은 짧게 두되 둡니다.
       case 'HandDrawn': {
-        const draw = this.game.feel.drawStaggerMs / 1000
-        const flip = this.game.feel.flipStaggerMs / 1000
+        // **딜러가 걷고 나서 채웁니다.** 걷는 것을 「연출이 다 끝나고 1.1초」에 맡기던
+        // 동안에는 깔기가 그 뒤로 밀려, 다음 패가 통째로 타임라인 밖에서 깔렸습니다 —
+        // 박자가 기다릴 수 없는 자리에서 일어나면 그 뒤에 오는 것과 겹칩니다.
+        // **끝난 판은 걷지 않습니다** — 그쪽은 카드가 그 자리에 남아 판의 마지막 모습이
+        // 됩니다. 그 판에는 깔 것도 없습니다.
+        //
+        // **결과를 읽고 나서 걷습니다.** 깔기는 판이 빌 때까지 기다리므로(`advanceDeals`)
+        // 늦추는 것은 이 한 줄이면 됩니다.
+        const over = this.game.state.phase === 'lost' || this.game.state.phase === 'won'
+        if (!over) {
+          this.game.later.push({
+            at: this.game.clock + HAND_READ_MS / 1000 / this.game.pace,
+            run: () => this.game.cards.clearPlayArea(),
+          })
+        }
+        const pace = this.game.pace
+        const draw = this.game.feel.drawStaggerMs / 1000 / pace
+        const flip = this.game.feel.flipStaggerMs / 1000 / pace
         const landed = this.game.clock + (event.uids.length - 1) * draw
-          + this.game.feel.drawLandMs / 1000
+          + this.game.feel.drawLandMs / 1000 / pace
         event.uids.forEach((uid, index) => {
           this.game.cards.deals.push({ uid, at: this.game.clock + index * draw, flipAt: landed
               + index * flip })
@@ -501,7 +517,7 @@ export class ShowPart {
       case 'HandEvaluated':
         // **득점하지 않는 카드는 물러납니다.** 다섯 장을 냈는데 셋만 세는 것이 화면에
         // 보이지 않으면, 점수가 왜 그것뿐인지 알 수 없습니다.
-        this.game.cards.dimNonScoring(event.cards)
+        this.game.cards.markScoring(event.cards)
         this.say(tf('ui.hand.level', { name: this.game.panels.handName(event.hand),
           level: event.level }), UI.ink, 3, 0.35)
         this.game.audio.play('score_count', semitones)
@@ -527,7 +543,7 @@ export class ShowPart {
         // 차례로 오르는 것을 읽는 자리이므로 그 줄이 흔들리면 안 됩니다.
         this.popAt(view && { x: view.x, y: PLAY_Y - RISER_ON_CARD },
           valueText(event.op, event.chips, event.mult, event.money),
-          tint, beat.intensity + step * 0.4 + (mul ? 0.5 : 0))
+          tint, beat.intensity + step * 0.4 + (mul ? 0.5 : 0), true)
         // 랭크의 칩과 강화·인장·에디션이 낸 것은 소리가 달라야 갈립니다.
         // **카드가 낸 것과 조커가 낸 것은 소리가 갈립니다.** 같은 배수라도 어디서 온
         // 것인지가 들려야 무엇을 세는 중인지 따라갈 수 있습니다.
@@ -580,7 +596,7 @@ export class ShowPart {
         // 터지면 화면이 시끄러워집니다 — 좌우로 흔들리는 것 하나로 충분합니다.
         if (view) view.pop(mul ? 1.6 : 1.1)
         this.popAt(view && { x: view.x, y: view.y - RISER_ON_CARD }, text, tint,
-          beat.intensity + (mul ? 0.6 : 0.2))
+          beat.intensity + (mul ? 0.6 : 0.2), true)
         const side = this.panOf(view?.x)
         const rise = this.stepUp(beat.intensity + (mul ? 0.6 : 0))
         this.game.audio.play(cue, rise, side)
@@ -631,7 +647,7 @@ export class ShowPart {
         // 있었고 값 쪽만 빠져 있었습니다.
         this.popAt(this.game.blind.badgeMiddle(), valueText(event.op, event.chips, event.mult,
           event.money),
-          tint, beat.intensity + (mul ? 0.5 : 0.1))
+          tint, beat.intensity + (mul ? 0.5 : 0.1), true)
         // **조커가 아닌 것도 사슬에 얹힙니다.** 덱과 바우처와 보스가 낸 값이고, 그것도
         // 값이 오르는 그 가락의 한 음입니다.
         const from = this.stepUp(beat.intensity + (mul ? 0.5 : 0))
@@ -661,7 +677,7 @@ export class ShowPart {
           view.shine(rgbOf(UI.good), 0.9)
         }
         this.popAt(view && { x: view.x, y: view.y - RISER_ON_CARD },
-          t('ui.button.again'), UI.good, beat.intensity + 0.3)
+          t('ui.button.again'), UI.good, beat.intensity + 0.3, true)
         // **재발동은 같은 카드가 한 번 더 세는 것입니다.** 사슬을 이어 올리는 것이 맞고,
         // 음색은 카드의 것과 같아야 「같은 카드가 또」 로 들립니다.
         const again = this.stepUp(beat.intensity)
@@ -935,13 +951,13 @@ export class ShowPart {
       // 보스가 카드를 무력하게 만들었습니다. **어느 장인지가 보여야 합니다** — 판이
       // 시작할 때 한 번 크게 개입하는 것인데, 그동안 화면이 어느새 회색이 되어 있었습니다.
       case 'CardsDebuffed':
-        this.game.cards.witherCards(event.uids)
+        this.game.cards.witherCards(event.uids, this.sayBoss())
         break
 
       // 보스가 손패를 엎었습니다. **그 자리에서 뒤집힙니다** — 이미 엎어진 채로 그려지면
       // 무엇이 일어난 것인지 화면에 없습니다.
       case 'CardsHidden':
-        this.game.cards.hideCards(event.uids)
+        this.game.cards.hideCards(event.uids, this.sayBoss())
         break
 
       // 보스가 조커 하나를 껐습니다.
@@ -1046,6 +1062,32 @@ export class ShowPart {
         && beat.chips !== undefined && beat.mult !== undefined) {
       this.euphoria.consider(beat.chips * beat.mult / 10_000)
     }
+  }
+
+  /**
+   * 보스가 무엇을 겁니다. **먼저 누가인지가 뜨고, 그다음 카드가 한 장씩입니다.**
+   *
+   * 카드부터 걸던 동안에는 줄이 왼쪽부터 회색이 되는 것만 보였고, 그렇게 만든 것이
+   * 무엇인지는 화면 왼쪽의 딱지에 그 라운드 내내 적혀 있었을 뿐 그 순간에 아무것도 하지
+   * 않았습니다 — 일어난 일과 그것을 한 것이 한 화면에 있어야 합니다.
+   *
+   * 걸기가 시작될 때까지의 몫을 돌려줍니다.
+   */
+  private sayBoss(): number {
+    const row = this.game.state.blind === BlindKind.Boss
+      ? this.game.data.tables.bossBlind.findByBossId(this.game.state.bossId)
+      : undefined
+    if (!row) return 0
+    const at = this.game.blind.badgeMiddle()
+    this.game.cards.actorName = nameOf(this.game.data, 'boss', this.game.state.bossId, row.name)
+    this.game.cards.actorAt = at
+    this.popAt({ x: at.x, y: at.y - RISER_ON_CARD },
+      nameOf(this.game.data, 'boss', this.game.state.bossId, row.name), UI.bad, 0.6)
+    this.game.audio.play('boss_reveal')
+    this.jolt(9, 1.8, 0.45)
+    this.flashPanel(UI.bad, 0.8)
+    this.stop(90)
+    return BOSS_SAY_MS / 1000 / this.game.pace
   }
 
   /**
@@ -1277,7 +1319,7 @@ export class ShowPart {
    * 노는 자리는 화면의 오른쪽으로 치우쳐 있고, 화면의 가운데를 기준으로 잡으면 다섯 장이
    * 전부 오른쪽에서만 납니다.
    */
-  private panOf(x: number | undefined): number {
+  panOf(x: number | undefined): number {
     if (x === undefined) return 0
     return Math.max(-1, Math.min(1, (x - BOARD_X) / (SIZE.width - BOARD_X)))
   }
@@ -1391,8 +1433,15 @@ export class ShowPart {
     if (pulse > 0) this.game.background.pulse(pulse)
   }
 
+  /**
+   * 무엇 위에 값 하나를 띄웁니다.
+   *
+   * `chained` 는 이 글이 값의 사슬에 속한다는 표시입니다 — 득점하는 카드와 조커와 재발동이
+   * 그것이고, 다음 값이 뜨면 앞의 것이 물러납니다. 사슬이 아닌 글(얻은 것 · 보스가 건 것 ·
+   * 돈)은 저마다의 사건이므로 서로를 밀어내지 않습니다.
+   */
   popAt(target: { x: number; y: number } | undefined, text: string, tint: number,
-                intensity: number): void {
+                intensity: number, chained = false): void {
     // **크기는 계단에서 고릅니다.** 세기가 크면 한 칸 큽니다 — 24 또는 36.
     const label = new Text({
       text,
@@ -1441,8 +1490,15 @@ export class ShowPart {
     // **`tick` 을 거칩니다.** 틱커에 자기 콜백을 따로 걸면 히트스톱도 고정 단계도 타지
     // 않는 유일한 자리가 됩니다.
     node.scale.set(0.4)
+    // **앞의 값이 물러납니다.** 사슬에서 또렷한 것은 언제나 하나입니다.
+    if (chained) {
+      for (const one of this.risers) {
+        if (!one.chained) continue
+        one.span = Math.min(one.span, one.life + RISER_YIELD)
+      }
+    }
     this.risers.push({
-      node, life: 0, lift,
+      node, life: 0, span: RISER_SPAN, chained, lift,
       homeX: node.x, homeY: node.y,
       drift: (Math.random() - 0.5) * 34,
       rumble: 3 + intensity * 7,
@@ -1454,7 +1510,7 @@ export class ShowPart {
     for (let i = this.risers.length - 1; i >= 0; i--) {
       const one = this.risers[i]
       one.life += stepMs
-      const t = Math.min(1, one.life / RISER_SPAN)
+      const t = Math.min(1, one.life / one.span)
 
       // 처음 120밀리초는 튀어나오는 구간입니다. 1을 넘겼다가 돌아옵니다.
       const grow = one.life < 120
@@ -1463,14 +1519,16 @@ export class ShowPart {
       one.node.scale.set(grow + t * 0.18)
 
       // **먼저 떠 있고 그다음에 옅어집니다.** 뜨는 순간부터 옅어지면 읽을 시간이 없습니다.
-      const fade = t < RISER_HOLD ? 1 : 1 - (t - RISER_HOLD) / (1 - RISER_HOLD)
+      // 물러나기로 정해진 글은 남은 것이 전부 옅어지는 몫입니다.
+      const hold = one.span < RISER_SPAN ? 0 : RISER_HOLD
+      const fade = t < hold ? 1 : 1 - (t - hold) / (1 - hold)
       const shiver = one.rumble * (1 - t) * (1 - t)
       one.node.x = one.homeX + one.drift * t + (Math.random() - 0.5) * shiver
       one.node.y = one.homeY - t * one.lift + (Math.random() - 0.5) * shiver
       one.node.rotation = (Math.random() - 0.5) * 0.05 * (1 - t)
       one.node.alpha = fade
 
-      if (one.life < RISER_SPAN) continue
+      if (one.life < one.span) continue
       one.node.destroy()
       this.risers.splice(i, 1)
     }

@@ -152,4 +152,42 @@ describe('재생', () => {
     expect(beats).toHaveLength(2)
     expect(beats[1].hold).toBe(FEEL.jokerStepMs)
   })
+
+  // 보스가 거는 것은 패가 깔린 뒤에 보입니다. **코어의 차례는 그대로이고 그리는 차례만
+  // 바뀝니다** — 거는 그 순간에는 걸릴 카드가 화면에 하나도 없습니다.
+  describe('보스가 거는 차례', () => {
+    it('깔기 뒤로 옮깁니다', () => {
+      const beats = buildTimeline([
+        { t: 'CardsDebuffed', uids: [1, 2, 3] },
+        { t: 'HandDrawn', uids: [1, 2, 3, 4] },
+      ], FEEL)
+
+      expect(beats.map(one => one.event.t)).toEqual(['HandDrawn', 'CardsDebuffed'])
+    })
+
+    it('무력화와 엎어짐이 함께 와도 둘 사이의 차례는 그대로입니다', () => {
+      const beats = buildTimeline([
+        { t: 'CardsDebuffed', uids: [1] },
+        { t: 'CardsHidden', uids: [2] },
+        { t: 'HandDrawn', uids: [1, 2] },
+      ], FEEL)
+
+      expect(beats.map(one => one.event.t))
+        .toEqual(['HandDrawn', 'CardsDebuffed', 'CardsHidden'])
+    })
+
+    it('뒤에 깔기가 없으면 제자리입니다', () => {
+      // 판이 도는 중에 거는 보스입니다 — 그때 손패는 이미 화면에 있습니다.
+      const beats = buildTimeline([HAND, { t: 'CardsHidden', uids: [1, 2] }], FEEL)
+
+      expect(beats.map(one => one.event.t)).toEqual(['HandEvaluated', 'CardsHidden'])
+    })
+
+    it('깔기가 없는 이벤트 배열은 그대로입니다', () => {
+      const beats = buildTimeline([HAND, scored(1, 2), scored(2, 2)], FEEL)
+
+      expect(beats.map(one => one.event.t))
+        .toEqual(['HandEvaluated', 'CardScored', 'CardScored'])
+    })
+  })
 })

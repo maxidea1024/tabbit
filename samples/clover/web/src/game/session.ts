@@ -1006,7 +1006,8 @@ export class SessionPart {
     this.game.cards.borrowed.clear()
     this.game.cards.pendingCards.clear()
     this.game.cards.pendingJokers.clear()
-    this.game.cards.castSoon.clear()
+    this.game.cards.castUntil = 0
+    this.game.cards.matchUntil = 0
     this.game.show.ruleBanner.visible = false
 
     // 카드와 조커. 뷰는 `board` 의 자식이라 지워야 사라집니다.

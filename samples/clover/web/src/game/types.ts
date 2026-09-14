@@ -35,6 +35,21 @@ export interface CardShow {
 export interface Riser {
   node: Container
   life: number
+  /**
+   * 이 글이 사라지기까지. 밀리초.
+   *
+   * **글마다 다릅니다.** 값이 이어서 오는 자리에서는 다음 값이 뜰 때 앞의 것이 물러나야
+   * 하고(`chained`), 혼자 뜨는 글은 읽을 만큼 남아 있어야 합니다.
+   */
+  span: number
+  /**
+   * 이 글이 값의 사슬에 속하는가.
+   *
+   * **사슬에서는 한 번에 하나만 또렷합니다.** 다음 값이 뜨면 앞의 것은 그 자리에서 빠르게
+   * 물러납니다 — 득점 한 번에 값이 열 번도 오르므로, 저마다 온전히 살면 판 위에 숫자가
+   * 다섯씩 겹쳐 어느 것이 방금 뜬 것인지 갈리지 않습니다.
+   */
+  chained: boolean
   /** 이 글이 떠오르는 거리. 위에 남은 자리만큼입니다. */
   lift: number
   homeX: number

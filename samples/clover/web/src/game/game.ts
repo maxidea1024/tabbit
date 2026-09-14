@@ -731,7 +731,15 @@ export class Game {
 
     // **카드가 다 닿은 뒤에 셉니다.** 카드는 실제 시계로 날아가고 연출은 배속과 히트스톱을
     // 타므로, 시간으로만 맞추면 배속을 올린 순간 어긋납니다.
-    this.player.blocked = () => this.cards.slams.length > 0 || this.clock < this.cards.playLanded
+    //
+    // **깔기와 보스가 거는 것도 같습니다.** 낸 카드만 기다리던 동안에는 다음 패가 깔리는
+    // 중에 그 뒤의 박자가 지나갔고, 보스가 거는 것은 아예 타임라인이 끝난 뒤에 돌았습니다 —
+    // 둘 다 실제 시계로 도는 일이므로 여기서 기다려야 합니다.
+    this.player.blocked = () => this.cards.slams.length > 0
+      || this.clock < this.cards.playLanded
+      || this.cards.dealBusy
+      || this.cards.castBusy
+      || this.cards.matchBusy
 
     // **버튼과 판의 소리는 여기 한 자리입니다.** 부르는 쪽마다 걸면 새로 만드는 것에서
     // 반드시 하나가 빠지고, 그것만 소리 없이 눌립니다.
@@ -822,6 +830,18 @@ export class Game {
   }
 
   textScale = 1
+
+  /**
+   * 연출의 배속.
+   *
+   * **실제 시계로 도는 몸짓이 이것으로 나뉩니다.** 박자는 `TimelinePlayer` 가 배속을
+   * 태우는데 낸 카드가 날아가는 것 · 패가 깔리는 것 · 족보를 훑는 것 · 보스가 거는 것은
+   * 실제 시계로 돌고 박자가 그 넷을 기다립니다 — 여기서 나누지 않으면 배속을 올려도 그
+   * 넷은 그대로이고, 배속이 하는 일이 그만큼 줄어듭니다.
+   */
+  get pace(): number {
+    return Math.max(1, this.session.settings.speed)
+  }
 
   // ---------------------------------------------------------------- 액션
 
@@ -1350,7 +1370,7 @@ export class Game {
       } else {
         this.holdAfterScore = 0
       }
-      if (this.shown.phase !== 'round') {
+      if (this.shown.phase !== 'round' && !this.chrome.scoreHeld) {
         this.chrome.chips.target = 0
         this.chrome.mult.target = 0
       }

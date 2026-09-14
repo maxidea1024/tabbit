@@ -9,17 +9,17 @@
 // Generated from samples/clover/design-data/xlsx/Feel.xlsx : Const_Feel : A1
 /** 연출의 길이와 문턱입니다. **연출 수치도 데이터입니다.** */
 export class FeelConst {
-  /** 득점 카드 하나의 연출 길이 */
-  public static readonly scoreStepMs: number = 230
+  /** 득점 카드 하나의 연출 길이. 값 하나를 읽고 다음 것이 옵니다 */
+  public static readonly scoreStepMs: number = 420
 
-  /** 조커 하나의 연출 길이 */
-  public static readonly jokerStepMs: number = 280
+  /** 조커 하나의 연출 길이. 눈이 판에서 조커 줄로 옮겨 가는 몫이 더 듭니다 */
+  public static readonly jokerStepMs: number = 480
 
-  /** 재발동의 연출 길이 */
-  public static readonly retriggerStepMs: number = 170
+  /** 재발동의 연출 길이. 같은 카드가 한 번 더 세는 것이 보여야 합니다 */
+  public static readonly retriggerStepMs: number = 320
 
-  /** 족보 표시의 길이 */
-  public static readonly handLabelMs: number = 420
+  /** 족보 표시의 길이. 족보를 읽고 나서 세기 시작합니다 */
+  public static readonly handLabelMs: number = 620
 
   /** 칩과 배수가 점수로 합쳐지는 길이 */
   public static readonly multiplyMs: number = 620

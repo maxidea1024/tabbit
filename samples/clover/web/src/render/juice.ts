@@ -30,6 +30,16 @@ const CARD_CHANGE: ReadonlySet<string> = new Set([
 ])
 
 /**
+ * 패가 깔린 뒤로 미루는 이벤트들.
+ *
+ * **보스는 패를 깔기 전에 겁니다.** 코어의 차례가 그렇고 그것이 맞습니다 — 무력해진 채로
+ * 뽑히는 것이지 뽑고 나서 무력해지는 것이 아닙니다. 그런데 화면에서는 그 순간에 걸릴
+ * 카드가 하나도 없어서, 보스가 가장 크게 개입하는 자리가 아무것도 나타나지 않는 시간이
+ * 되었습니다. **화면이 그리는 차례만 바꿉니다** — 상태도 이벤트도 그대로입니다.
+ */
+const AFTER_DRAW: ReadonlySet<string> = new Set(['CardsDebuffed', 'CardsHidden'])
+
+/**
  * 규칙 변화도 묶입니다.
  *
  * **한 액션에 여럿 걸립니다.** 챌린지와 보스와 바우처가 그렇고, 판 여럿이 잇달아 뜨면
@@ -145,10 +155,15 @@ function holdOf(event: GameEvent, feel: Feel): number {
     case 'HandDiscarded': return event.uids.length * feel.playStaggerMs
     // 다음 패는 득점이 끝난 뒤에 깔립니다. **나오기와 까기가 두 단계입니다** — 뒷면으로
     // 우르르 붙고, 다 붙은 뒤에 왼쪽부터 파도로 뒤집힙니다. 둘을 합한 것이 자기 몫입니다.
+    //
+    // **이것은 아래 한계입니다.** 깔기는 실제 시계로 돌고 박자는 연출의 시계로 도므로
+    // 배속을 올리면 둘이 어긋납니다 — 실제로 다 깔렸는가는 `Game.player.blocked` 가
+    // 확인하고, 이 값은 배속이 1일 때의 몫입니다.
     case 'HandDrawn':
       return event.uids.length * (feel.drawStaggerMs + feel.flipStaggerMs) + feel.drawLandMs
-    // **보스가 거는 것도 사건입니다.** 카드 몇 장이 한꺼번에 표시되므로 그것을 읽는
-    // 시간이고, 족보 이름을 읽는 박자와 같은 몫입니다.
+    // **보스가 거는 것도 사건입니다.** 여기 적힌 것은 아래 한계입니다 — 이벤트가 나르는
+    // 장수는 덱 안의 것까지 세는데 화면에서 한 장씩 걸리는 것은 그중 손패에 있는 것뿐이고,
+    // 그 수는 화면만 압니다. 실제로 다 걸렸는가는 `Game.player.blocked` 가 확인합니다.
     case 'CardsDebuffed':
     case 'CardsHidden': return feel.handLabelMs
     // 조커에 걸리는 것들. **조커가 값을 내는 것과 같은 한 박자입니다** — 새 상수를 두지
@@ -168,6 +183,39 @@ function holdOf(event: GameEvent, feel: Feel): number {
 }
 
 /**
+ * 보스가 거는 것을 그 뒤에 오는 깔기 뒤로 옮깁니다.
+ *
+ * **화면이 그리는 차례만 바꿉니다.** 코어의 이벤트 배열은 그대로이고 상태도 그대로입니다 —
+ * 옮기는 것은 「어느 장이 걸렸는가」가 보이려면 그 카드가 화면에 있어야 하기 때문입니다.
+ *
+ * 잇달아 오는 것을 한 덩어리로 옮깁니다. 무력해진 것과 엎어진 것이 한 판에 함께 오고,
+ * 둘 사이의 차례는 코어가 낸 그대로 둡니다.
+ */
+function drawFirst(events: readonly GameEvent[]): readonly GameEvent[] {
+  if (!events.some(one => AFTER_DRAW.has(one.t))) return events
+
+  const out: GameEvent[] = []
+  for (let i = 0; i < events.length; i++) {
+    if (!AFTER_DRAW.has(events[i].t)) {
+      out.push(events[i])
+      continue
+    }
+    let end = i
+    while (end < events.length && AFTER_DRAW.has(events[end].t)) end++
+    // 뒤에 깔기가 없으면 제자리입니다 — 판이 도는 중에 거는 보스가 그렇습니다.
+    if (end < events.length && events[end].t === 'HandDrawn') {
+      out.push(events[end])
+      for (let one = i; one < end; one++) out.push(events[one])
+      i = end
+      continue
+    }
+    for (let one = i; one < end; one++) out.push(events[one])
+    i = end - 1
+  }
+  return out
+}
+
+/**
  * 이벤트 배열을 박자 배열로.
  *
  * `ChipsMultChanged` 가 시간을 쓰지 않는 것이 요점입니다 — 그것은 「지금 칩과 배수가
@@ -178,9 +226,10 @@ export function buildTimeline(events: readonly GameEvent[], feel: Feel): Beat[] 
   let at = 0
   let chips = 0
   let mult = 10_000
+  const ordered = drawFirst(events)
 
-  for (let i = 0; i < events.length; i++) {
-    const event = events[i]
+  for (let i = 0; i < ordered.length; i++) {
+    const event = ordered[i]
 
     // **카드 변화는 연달아 오는 것을 통째로 묶습니다.** 타로 하나가 다섯 장을 바꾸면
     // `CardModified` 가 다섯 개 오는데, 화면이 하는 일은 다섯 장이 함께 나와 뒤집히는 한
@@ -188,8 +237,8 @@ export function buildTimeline(events: readonly GameEvent[], feel: Feel): Beat[] 
     if (CARD_CHANGE.has(event.t)) {
       const cards: CardChanges = { modified: [], destroyed: [], added: [] }
       let end = i
-      while (end < events.length && CARD_CHANGE.has(events[end].t)) {
-        const one = events[end]
+      while (end < ordered.length && CARD_CHANGE.has(ordered[end].t)) {
+        const one = ordered[end]
         if (one.t === 'CardModified') cards.modified.push(one.uid)
         else if (one.t === 'CardDestroyed') cards.destroyed.push(one.uid)
         else if (one.t === 'CardAdded') cards.added.push(one.uid)
@@ -209,8 +258,8 @@ export function buildTimeline(events: readonly GameEvent[], feel: Feel): Beat[] 
     if (RULE_CHANGE.has(event.t)) {
       const rules: GameEvent[] = []
       let end = i
-      while (end < events.length && RULE_CHANGE.has(events[end].t)) {
-        rules.push(events[end])
+      while (end < ordered.length && RULE_CHANGE.has(ordered[end].t)) {
+        rules.push(ordered[end])
         end++
       }
       beats.push({
@@ -292,6 +341,18 @@ export function cardChangeHold(count: number, feel: Feel): number {
   if (count === 0) return 0
   return feel.drawLandMs + (count - 1) * TURN_STEP_MS + TURN_FULL_MS + feel.handLabelMs
 }
+
+/**
+ * 보스가 거는 것의 시간표.
+ *
+ * **장마다 차례로 걸립니다** — 간격 하나, 마지막 장에서 글이 뜨기까지, 그 글을 읽는
+ * 동안입니다. 박자는 이 셋으로 끝을 재지 못합니다(손패에 몇 장이 있는지는 화면만 압니다) —
+ * 그래서 기다리는 것은 박자가 아니라 `Game.player.blocked` 이고, 이 값들은 화면 쪽에 있어야
+ * 할 것을 한자리에 모아 둔 것입니다.
+ */
+export const CAST_STEP_MS = 260
+export const CAST_NOTE_MS = 320
+export const CAST_TAIL_MS = 420
 
 /** 타임라인 전체의 길이. */
 export function timelineLength(beats: readonly Beat[]): number {
