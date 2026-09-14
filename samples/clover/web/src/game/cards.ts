@@ -20,9 +20,9 @@ import { borrowedFrom } from '../core/vm'
 import { type ModalPanel } from '../ui/modal'
 import {
   BOARD_X, DEALER, DECK_LINGER, DECK_PEEK, deckSheets, DECK_X, DECK_Y, DRAG_Z, EMBER,
-  handSpacing, HAND_Y, HELD_RISE,
+  handSpacing, HAND_DROP, HAND_DROP_SEC, HAND_INFO_Y, HAND_Y, HELD_RISE,
   HOVER_Z, ITEM_LINGER, ITEM_SETTLE, JOKER_TRAY, JOKER_Y, PICK_TINT, PICK_Z, PLAY_Y, RECALL_STEP,
-  RETIRE_TAIL, RISER_ON_CARD, ROW_Z, SHOW_CLEAR, SHOW_Y, SHOW_Z, trayRow,
+  RETIRE_TAIL, RISER_ON_CARD, ROW_Z, SHOW_CLEAR, SHOW_SLAM, showRowY, SHOW_Z, trayRow,
 } from './metrics'
 import { type CardShow } from './types'
 import { type Game } from './game'
@@ -233,6 +233,61 @@ export class CardsPart {
    * 두 딱지의 아래를 잇는 줄 하나입니다. 딱지 위를 지나가면 그림을 가립니다.
    */
   readonly borrowLink = new Graphics()
+
+  /**
+   * 손패 줄이 지금 얼마나 물러나 있는가. 픽셀.
+   *
+   * **판에 낸 카드가 있는 동안 물러납니다.** 낸 카드의 줄과 손패 줄 사이가 카드 하나보다
+   * 좁아서, 그 사이에 서는 것(바뀌는 카드)이 어느 쪽이든 걸쳤습니다 — 물러나서 생긴
+   * 자리가 그 줄의 자리입니다.
+   *
+   * **매칭이 있는 판만 내리지 않습니다.** 그러면 같은 동작이 판마다 달라 보입니다 — 낼
+   * 때 내려가고 걷을 때 올라옵니다.
+   */
+  handDrop = 0
+
+  /** 손패 줄이 지금 있는 높이. **`HAND_Y` 를 직접 읽는 자리가 없어야 합니다.** */
+  get handY(): number {
+    return HAND_Y + this.handDrop
+  }
+
+  /** 손패 바로 위의 지시문이 지금 있는 높이. */
+  get handInfoY(): number {
+    return HAND_INFO_Y + this.handDrop
+  }
+
+  /**
+   * 물러난 거리를 한 단계 옮깁니다.
+   *
+   * **판에 낸 카드가 있는가로 정합니다.** 나가는 중인 것은 세지 않습니다 — 걷히기 시작하는
+   * 그 자리에서 손패가 올라와야 다음 패가 제자리에 깔립니다.
+   */
+  advanceHandDrop(seconds: number): void {
+    const played = this.playedViews.some(view => !this.leaving(view))
+    const want = played ? HAND_DROP : 0
+    if (this.handDrop === want) return
+    const step = HAND_DROP * (seconds / HAND_DROP_SEC)
+    this.handDrop = want > this.handDrop
+      ? Math.min(want, this.handDrop + step)
+      : Math.max(want, this.handDrop - step)
+
+    // **`refresh` 를 부르지 않습니다.** 한 번 물러나는 데 열일곱 프레임이고, 그때마다
+    // 판을 통째로 다시 세우면 이 한 가지가 판에서 가장 비싼 것이 됩니다 — 여기서 바뀌는
+    // 것은 손패 줄의 높이뿐입니다. 지시문과 족보 이름은 `advanceHandControls` 가 매
+    // 프레임 이 값을 읽습니다.
+    const row = this.handSpots
+    this.game.shown.hand.forEach((uid, index) => {
+      const view = this.views.get(uid)
+      if (!view) return
+      // 끌고 있는 카드는 손가락이 자리를 정합니다.
+      if (this.game.input.drag?.kind === 'hand' && this.game.input.drag.uid === uid
+          && this.game.input.drag.moved) return
+      view.place(row.startX + index * row.spacing, this.handY, 0)
+    })
+    // **도구가 조회하는 자리도 함께입니다.** 좌표를 손으로 적어 둔 도구가 없도록 화면이
+    // 알리는 것이 규약이고, 그 값이 낡으면 빈자리를 누릅니다.
+    this.game.tray.publishRowSpots('hand', row, this.game.shown.hand.length, this.handY)
+  }
 
   /**
    * 보스가 건 것이 다 걸릴 때까지.
@@ -904,7 +959,7 @@ export class CardsPart {
       // **더해진 카드는 뒷면으로 나옵니다.** 뒤집혀 앞면이 되는 것이 「새로 왔다」이고,
       // 바뀌는 카드가 뒷면을 거쳐 돌아오는 것과 같은 몸짓입니다.
       if (one.kind === 'add') view.faceBack()
-      view.slam(startX + index * spacing, SHOW_Y)
+      view.slam(startX + index * spacing, showRowY(this.handDrop), SHOW_SLAM)
       show.cards.push({ view, uid: one.uid, kind: one.kind, borrowed: held !== undefined })
 
       // **한 장씩 차례로 바뀝니다.** 다섯 장이 한 프레임에 갈리면 한 덩어리가 바뀐 것으로
@@ -1317,7 +1372,7 @@ export class CardsPart {
     // **손패를 누를 자리도 화면이 알립니다.** 도구가 같은 셈을 손으로 적어 두고 있었고,
     // 간격을 고친 날부터 카드 사이의 빈 곳을 눌러 놓고 「고른 것 0장」 으로 지나갔습니다 —
     // 조커·소모품 줄과 같은 길입니다.
-    this.game.tray.publishRowSpots('hand', this.handSpots, hand.length, HAND_Y)
+    this.game.tray.publishRowSpots('hand', this.handSpots, hand.length, this.handY)
 
     hand.forEach((card, index) => {
       let view = this.views.get(card.uid)
@@ -1371,7 +1426,7 @@ export class CardsPart {
       // 변만 덮이므로, 줄은 그대로이고 여덟 장이 한 벌로 읽힙니다 — 겹침의 폭은
       // `HAND_OVERLAP` 입니다.
       const spotX = startX + index * spacing
-      const spotY = HAND_Y
+      const spotY = this.handY
       const tilt = 0
       // 끌고 있는 카드는 손가락이 자리를 정합니다. 여기서 다시 놓으면 커서에서 떨어집니다.
       if (this.game.input.drag?.kind === 'hand' && this.game.input.drag.uid === card.uid

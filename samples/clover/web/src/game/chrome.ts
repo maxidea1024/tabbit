@@ -12,7 +12,7 @@ import { ProgressBar } from '../ui/parts'
 import { Button, Panel } from '../ui/widgets'
 import {
   BOARD_X, BUTTON_Y, CELL_RULE_INSET, CELL_SLOT_H, CELL_SLOT_W, CHIPS_GAP, CHIPS_H, CHIPS_R,
-  CONSUMABLE_TRAY, COUNT_PULSE, HAND_HINT_SELECTED_RISE, HAND_INFO_Y, IN_W, IN_X, JOKER_TRAY,
+  CONSUMABLE_TRAY, COUNT_PULSE, HAND_HINT_SELECTED_RISE, IN_W, IN_X, JOKER_TRAY,
   PANEL_GROOVES, PANEL_ROWS, PLAY_H, PLAY_Y, RIGHT_COL, SCORE_ROW_H, SORT_H,
   SORT_HIDE,
 } from './metrics'
@@ -550,7 +550,10 @@ export class ChromePart {
     // 점들과 겹쳤습니다. 카드를 고르면 큰 족보 이름과 함께 뜨므로 그때만 한 줄 위로
     // 물러나고, 조작 무리가 숨을 때는 둘이 함께 아래로 내려갑니다.
     const selectedRise = this.game.cards.selected.size > 0 ? HAND_HINT_SELECTED_RISE : 0
-    this.game.input.hint.y = HAND_INFO_Y - selectedRise + off
+    this.game.input.hint.y = this.game.cards.handInfoY - selectedRise + off
+    // **족보 이름도 손패에 딸린 것입니다.** 자리를 한 번만 잡아 두면 손패가 물러난 동안
+    // 그 글이 바뀌는 카드가 서는 줄 안에 남습니다.
+    this.handLabel.y = this.game.cards.handInfoY + off
   }
 
   /**

@@ -13,7 +13,7 @@ import { richLine, richStyle } from '../ui/rich'
 import { Toasts } from '../ui/toast'
 import { type TipBox, Tooltip } from '../ui/tooltip'
 import { attachTip, TipHold } from '../ui/tip'
-import { DRAG_Z, HAND_Y, JOKER_TRAY, JOKER_Y, TILT_REACH, trayRow } from './metrics'
+import { DRAG_Z, JOKER_TRAY, JOKER_Y, TILT_REACH, trayRow } from './metrics'
 import { near } from './helpers'
 import { type LookTick } from './types'
 import { type Game } from './game'
@@ -641,7 +641,7 @@ export class InputPart {
       ? this.game.cards.views.get(drag.uid) : this.game.cards.jokers.get(drag.uid)
     if (view) {
       view.zIndex = DRAG_Z
-      view.place(x, (drag.kind === 'hand' ? HAND_Y : JOKER_Y) - 22, 0)
+      view.place(x, (drag.kind === 'hand' ? this.game.cards.handY : JOKER_Y) - 22, 0)
     }
   }
 

@@ -7,7 +7,8 @@ import { newCounters } from '../core/state'
 import { artBudget, artBytes, artDecodeHeight, artTallest, dropAllArt } from '../render/art'
 import { cardFaceBakes } from '../render/card-face'
 import { bannerBox } from '../ui/rule-banner'
-import { CELL_H, CONSUMABLE_TRAY, HAND_Y, JOKER_TRAY } from './metrics'
+import { SIZE } from '../render/theme'
+import { CELL_H, CONSUMABLE_TRAY, JOKER_TRAY, PLAY_Y, showRowY } from './metrics'
 import { type Game } from './game'
 import { busy as netBusy } from '../net/session'
 export class ProbePart {
@@ -192,9 +193,32 @@ export class ProbePart {
           back: one.view.facingBack,
           squeeze: Math.round(one.view.scale.x * 100),
           x: Math.round(one.view.x), y: Math.round(one.view.y),
+          // **윗변입니다.** 이 줄이 낸 카드와 겹치는지는 가운데가 아니라 변으로 갈립니다 —
+          // 들어오며 부푸는 동안은 같은 가운데에서도 변이 더 올라갑니다.
+          top: Math.round(one.view.y - SIZE.cardHeight / 2 * one.view.scale.y),
           // 제자리로 가는 중인지 돌아가는 중인지. **도구가 그 둘을 가릅니다.**
           to: Math.round(one.view.motion.y.target),
         })),
+      /**
+       * 카드 줄 셋이 지금 있는 높이.
+       *
+       * **좌표를 도구에 적어 두지 않습니다.** 손패는 판이 도는 동안 물러나 있고
+       * (`CardsPart.handDrop`) 바뀌는 카드의 줄은 그것을 따라가므로, 적어 둔 값은 물러난
+       * 판에서 낡습니다.
+       *
+       * `playBottom` 은 낸 카드들의 가장 아래 변입니다 — 득점하는 카드는 8픽셀 들려 있고
+       * 값을 낼 때 부풀므로 장마다 다릅니다.
+       */
+      boardRows: {
+        play: PLAY_Y,
+        show: Math.round(showRowY(this.game.cards.handDrop)),
+        hand: Math.round(this.game.cards.handY),
+        drop: Math.round(this.game.cards.handDrop),
+        playBottom: Math.round(this.game.cards.playedViews
+          .filter(view => !view.destroyed)
+          .reduce((low, view) =>
+            Math.max(low, view.y + SIZE.cardHeight / 2 * view.scale.y), 0)),
+      },
       // 연출의 시계. 스크린샷 사이의 시간을 재는 데 씁니다.
       clock: this.game.clock,
       phase: state.phase, ante: state.ante, blind: state.blind,
@@ -265,6 +289,10 @@ export class ProbePart {
         ? this.game.panels.collection.census : undefined,
       // 아무것도 없는 곳을 누른 횟수. **도구가 자기 좌표를 검사하는 자리입니다.**
       blankTaps: this.game.input.blankTaps,
+      // **이어서 할 판이 있는가.** 판을 여는 화면의 「이어하기」 칸은 저장된 판이 없어도
+      // 잠긴 채로 그려지므로, 그 칸이 있는지로는 갈리지 않습니다 — 그것으로 재던 도구가
+      // 늘 「없다」로 답하고 있었습니다.
+      hasSaved: this.game.panels.runPanel.hasSaved,
       // **인사이트 판에 지금 무엇이 놓여 있는가.** 판이 떠 있을 때만 값이 있습니다.
       //
       // 갈래와 열쇠까지 알립니다 — 줄 수만 알리면 「몇 줄 있다」까지이고, 그것은 문장이
@@ -724,7 +752,7 @@ export class ProbePart {
         const row = this.game.cards.handSpots
         return this.game.shown.hand.map((uid, index) => {
           const view = this.game.cards.views.get(uid)
-          const world = { x: row.startX + index * row.spacing, y: HAND_Y }
+          const world = { x: row.startX + index * row.spacing, y: this.game.cards.handY }
           const at = this.game.world.toGlobal(world)
           let hit = 'no-boundary'
           if (found) {

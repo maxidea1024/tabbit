@@ -1254,6 +1254,7 @@ export class Game {
 
     this.show.advanceHeadline(seconds)
     this.show.advanceChimes()
+    this.cards.advanceHandDrop(seconds)
     this.cards.advanceSlams()
     this.cards.advanceFades()
     this.cards.advanceDeals(seconds)

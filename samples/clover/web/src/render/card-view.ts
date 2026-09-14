@@ -640,11 +640,14 @@ export class CardView extends Container {
    *
    * 용수철을 세게 만들어 빠르게 가서 멈추고, 닿으면 원래 강성으로 돌아옵니다. 닿는 순간에
    * 살짝 눌립니다 — 그 한 번의 눌림이 「붙었다」로 읽힙니다.
+   *
+   * `swell` 은 그때 부푸는 크기입니다. **줄 사이가 빠듯한 자리는 덜 부풉니다** — 1.16배는
+   * 카드 높이를 144로 만들고, 그만큼이 위아래 줄로 삐져나갑니다.
    */
-  slam(x: number, y: number): void {
+  slam(x: number, y: number, swell = 1.16): void {
     this.motion.hard()
     this.motion.to(x, y, 0)
-    this.motion.scale.snap(1.16)
+    this.motion.scale.snap(swell)
     this.motion.scale.target = 1
     // **떠나는 순간에 기울어집니다.** 곧게 미끄러져 곧게 멈추던 동안은 카드가 옮겨 놓인
     // 것이지 던져진 것이 아니었습니다 — 기울기는 자리와 같은 용수철이라 날아가는 동안
