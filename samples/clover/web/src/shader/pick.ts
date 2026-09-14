@@ -156,8 +156,9 @@ void main(void) {
     float edge = 1.0 - smoothstep(0.35, 0.98, src.a);
     color += uTint * edge * 1.3;
   } else if (uMode < -0.5) {
-    // 고르지 않은 카드. 색을 빼고 어둡게 합니다. **물러나 있어야 고른 것이 보입니다.**
-    color = mix(vec3(gray), color, 0.45) * 0.62;
+    // 고르지 않은 카드는 한 걸음만 물립니다. 얼굴을 절반 가까이 회색으로 만들고 밝기를
+    // 62%까지 내리면 선택 상태를 알리기 전에 숫자와 무늬부터 읽히지 않습니다.
+    color = mix(vec3(gray), color, 0.72) * 0.82;
   }
 
   finalColor = vec4(color * src.a, src.a);
