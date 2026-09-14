@@ -647,6 +647,9 @@ export class ProbePart {
          * 맞추므로 이 값은 그 사이에만 있습니다.
          */
         forceScore: (chips: number, mult: number) => {
+          // **고정합니다.** 화면은 두 칸을 늘 다시 쓰므로, 그러지 않으면 지목한 값이
+          // 그다음 프레임에 0 이 됩니다 — `ScoreWave.hold` 과 같은 자리입니다.
+          this.game.chrome.scoreHeld = true
           this.game.chrome.chips.target = chips
           this.game.chrome.mult.target = mult
         },

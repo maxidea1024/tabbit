@@ -512,6 +512,9 @@ export class InputPart {
       return
     }
     if (!this.game.presented) return
+    // **도구가 두 칸을 고정해 두었으면 손대지 않습니다.** 파형을 확인하는 도구가 배당을
+    // 지목해 놓는 자리입니다(`Chrome.scoreHeld`).
+    if (this.game.chrome.scoreHeld) return
 
     const picked = this.game.cards.orderedSelection()
       .map(uid => this.game.state.deck.find(card => card.uid === uid))

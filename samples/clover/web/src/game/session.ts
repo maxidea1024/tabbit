@@ -912,6 +912,8 @@ export class SessionPart {
     this.game.chrome.score.reset(this.game.shown.score)
     this.game.chrome.chips.reset(0)
     this.game.chrome.mult.reset(0)
+    // **판에 들어서면 풀립니다.** 도구가 고정해 둔 것은 그 판에서만입니다.
+    this.game.chrome.scoreHeld = false
 
     // 들어선 판을 적어 둡니다. **첫 액션을 기다리지 않습니다** — 기다리면 새 판을 열고
     // 아무것도 두지 않은 채로 껐을 때 지난 판이 이어하기에 남습니다.
