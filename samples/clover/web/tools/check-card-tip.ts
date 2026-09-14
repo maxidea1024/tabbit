@@ -7,15 +7,12 @@ import { fileURLToPath } from 'url'
 import { chromium } from 'playwright'
 import { createServer } from 'vite'
 import {
-  at, clickSpot, closeGuide, pass, peek, pickCards, startNewRun, settle, skipLogin,
+  clickSpot, closeGuide, handSpot, pass, peek, pickCards, startNewRun, settle, skipLogin,
 } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const OUT = path.resolve(HERE, '../../design-data/out/check')
 const PORT = 5244
-const CARD_SPACING = 96
-const BOARD_X = 800
-const HAND_Y = 608
 
 const problems: string[] = []
 
@@ -43,12 +40,12 @@ async function main(): Promise<void> {
   await pass(page, 400)
   await page.screenshot({ path: path.join(OUT, 'cardtip-picked.png') })
 
-  // 마우스를 첫 장 위로. 움직임 두 번이어야 「움직였다」 가 성립합니다.
-  const held = (await peek(page)).hand.length
-  const spacing = Math.min(CARD_SPACING, 720 / Math.max(1, held))
-  const startX = BOARD_X - ((held - 1) * spacing) / 2
-  const offset = 4 - (held - 1) / 2
-  const spot = await at(page, startX + 4 * spacing, HAND_Y + offset * offset * 1.1)
+  // 마우스를 다섯째 장 위로. 움직임 두 번이어야 「움직였다」 가 성립합니다.
+  //
+  // **자리는 화면이 알립니다.** 같은 셈을 여기에 적어 두고 있었고 간격의 상한이
+  // 달랐습니다 — 가운데 장이라 카드 안에 떨어져 지나가고 있었을 뿐입니다. 부채꼴로
+  // 폈을 때의 높이 보정도 함께 걷습니다(손패는 한 줄입니다).
+  const spot = await handSpot(page, 4)
   await page.mouse.move(spot.x - 30, spot.y - 30)
   await pass(page, 120)
   await page.mouse.move(spot.x, spot.y)

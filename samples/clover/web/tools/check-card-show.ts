@@ -69,6 +69,8 @@ async function main(): Promise<number> {
   // 길이에 매인 값입니다 — 220 에서 300 으로, 다시 420 으로 올린 자리이고, 연출을 느리게
   // 한 날 또 어긋납니다. 재는 것은 「걷혔는가」이지 「몇 표본 안에 걷혔는가」가 아닙니다.
   let samples = 0
+  // 바뀌는 카드의 윗변과 낸 카드의 아랫변이 가장 가까웠던 거리. **음수면 겹친 것입니다.**
+  let closest = Number.POSITIVE_INFINITY
   // **조용한 것이 이어져야 끝입니다.** 판과 판 사이에도 한 표본쯤은 비어 있어서, 한 번
   // 조용한 것으로 끊으면 뒤에 올 판들을 보지 못한 채 끝납니다.
   let quiet = 0
@@ -76,10 +78,18 @@ async function main(): Promise<number> {
     const now = await peek(page)
     const out = now.changeCards ?? []
     mostOut = Math.max(mostOut, out.length)
+    // **줄의 자리는 화면이 알립니다.** 손패는 판이 도는 동안 물러나 있고 이 줄은 그것을
+    // 따라가므로, 도구에 적어 둔 486 은 물러난 판에서 낡은 값입니다.
+    const rowY = now.boardRows?.show ?? 0
     for (const one of out) {
       kinds.add(one.kind)
       // **안착한 표본만 셉니다.** 카드는 용수철로 오므로 오는 동안의 자리는 줄이 아닙니다.
-      if (Math.abs(one.y - 486) <= 3) rows.add(one.y)
+      if (Math.abs(one.y - rowY) <= 3) rows.add(one.y)
+      // **낸 카드와 겹치지 않아야 합니다.** 이 줄과 낸 카드의 줄 사이가 카드 하나보다
+      // 좁았고, 들어오며 부푸는 그 순간에 윗부분이 낸 카드에 걸쳤습니다. 오는 도중도
+      // 셉니다 — 걸치는 것이 가장 심한 자리가 거기입니다.
+      const bottom = now.boardRows?.playBottom ?? 0
+      if (bottom > 0 && one.top !== undefined) closest = Math.min(closest, one.top - bottom)
       if (one.back !== true) continue
       if (!backAt.has(one.uid)) backAt.set(one.uid, i)
       backFor.set(one.uid, (backFor.get(one.uid) ?? 0) + 1)
@@ -100,6 +110,9 @@ async function main(): Promise<number> {
   console.log('판이 선 횟수', shows)
   console.log('판 위에 한꺼번에 나온 장수', mostOut, '· 갈래', [...kinds].join(' · ') || '없음')
   console.log('제 줄에 안착했는가', rows.size > 0, '· 그 줄', [...rows].join(' ') || '없음')
+  const apart = Number.isFinite(closest) ? closest : 0
+  console.log('낸 카드의 아랫변과 가장 가까웠던 거리', Math.round(apart), 'px',
+              '· 손패가 물러난 거리', after.boardRows?.drop ?? 0, 'px')
   console.log('덱이 나와 있던 표본', peeked, '/', samples)
   console.log('난 소리', [...heard].filter(one => one.startsWith('card_')).join(' · '))
   console.log('덱', before.deckSize, '→', after.deckSize, '· 판을 다 걷었는가',
@@ -122,7 +135,7 @@ async function main(): Promise<number> {
   console.log('뜬 글', pops.map(one => one[0]).join(' · ') || '없음')
 
   const good = shows >= 1 && mostOut >= 1 && kinds.has('modify') && rows.size > 0
-    && turned >= 1 && staggered && pops.length > 0
+    && turned >= 1 && staggered && pops.length > 0 && apart > 0
     && peeked > 0 && heard.has('card_flip') && (after.changeCards ?? []).length === 0
     && before.deckSize === after.deckSize
   console.log(good ? '뒷면을 거쳐 한 장씩 바뀌고 그 자리에 적힙니다' : '어긋납니다')

@@ -80,7 +80,18 @@ export interface Peek {
                   /** 지금 뒷면인가. 뒤집기가 뒷면을 거치는지를 이 값으로 봅니다. */
                   back?: boolean
                   /** 얼마나 좁아져 있는가. 100 이 제 너비입니다. */
-                  squeeze?: number }[]
+                  squeeze?: number
+                  /** 지금 이 카드의 윗변. **부푼 것까지 들어간 값입니다.** */
+                  top?: number }[]
+  /**
+   * 카드 줄 셋이 지금 있는 높이.
+   *
+   * **좌표를 도구에 적어 두지 않습니다.** 손패는 판이 도는 동안 물러나 있고 바뀌는 카드의
+   * 줄은 그것을 따라갑니다.
+   */
+  boardRows?: { play: number; show: number; hand: number; drop: number
+                /** 낸 카드들의 가장 아래 변. 낸 카드가 없으면 0 입니다. */
+                playBottom: number }
   /** 지금 뒷면이 보이는 조커 딱지의 수. */
   jokersBack?: number
   /** 연출의 시계. 초입니다. */
@@ -206,6 +217,13 @@ export interface Peek {
   blankTaps?: number
   /** 판이 하나라도 떠 있는가. */
   modalUp?: boolean
+  /**
+   * 이어서 할 판이 있는가.
+   *
+   * **「이어하기」 칸이 있는지로는 갈리지 않습니다.** 그 칸은 저장된 판이 없어도 잠긴 채로
+   * 그려집니다.
+   */
+  hasSaved?: boolean
   /** 연출이 다음에 낼 박자. 소리가 비는 자리를 찾을 때 씁니다. */
   coming: string
   /** 정산 판이 떠 있는가. */
@@ -876,14 +894,17 @@ export async function dragBy(page: Page, from: { x: number; y: number },
 /**
  * 손패 한 장이 지금 그려진 자리.
  *
- * **개수마다 간격이 달라집니다.** 카드는 정해진 넓이 안에서 가운데로 모이므로 몇 번째
- * 칸의 좌표를 상수로 셈할 수 없습니다 — `game.ts` 가 재는 것과 같은 셈입니다.
+ * **화면이 알린 자리를 조회합니다.** 같은 셈을 여기에 한 번 더 적어 두고 있었고, 그 셈의
+ * 간격 상한이 100 이었습니다 — 실제 상한은 카드 너비에서 겹침을 뺀 76 이라(`handSpacing`)
+ * 여덟 장을 쥔 판에서 첫 장의 자리가 49픽셀 왼쪽이었고, 그것은 카드 밖입니다. 끌어 자리를
+ * 바꾸는 도구가 그래서 빈 곳을 잡고 「자리가 바뀌지 않는다」로 어긋나 있었습니다.
+ *
+ * `held` 는 받지만 쓰지 않습니다 — 부르는 쪽이 세어 넘기던 값이고, 자리를 아는 것은
+ * 화면입니다.
  */
-export async function handSpot(page: Page, index: number, held: number):
+export async function handSpot(page: Page, index: number, _held?: number):
     Promise<{ x: number; y: number }> {
-  const spacing = Math.min(CARD_SPACING, 720 / Math.max(1, held))
-  const startX = BOARD_X - ((held - 1) * spacing) / 2
-  return at(page, startX + index * spacing, HAND_Y)
+  return spot(page, `hand:${index}`)
 }
 
 // 화면의 자리들. `game/game.ts` 의 상수와 같아야 합니다.
@@ -892,8 +913,14 @@ export const STAGE_H = 800
 export const BOARD_X = (16 + 264 + 20 + STAGE_W) / 2
 /** 판 위에 뜨는 것들의 가운데. `game.ts` 의 `POPUP_X` 와 같습니다. */
 export const POPUP_X = STAGE_W / 2
+/**
+ * 손패 줄의 높이.
+ *
+ * **판이 도는 동안에는 이 값이 아닙니다.** 낸 카드가 있는 동안 손패는 물러나 있으므로
+ * (`CardsPart.handDrop`) 카드를 누르거나 끄는 자리는 `handSpot` 으로 조회합니다 — 이
+ * 값은 손패를 앞에 두고 고르는 화면에서만 맞습니다.
+ */
 export const HAND_Y = 608
-export const CARD_SPACING = 100
 /**
  * 조커 한 장이 지금 그려진 자리. **화면이 알린 것을 그대로 씁니다.**
  *

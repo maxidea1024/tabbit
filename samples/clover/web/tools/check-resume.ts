@@ -26,7 +26,8 @@ import { chromium } from 'playwright'
 import { createServer } from 'vite'
 
 import {
-  clickPrimary, clickSpot, closeGuide, confirmYes, dragBy, handSpot, pass, peek, pickCards,
+  clickPrimary, clickSpot, closeGuide, confirmYes, crossed, dragBy, handSpot, pass, peek,
+  pickCards,
   pressPlay, pressRunPanel, pressTitle, settle, skipLogin, startNewRun,
 } from './harness'
 
@@ -40,11 +41,21 @@ function check(name: string, good: boolean, detail = ''): void {
   console.log(`  ${good ? '✓' : '✗'} ${name}${detail ? '  —  ' + detail : ''}`)
 }
 
-/** 저장된 판이 있는가. 「이어하기」 탭이 서는 것으로 봅니다. */
+/**
+ * 저장된 판이 있는가. **화면이 아는 값을 조회합니다.**
+ *
+ * 「이어하기」 칸이 놓이는지로 재고 있었고 그 칸은 저장된 판이 없어도 잠긴 채로 그려집니다 —
+ * 게다가 누르고 700밀리초 뒤에 한 번만 조회하고 있어서 씬이 갈리기 전이었습니다. 두 가지가
+ * 겹쳐 이 함수는 늘 「없다」로 답했고, 그래서 있어야 할 자리 둘이 어긋나 있었습니다.
+ */
 async function resumeTabUp(page: import('playwright').Page): Promise<boolean> {
   await pressTitle(page, 'start')
-  await pass(page, 700)
-  const up = (await peek(page)).spots?.['run:tab:resume'] !== undefined
+  await crossed(page)
+  let up = false
+  for (let wait = 0; wait < 20 && !up; wait++) {
+    up = (await peek(page)).hasSaved === true
+    if (!up) await pass(page, 200)
+  }
   await page.keyboard.press('Escape')
   await pass(page, 500)
   return up

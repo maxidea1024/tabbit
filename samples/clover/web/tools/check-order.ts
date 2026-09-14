@@ -12,7 +12,7 @@ import { fileURLToPath } from 'url'
 import { chromium } from 'playwright'
 import { createServer } from 'vite'
 import {
-  at, BOARD_X, clickPrimary, closeGuide, dragBy, grantConsumable, grantJoker, HAND_Y,
+  clickPrimary, closeGuide, dragBy, grantConsumable, grantJoker, handSpot,
   itemSpot, jokerSpot, pass, peek, settle, skipLogin, startNewRun
 } from './harness'
 
@@ -62,12 +62,9 @@ async function main(): Promise<number> {
     if (now.length >= 8 && now.join() === before.join()) break
     before = now
   }
-  const held = before.length
-  const spacing = Math.min(100, 720 / Math.max(1, held))
-  const startX = BOARD_X - ((held - 1) * spacing) / 2
-
-  await dragBy(page, await at(page, startX, HAND_Y),
-    await at(page, startX + spacing * 3, HAND_Y))
+  // **자리는 화면이 알립니다.** 여기서 셈해 두면 그 셈이 낡고, 낡은 좌표는 카드 사이의
+  // 빈 곳을 잡습니다 — 끌어도 아무 일이 없으니 「자리가 바뀌지 않는다」로 어긋납니다.
+  await dragBy(page, await handSpot(page, 0), await handSpot(page, 3))
   await page.screenshot({ path: path.join(OUT, 'hand-order.png') })
 
   const after = (await peek(page)).handOrder
