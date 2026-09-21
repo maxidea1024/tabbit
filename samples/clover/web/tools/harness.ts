@@ -38,12 +38,16 @@ export interface Peek {
   /** 상점 몸통이 판 안에서 밀린 정도. 0 이 아니면 딱지의 자리가 그만큼 어긋납니다. */
   shopBodyY?: number
   /**
-   * 떠오른 글이 뜬 자리들. `[글, x, y, 반너비, 반높이]` 이고 뒤가 새것입니다.
+   * 떠오른 글이 뜬 자리들. `[글, x, y, 반너비, 반높이, 박자]` 이고 뒤가 새것입니다.
    *
    * 반너비·반높이는 글 뒤의 번쩍임까지 합한 것입니다 — 그것이 화면 밖으로 나가는지가
    * 판정 대상입니다.
+   *
+   * **박자의 이름이 함께 옵니다.** 자리만 알리던 동안에는 「화면 밖으로 나갔는가」만
+   * 판정할 수 있었고, 「그 값을 낸 것 위에 떴는가」는 아무 게이트도 확인하지 못했습니다.
+   * 박자 밖에서 뜬 글(사거나 파는 값)은 빈 값입니다.
    */
-  pops?: [string, number, number, number, number][]
+  pops?: [string, number, number, number, number, string][]
   /** 상점이 자리를 비켜 내려가 있어야 하는가. 팩을 뜯었거나 자리를 비우는 중입니다. */
   shopParked?: boolean
   /** 자리를 비우는 화면(줄에서 내놓을 것을 고르는 것)이 들었는가 · 든 정도. */
@@ -549,6 +553,66 @@ export async function stockPlayingCard(page: Page, cardId?: string): Promise<voi
  *
  * 어느 보스가 오는지는 시드가 정하므로, 보스가 거는 것을 확인하려면 이 자리가 필요합니다.
  */
+/**
+ * 상점을 나섭니다. **국면이 바뀔 때까지 다시 누릅니다.**
+ *
+ * 연출이 도는 중에 누르면 `act` 가 그 누름을 버리고, 버렸다는 것은 화면 어디에도 적히지
+ * 않습니다 — 도구가 그것을 「나섰다」로 보고 다음 줄로 넘어가면 그 뒤가 통째로 어긋납니다.
+ */
+export async function leaveShop(page: Page): Promise<void> {
+  for (let tries = 0; tries < 12; tries++) {
+    if ((await peek(page)).phase !== 'shop') return
+    await settle(page)
+    await clickPrimary(page)
+    await pass(page, 400)
+  }
+  throw new Error('상점을 나서지 못했습니다')
+}
+
+/**
+ * 그 보스의 블라인드를 고르는 화면까지 걸어갑니다. **국면을 보고 걷습니다.**
+ *
+ * **고르는 것은 부르는 쪽이 합니다** — 고른 다음을 재는 도구와 고르는 그 순간을 재는
+ * 도구가 갈리므로, 여기서 눌러 버리면 한쪽이 잴 것을 지나칩니다.
+ *
+ * 걸음 수를 세어 걷던 때가 있었습니다 — 이기고 · 상점을 나서고 · 고르고를 정해진 횟수만큼
+ * 부르는 것이라, 앞에서 한 걸음이 더 있거나 덜 있으면 그만큼 어긋난 자리에서 끝납니다.
+ *
+ * **하네스에 있습니다.** 보스를 세워야 확인되는 것이 보스가 거는 것 하나가 아닙니다 —
+ * 조커를 끄는 것도 보스의 일이고, 그 도구가 이 걸음을 다시 적으면 둘이 갈라집니다.
+ */
+export async function walkToBoss(page: Page, bossId: string): Promise<void> {
+  await forceBoss(page, bossId)
+  for (let step = 0; step < 16; step++) {
+    const now = await peek(page)
+    if (now.phase === 'blind-select' && now.blind === 3) return
+    // **떠 있는 판을 먼저 걷습니다.** 판이 덮여 있으면 그 아래의 자리를 화면이 알리지
+    // 않고, 누르는 쪽은 「자리를 알리지 않습니다」로 끝납니다.
+    if (now.modalUp === true) {
+      await page.keyboard.press('Escape')
+      await pass(page, 400)
+      continue
+    }
+    if (now.phase === 'shop') {
+      await leaveShop(page)
+      await pass(page, 600)
+      continue
+    }
+    if (now.phase === 'blind-select') {
+      await settle(page)
+      await clickPrimary(page)
+      await settle(page)
+      continue
+    }
+    if (now.phase === 'round') {
+      await winRound(page)
+      continue
+    }
+    await pass(page, 300)
+  }
+  throw new Error(`보스 블라인드에 닿지 못했습니다 (${bossId})`)
+}
+
 export async function forceBoss(page: Page, bossId: string): Promise<void> {
   await page.evaluate(id => {
     const hook = (window as unknown as {
@@ -581,6 +645,21 @@ export async function grantConsumableId(page: Page, id: string): Promise<void> {
     }).__clover
     hook.grantConsumableId?.(one)
   }, id)
+}
+
+/**
+ * 손패의 카드 전부에 강화 하나를 붙입니다. **개발 서버에서만 됩니다.**
+ *
+ * 손에 든 카드가 값을 내는 갈래(`Steel`)를 확인하는 자리입니다 — 시드가 그 강화를 주기를
+ * 기다리는 것은 확인하려는 것과 무관합니다.
+ */
+export async function enhanceHand(page: Page, kind: number): Promise<void> {
+  await page.evaluate(one => {
+    const hook = (window as unknown as {
+      __clover: { enhanceHand?(kind: number): void }
+    }).__clover
+    hook.enhanceHand?.(one)
+  }, kind)
 }
 
 /** 소모품을 그냥 놓습니다. **개발 서버에서만 됩니다.** */

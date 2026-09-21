@@ -4,6 +4,11 @@
 // 빌리고(`OpCopyJoker`) 하나가 꺼지는 것(`OpDisableRandomJoker`)은 상태만 바꾸고 아무것도
 // 내지 않아서, 화면이 어느새 달라져 있었습니다.
 //
+// **끄는 것은 보스의 일입니다.** 이 도구가 `snake_pit` 이라는 조커에게 그것을 시키고
+// 있었는데 그 이름은 데이터에 없습니다 — `grantJoker` 는 없는 이름에 아무것도 하지 않고
+// 아무 말도 하지 않으므로, 두 줄이 그 뒤로 내내 어긋난 채였습니다. 끄는 것은
+// `crimson_heart` 보스이고, 그 자리에 서려면 보스 블라인드까지 걸어가야 합니다.
+//
 // **소리로 재지 않습니다.** 판이 갈리는 것과 능력을 빌리는 것은 같은 소리를 내므로, 소리로
 // 재면 둘 중 어느 것이 돈 것인지 알 수 없습니다 — 화면이 실제로 그린 박자를 봅니다.
 import * as path from 'path'
@@ -11,8 +16,8 @@ import { fileURLToPath } from 'url'
 import { chromium, type Page } from 'playwright'
 import { createServer } from 'vite'
 import {
-  grantConsumableId, grantJoker, heldButton, itemSpot, openRun, pass, peek, playHand,
-  settle, skipLogin,
+  clickPrimary, grantConsumableId, grantJoker, heldButton, itemSpot, openRun, pass, peek,
+  playHand, settle, skipLogin, walkToBoss,
 } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -112,9 +117,14 @@ async function main(): Promise<number> {
   const copies = ((await peek(page)).beats ?? []).filter(one => one === 'JokerCopied').length
   check(copies === 0, `계속 빌리는 것은 박자로 나지 않습니다 (${copies}번)`)
 
-  // 3. 하나가 꺼집니다. `snake_pit` 은 패를 낼 때마다 조커 하나를 끄는 조커입니다.
-  await grantJoker(page, 'snake_pit')
-  await pass(page, 400)
+  // 3. 하나가 꺼집니다. `crimson_heart` 는 패를 낼 때마다 조커 하나를 끄는 보스입니다.
+  //
+  // **끌 것이 줄에 있어야 합니다.** 위에서 놓은 둘이 그대로 남아 있고, 보스까지 걸어가는
+  // 동안 없어지지 않습니다.
+  await walkToBoss(page, 'crimson_heart')
+  await clickPrimary(page)
+  await settle(page)
+  await pass(page, 800)
   await playHand(page)
   let dark = 0
   for (let i = 0; i < 140; i++) {

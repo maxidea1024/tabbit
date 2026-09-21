@@ -156,6 +156,7 @@ export function runRow(vm: Vm, row: EffectRow, host: EffectHost): void {
       if (host.joker) {
         vm.events.push({
           t: 'JokerFizzled',
+          uid: host.joker.uid,
           slot: host.slot ?? 0,
           jokerId: host.joker.jokerId,
           num: row.chanceNum * scale,

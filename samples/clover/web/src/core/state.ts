@@ -300,7 +300,27 @@ export type GameEvent =
   | { t: 'HandPlayed'; uids: number[] }
   | { t: 'HandEvaluated'; hand: PokerHandKind; level: number; chips: number; mult: number; cards: number[] }
   | { t: 'CardScored'; uid: number; op: string; chips: number; mult: number; money: number; source: string }
-  | { t: 'JokerTriggered'; slot: number; jokerId: string; op: string; chips: number; mult: number; money: number }
+  | {
+    t: 'JokerTriggered'
+    /**
+     * 그 딱지를 가리키는 것. **자리 번호가 아닙니다.**
+     *
+     * 화면이 자리 번호로 딱지를 찾던 동안에는 그 번호가 **액션이 다 끝난 뒤의 줄**을
+     * 가리켰습니다 — 같은 핸드에서 조커 하나가 없어지면(`OnScoreResolved` 의
+     * 자기 파괴가 그렇습니다) 그 뒤 자리가 한 칸씩 당겨져, 앞서 발동한 조커의 흔들림과
+     * 숫자가 옆 딱지 위에서 일어났습니다.
+     */
+    uid: number
+    /** 자리 번호. **화면이 쓰지 않습니다** — 한 판에서 무엇이 발동했는지를 묶는 쪽의 것입니다. */
+    slot: number
+    jokerId: string
+    /** 값을 낸 것이 조커의 무엇인가. `'counter'` · `'effect'` · `'edition'` 셋입니다. */
+    source: string
+    op: string
+    chips: number
+    mult: number
+    money: number
+  }
   | {
     t: 'RunTriggered'
     owner: string
@@ -316,7 +336,7 @@ export type GameEvent =
     mult: number
     money: number
   }
-  | { t: 'JokerFizzled'; slot: number; jokerId: string; num: number; den: number }
+  | { t: 'JokerFizzled'; uid: number; slot: number; jokerId: string; num: number; den: number }
   | { t: 'Retriggered'; uid: number; times: number }
   | { t: 'ChipsMultChanged'; chips: number; mult: number }
   | { t: 'ScoreResolved'; score: number; target: number }
