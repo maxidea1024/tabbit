@@ -168,8 +168,12 @@ jobs:
       # SwiftPM with swift-crypto - the corpus is signed and verifying a MAC needs
       # HMAC-SHA-256 - and a second gate type-checks the same output with no package at
       # all, which is the state a consumer who adds nothing gets.
+      # **v2 에 머뭅니다.** v3 는 리눅스에서도 서명 검증에 걸립니다 - 공개키를 들여오지
+      # 않은 채 `gpg --verify` 를 돌려 `Can't check signature: No public key` 로
+      # 끝납니다(swift-actions/setup-swift#798, 아래 윈도우 쪽 주석과 같은 결함입니다).
+      # dependabot 이 v3 를 올리면 이 한 줄만 되돌립니다.
       - name: Setup Swift
-        uses: swift-actions/setup-swift@v3
+        uses: swift-actions/setup-swift@v2
         with:
           swift-version: '6.1'
 
