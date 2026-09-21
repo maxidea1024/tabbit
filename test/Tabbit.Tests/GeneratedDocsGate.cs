@@ -98,6 +98,79 @@ public class GeneratedDocsGate
     /// longer write is a leftover, and deleting one is not what this gate is for. What it has
     /// to catch is a committed file that no longer matches what the sources say.
     /// </remarks>
+    /// <summary>
+    /// What the first difference is, for the failure message.
+    /// </summary>
+    /// <remarks>
+    /// `differs` alone sends the reader to a machine they may not have. These files are
+    /// generated from the same sources on every platform, so a difference that shows up on one
+    /// of them is the interesting kind - and the first differing line is what names it. Line
+    /// endings get their own sentence because a file that differs only there reads as identical
+    /// in every diff viewer, which is how such a difference survives a review.
+    /// </remarks>
+    private static string Difference(byte[] fresh, byte[] kept)
+    {
+        var nl = new System.Text.StringBuilder();
+
+        int freshCrlf = Count(fresh, 13, 10);
+        int keptCrlf = Count(kept, 13, 10);
+        if (freshCrlf != keptCrlf)
+            nl.Append($" - CRLF {freshCrlf} produced vs {keptCrlf} committed");
+
+        string a = Text(fresh);
+        string b = Text(kept);
+        if (a == null || b == null)
+            return $"{nl} - {fresh.Length} bytes produced vs {kept.Length} committed";
+
+        var produced = a.Split('\n');
+        var committed = b.Split('\n');
+
+        int line = 0;
+        while (line < produced.Length && line < committed.Length
+               && produced[line] == committed[line])
+            line++;
+
+        string one = line < committed.Length ? Clip(committed[line]) : "<end of file>";
+        string two = line < produced.Length ? Clip(produced[line]) : "<end of file>";
+
+        return $"{nl}{Environment.NewLine}      line {line + 1}"
+             + $"{Environment.NewLine}        committed: {one}"
+             + $"{Environment.NewLine}        produced:  {two}";
+    }
+
+    private static int Count(byte[] bytes, byte first, byte second)
+    {
+        int found = 0;
+        for (int i = 0; i + 1 < bytes.Length; i++)
+            if (bytes[i] == first && bytes[i + 1] == second)
+                found++;
+        return found;
+    }
+
+    /// <summary>The bytes as text, or null when they are not text at all.</summary>
+    private static string Text(byte[] bytes)
+    {
+        if (Array.IndexOf(bytes, (byte)0) >= 0)
+            return null;
+
+        try
+        {
+            return new System.Text.UTF8Encoding(false, throwOnInvalidBytes: true)
+                   .GetString(bytes);
+        }
+        catch (ArgumentException)
+        {
+            return null;
+        }
+    }
+
+    /// <summary>A long generated line would bury the rest of the report.</summary>
+    private static string Clip(string line)
+    {
+        line = line.TrimEnd('\r');
+        return line.Length <= 160 ? line : line.Substring(0, 160) + " ...";
+    }
+
     private static void Compare(
         string fresh, string committed, string label, List<string> stale, string only = null)
     {
@@ -119,8 +192,11 @@ public class GeneratedDocsGate
             // Byte for byte. The generators write LF and UTF-8 without a mark, so a file that
             // differs only in line endings is a file somebody edited by hand in an editor that
             // rewrote them - which is exactly the edit this gate is asking about.
-            if (!File.ReadAllBytes(produced).SequenceEqual(File.ReadAllBytes(beside)))
-                stale.Add($"  {shown} - differs");
+            byte[] fresh_ = File.ReadAllBytes(produced);
+            byte[] kept = File.ReadAllBytes(beside);
+
+            if (!fresh_.SequenceEqual(kept))
+                stale.Add($"  {shown} - differs{Difference(fresh_, kept)}");
         }
     }
 }
