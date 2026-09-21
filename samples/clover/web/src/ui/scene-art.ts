@@ -7,9 +7,9 @@
 // **판 밖의 셰이더는 건드리지 않습니다.** 그것은 판이 도는 동안 쓰는 것이므로, 이 그림은
 // 두 씬의 통 맨 아래에 깔아 그 위를 덮습니다.
 //
-// 그림의 규격은 [리브랜딩 계획](../../../../notes/hypephoria-rebrand-plan.md) 의 「배경
-// 그림의 규격」에 있습니다 — 왼쪽 위는 로고 자리로 비어 있고, 오른쪽 3분의 1은 단추가
-// 세로로 내려오는 자리이므로 넓고 어둡습니다.
+// 그림의 규격은 design-data/art/ui/title-bg-prompt.md 에 있습니다. 왼쪽 위는 로고가
+// 읽히도록 대비를 낮추고, 오른쪽 위에는 트럼프와 조커 카드가 이어집니다. 가운데 아래의
+// 큰 메뉴 판 셋을 피해 주제가 드러나도록 구성합니다.
 
 import { Assets, Container, Sprite, Texture } from 'pixi.js'
 
@@ -75,8 +75,8 @@ export function sceneArtReady(): boolean {
 /**
  * 화면을 덮는 배경 스프라이트. 없으면 `undefined` 입니다.
  *
- * **넓이에 맞추고 남는 세로를 가운데에서 자릅니다.** 그림이 화면과 같은 비율(16 대 10)로
- * 구워져 있으므로 실제로는 잘리지 않지만, 화면 크기가 바뀌어도 여백이 생기지 않습니다.
+ * **화면을 채우고 남는 부분을 가운데에서 자릅니다.** 그림은 화면과 거의 같은 16 대 10
+ * 비율이며, 원화의 몇 픽셀 차이나 화면 크기가 바뀌어도 여백이 생기지 않습니다.
  */
 export function sceneArt(dim = 1): Container | undefined {
   if (ready === undefined) return undefined

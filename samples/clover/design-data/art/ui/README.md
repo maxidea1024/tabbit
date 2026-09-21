@@ -6,6 +6,9 @@
 - `hud-shell-source.png`, `blind-badge-source.png`: 플레이 화면 왼쪽 HUD 전용 외피
 - `title-*-source.png`: 타이틀의 시작·콜렉션·리더보드 전용 삽화
 
+타이틀·로그인 공용 배경은 별도 생성한 `web/public/ui/title-bg.webp` 입니다.
+생성 프롬프트와 원본 위치는 [title-bg-prompt.md](title-bg-prompt.md)에 기록합니다.
+
 고정 UI와 그림 자리는 이 원화에서 냅니다. 개발 중 원화가 비었다고 선·줄무늬·막대 같은
 도형을 최종 화면에 대신 두지 않습니다. 마젠타 배경 원화와 실제 알파 원화는 모두 굽기 도구가
 투명 PNG로 정규화합니다.
