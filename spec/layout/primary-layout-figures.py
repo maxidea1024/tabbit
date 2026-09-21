@@ -217,7 +217,12 @@ def build(name, rows, notes=None, title=None, errors=None):
 
     p.append("</svg>")
     path = os.path.join(OUT_DIR, f"{name}.svg")
-    with open(path, "w", encoding="utf-8") as f:
+    # `newline` 을 적지 않으면 윈도우에서 파이썬이 줄바꿈을 CRLF 로 바꿔 씁니다. 커밋된
+    # 그림은 LF 로 못박혀 있으므로(`.gitattributes`), 그대로 두면 새로 클론한 윈도우에서만
+    # 그림 22장이 전부 커밋본과 어긋납니다 - `GeneratedDocsGate` 가 바이트로 견주기
+    # 때문입니다. 한 번이라도 이 스크립트를 돌린 작업 트리는 CRLF 그림을 들고 있어
+    # 통과하므로, 사람이 있는 기계에서는 드러나지 않습니다.
+    with open(path, "w", encoding="utf-8", newline="\n") as f:
         f.write("\n".join(p))
     print(path)
 
