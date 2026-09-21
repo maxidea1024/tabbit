@@ -79,7 +79,7 @@ contrast 를 올리고 color value 를 밀어 올린다 · **shape language 를 
 표제는 Tungsten(Hoefler&Co), 본문과 라벨은 DIN Next(Monotype)로 알려져 있고, 이 기록의 그림도
 그 둘과 모양이 같습니다 — 사이트가 글꼴 이름을 밝힌 것은 아니어서 **모양으로 확인한 것**입니다.
 둘 다 상업 라이선스이므로 이 게임에는 그대로 쓸 수 없고, 대체 후보는
-[디자인 언어](../language.md#글꼴)에 있습니다.
+[디자인 언어](../language.md#4-글꼴--물마루-ofl)에 있습니다.
 
 ## 그림의 자리
 

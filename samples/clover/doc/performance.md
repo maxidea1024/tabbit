@@ -127,7 +127,6 @@
 |낱말마다 `new TextStyle` 과 누적 문자열 재측정|모습마다 `TextStyle` 하나를 `WeakMap` 에 두고, 조각의 너비를 더해 갑니다|`ui/rich.ts`|
 |휠 한 칸마다 `content.height` 로 자식 전부의 경계 세기|내용이 바뀌는 길(`refresh` · `toTop` · `reveal`)에서만 재고 굴릴 때는 그 값을 씁니다|`ui/scroll.ts` `setOffset`|
 |같은 글을 다시 적어 단추 글자를 최대 6번 다시 굽기|같은 글이면 돌아갑니다|`ui/widgets.ts` `Button.text`|
-|쪽을 넘길 때마다 500행을 두 번 정렬|기준이 같으면 세워 둔 줄을 씁니다. 말이 바뀌면 비웁니다|`ui/joker-pool.ts` `rows`|
 |전체화면 블러 2개를 렌더러 해상도로|`resolution: 0.5`. 흐린 그림은 해상도를 낮춰도 흐린 그림이고 텍셀이 4분의 1입니다. 반지름은 텍셀 단위라 반으로 적었습니다|`game/show.ts` `blur` · `blurBack`|
 |상점 칸마다 조커 500행을 다시 거르기|풀·챌린지·희귀도로 한 번 거른 것을 데이터별로 둡니다|`core/pool.ts` `jokerPool`|
 |부분집합 2ⁿ 개를 전부 배열로 만들고 나서 5장 넘는 것을 버리기|비트 수를 먼저 세어 만들지 않습니다. `refresh` 마다 도는 힌트는 패가 같으면 다시 세지 않고 `act` 가 비웁니다|`core/suggest.ts` · `game/input.ts` `updateHints`|
