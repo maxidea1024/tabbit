@@ -190,8 +190,9 @@ let package = Package(
 **윈도우는 먼저 두 가지가 있어야 합니다.**
 
 1. **Visual Studio의 C++ 도구** — Swift가 MSVC의 링커와 헤더를 씁니다.
-2. **Windows SDK.** 여기서 한 번 걸립니다 — Swift의 `ucrt.modulemap`이 `stdnoreturn.h`를
-   참조하므로, 그 헤더가 없는 부분 설치 SDK에서는 **`import Foundation`이 빌드되지 않습니다.**
+2. **Windows SDK.** 여기서 한 번 걸립니다 — Swift의 `ucrt.modulemap`이 C11 헤더
+   `stdnoreturn.h`와 `stdalign.h`를 참조하는데, 그 둘은 **Windows SDK 10.0.20348부터**
+   UCRT에 들어왔습니다. 그보다 옛 SDK만 있으면 **`import Foundation`이 빌드되지 않습니다.**
    증상은 Swift와 무관해 보이는 다음 오류입니다.
 
    ```
@@ -199,12 +200,22 @@ let package = Package(
    <unknown>:0: error: could not build C module 'SwiftOverlayShims'
    ```
 
+   **Swift를 다시 깔아도 낫지 않습니다** — 모자란 것은 Swift가 아니라 SDK입니다. 새 SDK를
+   더하면 되고 옛 것을 지울 필요는 없습니다. winget 한 줄이거나,
+
+   ```
+   winget install --id Microsoft.WindowsSDK.10.0.22621 --source winget
+   ```
+
    Visual Studio Installer의 **개별 구성 요소 ▸ SDK, 라이브러리 및 프레임워크**에서
-   `Windows 11 SDK (10.0.22621.0)`을 설치하면 해결됩니다. 확인은 이렇게 합니다.
+   `Windows 11 SDK (10.0.22621.0)`입니다. 확인은 이렇게 합니다.
 
    ```
    dir "C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\ucrt\stdnoreturn.h"
    ```
+
+   2026-09-21에 이 기계가 정확히 그 자리에 걸렸습니다 — Swift 6.3.3이 깔려 PATH에도
+   있는데 SDK가 10.0.19041뿐이라 Swift 게이트 21개가 전부 이 오류로 끝났습니다.
 
 설치 직후에는 **셸을 다시 여세요.** 인스톨러가 `PATH`와 `SDKROOT`를 사용자 환경에 넣는데, 먼저
 열려 있던 셸은 그것을 물려받지 못합니다.

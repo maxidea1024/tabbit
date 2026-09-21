@@ -12,8 +12,8 @@
 |--|--|--|
 |[Sylvan.Data.Excel](https://github.com/MarkPflug/Sylvan)|0.5.8|**엑셀 워크북을 스트리밍으로** 읽습니다. 시트를 행 단위로 흘려 읽으므로 워크북을 객체 모델로 펼치지 않습니다 ([설계와 실측](../spec/import/streaming-workbook-reader.md))|
 |[Google.Apis.Sheets.v4](https://github.com/googleapis/google-api-dotnet-client)|1.75.0.4178|구글 스프레드시트를 읽습니다|
-|[Scriban](https://github.com/scriban/scriban)|7.2.6|코드 생성 템플릿 엔진. `src/templates/*.sbn`이 모든 언어의 산출물을 만듭니다|
-|[Microsoft.CodeAnalysis.CSharp](https://github.com/dotnet/roslyn)|5.6.0|검증 규칙 `.cs` 파일을 변환 중에 컴파일합니다. `"Output": "assembly"`의 C# 어셈블리 산출도 여기서 나옵니다 ([검증](validation.md))|
+|[Scriban](https://github.com/scriban/scriban)|7.4.0|코드 생성 템플릿 엔진. `src/templates/*.sbn`이 모든 언어의 산출물을 만듭니다|
+|[Microsoft.CodeAnalysis.CSharp](https://github.com/dotnet/roslyn)|5.9.0|검증 규칙 `.cs` 파일을 변환 중에 컴파일합니다. `"Output": "assembly"`의 C# 어셈블리 산출도 여기서 나옵니다 ([검증](validation.md))|
 |[Newtonsoft.Json](https://www.newtonsoft.com/json)|13.0.4|recipe 파싱과 JSON 익스포트|
 |[CommandLineParser](https://github.com/commandlineparser/commandline)|2.9.1|명령줄 옵션|
 |[Serilog](https://serilog.net/)|4.4.0|로그. 싱크는 `Serilog.Sinks.Console` 6.1.1 · `Serilog.Sinks.File` 7.0.0|
@@ -24,10 +24,10 @@
 
 |패키지|버전|대상|
 |--|--|--|
-|[MySqlConnector](https://github.com/mysql-net/MySqlConnector)|2.6.1|MySQL — 히스토리 저장소도 같은 드라이버입니다|
+|[MySqlConnector](https://github.com/mysql-net/MySqlConnector)|2.6.2|MySQL — 히스토리 저장소도 같은 드라이버입니다|
 |[Npgsql](https://github.com/npgsql/npgsql)|10.0.3|PostgreSQL|
-|[MongoDB.Driver](https://github.com/mongodb/mongo-csharp-driver)|3.10.0|MongoDB|
-|[StackExchange.Redis](https://github.com/StackExchange/StackExchange.Redis)|3.0.17|Redis|
+|[MongoDB.Driver](https://github.com/mongodb/mongo-csharp-driver)|3.11.2|MongoDB|
+|[StackExchange.Redis](https://github.com/StackExchange/StackExchange.Redis)|3.2.1|Redis|
 
 ## 계약 어셈블리 — `src/Contract`
 
@@ -68,8 +68,8 @@
 |--|--|--|
 |[NPOI](https://github.com/nissl-lab/npoi)|2.8.0|`.xlsx`를 **씁니다** — `test/fixtures/tools/FixtureGen`과 샘플의 생성기들. 변환기는 더 이상 NPOI로 읽지 않습니다|
 |[SkiaSharp](https://github.com/mono/SkiaSharp)|3.119.2|NPOI의 스트리밍 작성기가 컬럼 폭을 재는 경로에서 요구합니다. 샘플 생성기는 시트 하나가 여섯 자리 행이라 그 작성기를 씁니다|
-|xunit|2.9.2|테스트. 러너는 `xunit.runner.visualstudio` 2.8.2, 호스트는 `Microsoft.NET.Test.Sdk` 17.11.1|
-|System.Security.Cryptography.Xml|10.0.10|테스트와 픽스처 도구, 그리고 샘플 생성기. NPOI 자신의 의존이 가리키는 버전에 남은 권고를 지나쳐 고정한 것입니다|
+|xunit|2.9.3|테스트. 러너는 `xunit.runner.visualstudio` 4.0.0, 호스트는 `Microsoft.NET.Test.Sdk` 18.10.1|
+|System.Security.Cryptography.Xml|10.0.12|테스트와 픽스처 도구, 그리고 샘플 생성기. NPOI 자신의 의존이 가리키는 버전에 남은 권고를 지나쳐 고정한 것입니다|
 
 ---
 

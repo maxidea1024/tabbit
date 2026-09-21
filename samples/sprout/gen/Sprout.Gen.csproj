@@ -16,7 +16,7 @@
     <!-- The streaming writer measures column widths, and that path needs Skia present. -->
     <PackageReference Include="SkiaSharp" Version="3.119.2" />
     <!-- Pinned past the advisories NPOI's own dependency still points at. -->
-    <PackageReference Include="System.Security.Cryptography.Xml" Version="10.0.10" />
+    <PackageReference Include="System.Security.Cryptography.Xml" Version="10.0.12" />
   </ItemGroup>
 
 </Project>
