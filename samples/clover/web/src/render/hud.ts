@@ -676,6 +676,16 @@ export class Slot extends Container {
    */
   private lifted = 0
 
+  /**
+   * 이 칸이 방금 값을 받았는가. **`emphasize` 가 읽고 지웁니다.**
+   *
+   * **시간으로 가르지 않습니다.** 「값이 바뀐 뒤로 남은 것」(`pop`)으로 가르던 동안에는
+   * 그것이 0.26초에 잦아드는데 박자가 배속에 따라 0.12~0.48초 간격이라, 배속을 올리면
+   * 앞 박자에서 오른 칸이 이번 박자에도 오른 것으로 셈해졌습니다 — 값을 받은 그 자리에서
+   * 세우고 부르는 자리에서 지우면 어느 배속에서나 한 박자에 한 번입니다.
+   */
+  private tookValue = false
+
   reset(value: number): void {
     this.numeric = true
     this.shown = value
@@ -684,6 +694,7 @@ export class Slot extends Container {
     this.muted = 0
     this.surged = 0
     this.lifted = 0
+    this.tookValue = false
     this.value.alpha = 1
     this.redraw()
   }
@@ -701,6 +712,7 @@ export class Slot extends Container {
       if (!quiet) {
         this.pop = Math.min(1, Math.abs(value - this.shown) / 400 + 0.35)
         this.ripple()
+        this.tookValue = true
       }
       // **더해질 때만 얹습니다.** 판이 끝나 0 으로 되돌아가는 것은 알릴 일이 아닙니다.
       //
@@ -849,9 +861,16 @@ export class Slot extends Container {
    * **크기를 여기서 정하지 않고 얹기만 합니다.** 여기서 `scale` 을 그대로 앉히면 그 크기가
    * 다음에 부를 때까지 그대로 남아 있고, 박자가 끊긴 자리에서 커진 채로 멈췄다가 한 프레임에
    * 제 크기로 돌아옵니다 — 잦아드는 것은 `advance` 가 시간으로 합니다.
+   *
+   * **값을 받은 칸만 커집니다.** 부르는 쪽은 박자마다 두 칸에 거는데, 되돌아가는 조건이
+   * 「값이 방금 바뀌었으면」으로 뒤집혀 있었습니다 — 그동안 조커가 배수를 곱하면 배수 칸은
+   * 제 크기에 가깝고 가만히 있는 칩 칸이 1.6배로 커졌고, 아무 값도 바뀌지 않는
+   * `JokerFizzled` 에서는 두 칸이 함께 커져 아무 일도 없던 박자가 왼쪽 판에서 가장 큰
+   * 반응을 냈습니다.
    */
   emphasize(scale: number): void {
-    if (this.pop > 0) return
+    if (!this.tookValue) return
+    this.tookValue = false
     // **줄어드는 값은 강조하지 않습니다.** 부르는 쪽은 박자마다 부르므로 방향을 모릅니다.
     if (this.quietOnDrop && this.wanted < this.shown) return
     this.lifted = Math.max(this.lifted, scale - 1)

@@ -1063,8 +1063,14 @@ function report(vm: Vm, row: EffectRow, host: EffectHost, op: string,
     host.kind === 'joker' && host.joker !== undefined
       ? {
         t: 'JokerTriggered',
+        uid: host.joker.uid,
         slot: host.slot ?? 0,
         jokerId: host.joker.jokerId,
+        // **조커가 낸 값도 무엇이 낸 것인지를 함께 담습니다.** 누적값과 에디션과 효과가 같은
+        // 자리에서 같은 색으로 잇달아 뜨던 동안, 딱지 하나가 세 번 발동한 것으로
+        // 보였습니다. 조커 아닌 표에서 온 행이 조커에 얹히는 자리가 있으므로 그때는
+        // 그 표의 이름을 그대로 둡니다.
+        source: row.source === 'joker' ? 'effect' : row.source,
         op, chips, mult, money,
       }
       : host.kind === 'card'

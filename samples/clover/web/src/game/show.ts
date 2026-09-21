@@ -137,10 +137,15 @@ export class ShowPart {
   readonly haptics = new Haptics()
 
   /**
-   * 날아가는 칩.
+   * 한 방 먹었을 때의 색수차.
    *
-   * **칩이 숫자로만 오르면 무엇이 얼마를 낸 것인지 남지 않습니다.** 카드가 낸 칩은 그
-   * 카드에서 칩 칸으로 날아가고, 액면마다 색이 다르므로 개수와 색이 곧 얼마인지입니다.
+   * **큰 값이 들어오는 순간 화면의 빨강과 파랑이 어긋났다가 돌아옵니다.** 흔들림만으로는
+   * 「크다」가 덜 읽히고, 이것이 붙으면 한 방이 됩니다. 세기의 상한은 `ChromaticMaxPx`
+   * 이므로 데이터입니다.
+   *
+   * 이 자리의 설명이 「날아가는 칩」이던 동안이 있었습니다 — 그 연출은 걷어냈는데
+   * 설명만 남아 있었고, 옆 칸의 필터를 가리키는 글이라 읽는 사람이 없는 기능을 찾게
+   * 됩니다.
    */
   readonly punch = new PunchFilter(SIZE.width, SIZE.height)
 
@@ -237,6 +242,14 @@ export class ShowPart {
   chain = 0
 
   /**
+   * 이번 득점에서 조커가 몇 번째로 발동하는가. **`chain` 과 따로 셉니다.**
+   *
+   * 한 판의 차례가 「카드 · 조커」이므로 첫 조커에서 `chain` 은 이미 다섯을 넘어 있습니다 —
+   * 그것으로 오르막을 셈하면 조커 줄은 첫 장부터 꼭대기이고, 그러면 오르막이 없습니다.
+   */
+  jokerChain = 0
+
+  /**
    * 이번 득점에서 소리가 오른 칸 수. **`chain` 과 따로 셉니다.**
    *
    * 사건 수를 그대로 음높이로 쓰던 것을 나눴습니다 — 큰 사건은 두 칸을 오르고 작은 것은
@@ -267,6 +280,13 @@ export class ShowPart {
 
   /** 떠오르는 글자들. `popAt` 이 만들고 고정 단계가 올립니다. */
   private readonly risers: Riser[] = []
+
+  /**
+   * 지금 그리는 중인 박자의 이름. **떠오른 글이 이것을 달고 남습니다.**
+   *
+   * 박자 밖에서 띄우는 글(사거나 파는 것 · 미뤄 둔 것)은 빈 값입니다.
+   */
+  private popWhen = ''
 
   /** 배경이 지금 그리고 있는 열기. 목표로 천천히 따라갑니다. */
   heatShown = 0.1
@@ -461,6 +481,9 @@ export class ShowPart {
     const event = beat.event
     // **그린 것만 적습니다.** 코어가 낸 이벤트가 아니라 화면이 실제로 그린 박자입니다.
     this.beatLog.push(event.t)
+    // 이 박자가 띄우는 글들이 이 이름을 달고 남습니다. 도구가 「무엇의 값이 어디에 떴는가」를
+    // 판정하는 자리입니다.
+    this.popWhen = event.t
     if (this.beatLog.length > 40) this.beatLog.shift()
     const semitones = semitonesOf(beat.intensity, this.game.feel)
     const dust = particlesOf(beat.intensity, this.game.feel)
@@ -528,6 +551,8 @@ export class ShowPart {
 
       case 'CardScored': {
         const view = this.game.cards.viewOf(event.uid)
+        // **판에 올라간 카드인가, 손에 든 카드인가.** 값이 뜨는 높이가 여기서 갈립니다.
+        const onBoard = view !== undefined && this.game.cards.playedViews.includes(view)
         // 카드가 차례로 득점할수록 세집니다. **뒤로 갈수록 커지는 것이 기대를 만듭니다.**
         const step = Math.min(1, this.chain / 5)
         const mul = event.op === 'MulMult'
@@ -540,10 +565,16 @@ export class ShowPart {
           view.pop(0.5 + beat.intensity * 0.4 + step * 0.25 + (mul ? 0.35 : 0))
           view.shine(rgbOf(tint), 1)
         }
-        // **다섯 장이 한 높이에서 뜁니다.** 낸 카드는 부챗살로 놓여 저마다 높이가 다르고,
-        // 카드마다 그 높이에서 띄우면 오른쪽으로 갈수록 글이 아래에서 나옵니다 — 값이
-        // 차례로 오르는 것을 읽는 자리이므로 그 줄이 흔들리면 안 됩니다.
-        this.popAt(view && { x: view.x, y: PLAY_Y - RISER_ON_CARD },
+        // **낸 다섯 장이 한 높이에서 뜁니다.** 낸 카드는 부챗살로 놓여 저마다 높이가
+        // 다르고, 카드마다 그 높이에서 띄우면 오른쪽으로 갈수록 글이 아래에서 나옵니다 —
+        // 값이 차례로 오르는 것을 읽는 자리이므로 그 줄이 흔들리면 안 됩니다.
+        //
+        // **손에 든 카드는 그 카드 위입니다.** 낸 카드 줄의 높이를 모든 `CardScored` 에
+        // 쓰던 동안, `Steel` 이 손에서 낸 배수는 그 카드에서 340픽셀 위 — 낸 카드 줄 —
+        // 에 떴습니다. 빛은 손패 줄에서 돌고 숫자는 판 가운데에 떠서, 그 값을 낸 것이
+        // 낸 카드 중 하나로 읽혔습니다. 손에 쥔 것이 값을 낸다는 것을 배울 자리가
+        // 화면에 없었습니다.
+        this.popAt(view && { x: view.x, y: (onBoard ? PLAY_Y : view.y) - RISER_ON_CARD },
           valueText(event.op, event.chips, event.mult, event.money),
           tint, beat.intensity + step * 0.4 + (mul ? 0.5 : 0), true)
         // 랭크의 칩과 강화·인장·에디션이 낸 것은 소리가 달라야 갈립니다.
@@ -575,7 +606,10 @@ export class ShowPart {
       }
 
       case 'JokerTriggered': {
-        const view = this.game.cards.jokers.get(this.game.cards.jokerUidAt(event.slot))
+        // **그 딱지를 가리키는 것으로 찾습니다.** 자리 번호로 찾던 동안에는 그 번호가
+        // 액션이 다 끝난 뒤의 줄을 가리켰고, 같은 핸드에서 조커 하나가 없어지면 그 뒤
+        // 자리가 한 칸씩 당겨져 앞서 발동한 조커의 숫자가 옆 딱지 위에서 떴습니다.
+        const view = this.game.cards.jokers.get(event.uid)
         // **값을 낸 것과 무언가를 한 것이 갈립니다.** 값이 아닌 것은 사슬에 얹지 않습니다 —
         // 사슬은 값이 오르는 가락이고, 카드를 만드는 것은 그 가락의 한 음이 아닙니다.
         if (!VALUE_OPS.has(event.op)) {
@@ -593,12 +627,34 @@ export class ShowPart {
           : money ? UI.money
             : mul || event.chips === 0 ? UI.mult : UI.chips
 
+        // **조커 줄도 뒤로 갈수록 세집니다.** 카드에만 있던 것입니다 — 한 판의 차례가
+        // 「카드 다섯 · 조커 다섯」이라, 점수가 가장 크게 오르는 뒷부분이 화면에서도
+        // 소리에서도 가장 약했습니다.
+        //
+        // **카드와 같은 계수기를 쓰지 않습니다.** `chain` 은 카드까지 세므로 첫 조커에서
+        // 이미 5를 넘어 있고, 그것으로 오르막을 셈하면 첫 조커부터 꼭대기입니다.
+        const step = Math.min(1, this.jokerChain / 4)
+        this.jokerChain++
         this.chain++
+
+        // **한 딱지가 셋을 잇달아 냅니다** — 누적값 · 효과 · 에디션. 셋이 같은 자리에서
+        // 같은 몸짓으로 뜨던 동안에는 그 딱지가 세 번 발동한 것으로 보였습니다. 가르는
+        // 것은 몸짓입니다 — 색은 칩인지 배수인지 돈인지를 나타내므로 여기에 쓸 수 없습니다.
+        const fromEdition = event.source === 'edition'
+        const fromCounter = event.source === 'counter'
+        // **누적값이 오르는 것은 얼굴의 숫자가 바뀌는 것입니다.** `act` 가 그 딱지를
+        // 이전 모습으로 붙들어 두었고, 여기서 놓아 그 숫자가 이 박자에 바뀝니다 —
+        // 「늘었습니다」라는 글보다 그 숫자가 먼저 읽힙니다.
+        if (grow && this.game.cards.pendingJokers.delete(event.uid)) this.game.refresh()
         // **조각을 터뜨리지 않습니다.** 조커는 한 판에 열 번도 발동하고, 그때마다 조각이
         // 터지면 화면이 시끄러워집니다 — 좌우로 흔들리는 것 하나로 충분합니다.
-        if (view) view.pop(mul ? 1.6 : 1.1)
+        if (view) {
+          view.pop((mul ? 1.6 : 1.1) * (fromCounter ? 0.7 : 1) + step * 0.3)
+          // 에디션이 낸 것은 딱지에 붙은 무늬가 낸 것이므로 무늬가 번쩍입니다.
+          if (fromEdition) view.flash(0.9)
+        }
         this.popAt(view && { x: view.x, y: view.y - RISER_ON_CARD }, text, tint,
-          beat.intensity + (mul ? 0.6 : 0.2), true)
+          beat.intensity + (mul ? 0.6 : 0.2) + step * 0.3, true)
         const side = this.panOf(view?.x)
         const rise = this.stepUp(beat.intensity + (mul ? 0.6 : 0))
         this.game.audio.play(cue, rise, side)
@@ -606,22 +662,32 @@ export class ShowPart {
         // 남지 않습니다 — 음색은 조커마다 고정이라, 같은 조커가 두 번 발동하면 같은
         // 악기로 두 번 냅니다.
         //
-        // 이어질수록 잦아듭니다. 한 판에 열 번 발동하는 것이라, 매번 같은 크기로 나면
-        // 조커가 카드의 득점 소리를 덮습니다.
-        if (view) {
-          this.game.audio.jokerVoice(view.uid, rise, Math.max(0.45, 1 - this.chain * 0.07), side)
+        // **에디션이 낸 것은 그 악기를 내지 않습니다.** 딱지의 효과가 아니라 붙은 무늬가
+        // 낸 것이고, 그 자리는 번쩍임과 유리 소리가 가리킵니다 — 같은 악기로 세 번 나면
+        // 셋이 다시 한 소리가 됩니다.
+        //
+        // 이어질수록 조금씩 잦아듭니다. **조커 줄에서만 셉니다** — 카드까지 세던 동안에는
+        // 첫 조커가 이미 0.65 였고 셋째부터는 늘 바닥이라, 오르는 판의 끝이 가장 작게
+        // 들렸습니다.
+        if (view && !fromEdition) {
+          this.game.audio.jokerVoice(view.uid, rise,
+            Math.max(0.6, 1 - this.jokerChain * 0.05), side)
         }
+        if (fromEdition) this.game.audio.tone('glass', rise, 0.5 + beat.intensity * 0.3, side)
 
         // **배수를 곱하는 것이 이 게임에서 가장 큰 사건입니다.** 그 하나만 크게 다룹니다.
         if (mul) {
-          this.jolt(12 + beat.intensity * 10, 2 + beat.intensity * 2, 0.62)
+          this.jolt(12 + beat.intensity * 10 + step * 4, 2 + beat.intensity * 2, 0.62)
           this.flashScreen(UI.mult, 0.2 + beat.intensity * 0.16)
           this.flashPanel(UI.mult, 1)
-          this.stop(120)
+          // **시트의 값입니다.** `Const_Feel` 의 `HitStopMs` 가 「배수를 곱할 때 연출의
+          // 시계가 멈추는 길이」인데 아무도 읽지 않았고, 이 자리에 같은 수가 손으로
+          // 적혀 있었습니다 — 시트에서 고쳐도 화면이 달라지지 않는 칸이었습니다.
+          this.stop(this.game.feel.hitStopMs)
         } else {
-          this.jolt(5 + beat.intensity * 6, 0.8 + beat.intensity, 0.24)
-          this.flashPanel(tint, 0.6)
-          this.stop(48)
+          this.jolt(5 + beat.intensity * 6 + step * 3, 0.8 + beat.intensity, 0.24)
+          this.flashPanel(tint, 0.6 + step * 0.3)
+          this.stop(48 + step * 22)
         }
 
         // 동전은 뒤따르는 `MoneyChanged` 가 이 자리에서 날립니다. `CardScored` 와 같습니다.
@@ -663,11 +729,26 @@ export class ShowPart {
         break
       }
 
+      // 확률이 빗나갔습니다.
+      //
+      // **실패도 보여야 합니다.** 1/4 조커가 발동하지 않은 것을 보이지 않으면 그 조커가
+      // 무엇을 하는지 배우지 못합니다. 그런데 이 박자는 조커 하나와 같은 0.48초를 쓰면서
+      // 회색 분수 하나만 띄웠고 — 딱지는 움직이지 않고 판도 번쩍이지 않고 사슬에도 얹히지
+      // 않아서 — 앞 조커의 큰 숫자가 그대로 떠 있는 옆에서 대개 지나갔습니다.
+      //
+      // **값이 든 것처럼 보이지는 않아야 합니다.** 그래서 화면을 흔들지 않고 왼쪽 판도
+      // 번쩍이지 않습니다 — 그 둘은 값이 들어왔다는 뜻입니다. 딱지가 약하게 흔들리고,
+      // 붉은 글이 사슬의 제 차례를 받고, 음이 오르지 않고 아래로 하나 떨어집니다.
       case 'JokerFizzled': {
-        const view = this.game.cards.jokers.get(this.game.cards.jokerUidAt(event.slot))
+        const view = this.game.cards.jokers.get(event.uid)
+        if (view) view.pop(0.55)
         this.popAt(view && { x: view.x, y: view.y - RISER_ON_CARD },
-          `${event.num}/${event.den}`, UI.inkDim, 0)
+          `${t('ui.label.missed')}  ${event.num}/${event.den}`, UI.bad, 0.4, true)
         this.game.audio.play('joker_fizzle')
+        // **사슬의 음을 올리지 않습니다.** 오르는 가락은 값이 오르는 것이고, 여기서는
+        // 아무것도 오르지 않았습니다 — 지금 칸보다 아래에서 한 음이 놓입니다.
+        this.game.audio.tone('pluck', -7, 0.45, this.panOf(view?.x))
+        this.stop(30)
         break
       }
 
@@ -795,6 +876,7 @@ export class ShowPart {
         // 낸 카드가 멈춘 자리에서 크게 터집니다.
         this.burstAcrossPlayArea(26 + dust * 4, UI.mult, 1.8 + beat.intensity)
         this.chain = 0
+        this.jokerChain = 0
         this.rung = 0
         break
 
@@ -833,6 +915,7 @@ export class ShowPart {
         this.flashScreen(UI.good, 0.46)
         this.stop(280)
         this.chain = 0
+        this.jokerChain = 0
         this.rung = 0
         break
 
@@ -1064,6 +1147,9 @@ export class ShowPart {
         && beat.chips !== undefined && beat.mult !== undefined) {
       this.euphoria.consider(beat.chips * beat.mult / 10_000)
     }
+    // **박자 밖에서 띄우는 글은 이 이름을 달지 않습니다.** 사거나 파는 값과 미뤄 둔 글이
+    // 그것이고, 지우지 않으면 마지막 박자의 이름을 그대로 달고 남습니다.
+    this.popWhen = ''
   }
 
   /**
@@ -1478,7 +1564,7 @@ export class ShowPart {
     const y = within(target ? target.y : SIZE.height / 2, half, SIZE.height)
     node.position.set(x, y)
     this.game.popLog.push({
-      text, x: Math.round(x), y: Math.round(y),
+      when: this.popWhen, text, x: Math.round(x), y: Math.round(y),
       w: Math.round(halfW), h: Math.round(half),
     })
     if (this.game.popLog.length > 24) this.game.popLog.shift()

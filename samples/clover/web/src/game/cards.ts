@@ -1313,10 +1313,6 @@ export class CardsPart {
     return this.views.get(uid) ?? this.playedViews.find(view => view.uid === uid)
   }
 
-  jokerUidAt(slot: number): number {
-    return this.game.state.jokers[slot]?.uid ?? -1
-  }
-
   /**
    * 줄에 선 것 하나의 겹치는 차례.
    *

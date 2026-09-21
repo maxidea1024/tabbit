@@ -220,7 +220,7 @@ export class Game {
    * 보입니다 — 뜬 자리를 그대로 알려 도구가 판 안인지 판정합니다.
    */
   readonly popLog:
-    { text: string; x: number; y: number; w: number; h: number }[] = []
+    { when: string; text: string; x: number; y: number; w: number; h: number }[] = []
 
   /**
    * 화면이 지금 주장하고 있는 것.
@@ -843,6 +843,19 @@ export class Game {
     return Math.max(1, this.session.settings.speed)
   }
 
+  /**
+   * 지금 연출이 흐르는 빠르기.
+   *
+   * **박자가 도는 중이면 빠르게 넘기기까지 얹힌 값입니다.** 히트스톱과 왼쪽 판의 숫자와
+   * 떠오르는 글이 이것을 씁니다 — 박자만 배속을 타고 그 셋은 실제 시계로 돌던 동안,
+   * 배속을 올릴수록 그 셋이 박자보다 느려졌습니다.
+   *
+   * **박자가 없을 때는 옵션의 배속입니다.** 상점에서 굴러가는 소지금도 같은 옵션을 따릅니다.
+   */
+  get showRate(): number {
+    return this.player.busy ? this.player.rate : this.pace
+  }
+
   // ---------------------------------------------------------------- 액션
 
   act(action: Action): void {
@@ -859,11 +872,24 @@ export class Game {
     // 것을 보이는 박자는 그 뒤에 옵니다 — 붙들지 않으면 보일 것이 이미 없어진 뒤입니다.
     const wasDeck = new Map(this.state.deck.map(card => [card.uid, { ...card }]))
     // **조커도 같습니다.** 판이 갈리는 딱지는 그 박자가 올 때까지 이전 모습으로 섭니다.
-    const wasJokers = new Map(this.state.jokers.map(one => [one.uid, { ...one }]))
+    //
+    // **누적값은 통 하나 안에 있으므로 따로 베낍니다.** 겉만 베끼던 동안에는 `counters`
+    // 가 살아 있는 조커의 것과 같은 통이라, 붙들어 둔 것이 이미 늘어난 값이었습니다.
+    const wasJokers = new Map(this.state.jokers.map(one =>
+      [one.uid, { ...one, counters: { ...one.counters } }]))
     this.cards.pendingJokers.clear()
     const step = apply(this.data, this.state, action)
     for (const event of step.events) {
       if (event.t === 'JokerModified') {
+        const one = wasJokers.get(event.uid)
+        if (one) this.cards.pendingJokers.set(event.uid, one)
+      }
+      // **누적값이 오르는 것도 붙듭니다.** 늘어나는 조커는 그 순간이 전부인데, 얼굴의
+      // 누적값 딱지는 `refresh` 가 상태를 그대로 그리므로 **낸 카드가 판으로 날아가는
+      // 그 프레임에 이미 새 숫자였습니다** — 그러고 몇 초 뒤에 「늘었습니다」가 떴습니다.
+      // 일어난 것이 그것을 알리는 것보다 먼저 보이면 둘이 이어지지 않습니다.
+      if (event.t === 'JokerTriggered' && event.op === 'GrowSelf'
+          && !this.cards.pendingJokers.has(event.uid)) {
         const one = wasJokers.get(event.uid)
         if (one) this.cards.pendingJokers.set(event.uid, one)
       }
@@ -1113,8 +1139,13 @@ export class Game {
 
     // **히트스톱.** 연출의 시계만 멈춥니다 — 용수철과 파티클은 계속 움직여야 화면이
     // 얼어붙은 것으로 보이지 않습니다.
-    if (this.show.freeze > 0) this.show.freeze = Math.max(0, this.show.freeze - deltaMs)
-    else this.player.advance(deltaMs)
+    //
+    // **멈추는 길이도 배속을 탑니다.** 실제 밀리초로 줄던 동안에는 박자만 빨라지고 이것은
+    // 그대로라, 4배에서 곱하기 한 번의 0.12초가 박자 한 개분(0.48초)을 통째로 먹었습니다 —
+    // 빠르게 넘기는데 끊기는 것이 그것입니다.
+    if (this.show.freeze > 0) {
+      this.show.freeze = Math.max(0, this.show.freeze - deltaMs * this.showRate)
+    } else this.player.advance(deltaMs)
 
     this.tray.advanceConsumableLift(seconds)
     this.tray.advanceItemArrive(seconds)
@@ -1391,7 +1422,10 @@ export class Game {
     // 숫자가 물러나는 것도, 값이 바뀔 때 한 번 튀는 것도 이 단계에서 돕니다. 빠져 있는
     // 동안 그 셋은 `mute()` 를 받고도 그대로 남아 있었고, 그래서 같은 자리에 수가 둘
     // 겹쳤습니다.
-    for (const slot of this.chrome.panelSlots) slot.advance(stepMs)
+    // **배속을 탑니다.** 굴러가는 시정수가 0.13초인데 4배에서 박자가 0.12초 간격이라,
+    // 실제 시계로 굴리면 두 상자가 끝까지 따라잡지 못한 채 다음 값을 받습니다.
+    const showMs = stepMs * this.showRate
+    for (const slot of this.chrome.panelSlots) slot.advance(showMs)
     this.chrome.paintScoreFlash()
     // **파형의 세기입니다.** 얹히는 것은 칸이 세고(더해질 때만), 바닥은 지금의 배당입니다 —
     // 바닥을 두 상자가 나누므로 배당이 크면 둘이 함께 요동치고, 얹히는 것은 칸마다 따로이므로
@@ -1405,7 +1439,10 @@ export class Game {
     // 판이 서기 전과 판이 끝난 뒤의 두 상자가 그 자리입니다.
     this.chrome.scoreWave.setLive(stepMs, this.chrome.chips.amount > 0,
       this.chrome.mult.amount > 0)
-    this.show.advanceRisers(stepMs)
+    // **떠오르는 글도 같습니다.** 사슬에서 또렷한 것이 하나이려면 앞 글이 물러나는
+    // 0.2초가 박자 간격보다 짧아야 하는데, 4배에서 박자가 0.12초이므로 실제 시계로 두면
+    // 늘 둘이 겹칩니다.
+    this.show.advanceRisers(showMs)
 
     // 흔들림은 줄어듭니다. **판만 흔들고 배경은 가만히 둡니다** — 둘 다 흔들면 무엇이
     // 맞은 것인지 읽히지 않습니다.

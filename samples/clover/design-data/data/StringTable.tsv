@@ -814,6 +814,7 @@
 	ui.label.lost	패배	Defeat	敗北	失败	失敗	Niederlage
 	ui.label.next_up	다음 차례	Next up	次	接下来	接下來	Als Nächstes
 	ui.label.triggered	발동	Triggered	発動	触发	觸發	Ausgelöst
+	ui.label.missed	불발	Missed	不発	未触发	未觸發	Fehlschlag
 	ui.act.make	만듭니다	creates	作ります	生成	生成	erzeugt
 	ui.act.break	부숩니다	destroys	壊します	摧毁	摧毀	zerstört
 	ui.act.change	바꿉니다	changes	変えます	改变	改變	ändert
@@ -1240,6 +1241,7 @@
 	ui.kind.enhancement	강화	Enhancement	強化	强化	強化	Verbesserung
 	ui.kind.seal	인장	Seal	封蝋	蜡封	蠟封	Siegel
 	ui.kind.edition	에디션	Edition	エディション	版本	版本	Edition
+	ui.kind.counter	누적값	Counter	累計値	累计值	累計值	Zähler
 	ui.kind.blind	블라인드	Blind	ブラインド	盲注	盲注	Blind
 	ui.kind.boss	보스	Boss	ボス	Boss	Boss	Boss
 	ui.kind.stake	스테이크	Stake	ステーク	底注	底注	Einsatz

@@ -73,7 +73,8 @@ function applyCardEdition(vm: Vm, card: CardInstance): void {
 function applyJokerEdition(vm: Vm, joker: JokerInstance, slot: number): void {
   applyEdition(vm, joker.edition, (chips, mult, op) => {
     vm.events.push({
-      t: 'JokerTriggered', slot, jokerId: joker.jokerId, op, chips, mult, money: 0,
+      t: 'JokerTriggered', uid: joker.uid, slot, jokerId: joker.jokerId,
+      source: 'edition', op, chips, mult, money: 0,
     })
   })
 }
@@ -92,8 +93,8 @@ function applyCounters(vm: Vm, joker: JokerInstance, slot: number): void {
 
   const tell = (op: string, addChips: number, addMult: number) => {
     vm.events.push({
-      t: 'JokerTriggered', slot, jokerId: joker.jokerId, op,
-      chips: addChips, mult: addMult, money: 0,
+      t: 'JokerTriggered', uid: joker.uid, slot, jokerId: joker.jokerId,
+      source: 'counter', op, chips: addChips, mult: addMult, money: 0,
     })
     emitTotals(vm)
   }

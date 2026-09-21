@@ -119,8 +119,13 @@ export class ProbePart {
       // 상점 몸통이 판 안에서 얼마나 밀려 있는가. 딱지의 자리가 이만큼 어긋납니다.
       shopBodyY: Math.round(this.game.shop.shopFrame?.body.y ?? 0),
       // 떠오른 글이 뜬 자리들. 뒤가 새것입니다.
+      // **어느 박자의 글인가도 함께 알립니다.** 자리만 알리던 동안에는 도구가 「화면 밖으로
+      // 나갔는가」만 판정할 수 있었고, 「그 값을 낸 것 위에 떴는가」는 아무 게이트도
+      // 확인하지 못했습니다 — 손에 든 카드가 낸 값이 낸 카드 줄에 뜨던 것이 그렇게
+      // 지나갔습니다.
       pops: this.game.popLog.map(one =>
-        [one.text, one.x, one.y, one.w, one.h] as [string, number, number, number, number]),
+        [one.text, one.x, one.y, one.w, one.h, one.when] as
+          [string, number, number, number, number, string]),
       // 상점이 자리를 비켜 내려가 있어야 하는가. 팩을 뜯었거나 산 것이 닿는 것을 보는 중입니다.
       shopParked: this.game.shop.shopParked,
       // 자리를 비우는 중인가 · 그 화면이 든 정도.
@@ -704,6 +709,21 @@ export class ProbePart {
           this.game.state.consumables.push({
             uid: this.game.state.nextUid++, kind: kind as never, id, edition: 0 as never,
           })
+          this.game.refresh()
+        },
+        /**
+         * 손패의 카드 전부에 강화 하나를 붙입니다.
+         *
+         * **손에 든 카드가 값을 내는 갈래를 확인하는 자리입니다.** `Steel` 이 그것이고,
+         * 그 값은 낸 카드가 아니라 쥐고 있는 카드가 냅니다 — 값이 어느 줄에 뜨는지가
+         * 그 둘에서 갈리는데, 시드가 강화를 주기를 기다리는 것은 확인하려는 것과
+         * 무관합니다.
+         */
+        enhanceHand: (kind: number) => {
+          for (const uid of this.game.state.hand) {
+            const card = this.game.state.deck.find(one => one.uid === uid)
+            if (card) card.enhancement = kind as never
+          }
           this.game.refresh()
         },
         grantConsumable: (count: number, edition = 0) => {

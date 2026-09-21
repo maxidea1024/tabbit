@@ -35,7 +35,7 @@ import { dryScore, type DryRun } from './dry-run'
 import { evaluate } from './hand'
 import { PERISH_ROUNDS, rewardOf, tagFor, targetOf } from './run'
 import { rerollCost } from './shop'
-import { nameOf } from './strings'
+import { nameOf, t } from './strings'
 import { subsets, valueOf } from './suggest'
 import { MULT_ONE } from './units'
 import type { CardInstance, GameEvent, JokerInstance, Phase, RunState } from './state'
@@ -375,14 +375,25 @@ function pickLines(view: View): Insight[] {
   return out
 }
 
-/** 이 조합에서 발동한 조커들. 자리 순서이고 조커 하나가 한 줄입니다. */
+/**
+ * 이 조합에서 발동한 조커들. 자리 순서이고 조커 하나가 한 줄입니다.
+ *
+ * **무엇이 낸 값인지를 적습니다.** 조커 하나가 한 자리에서 셋을 냅니다 — 누적값과 효과와
+ * 에디션입니다. 셋을 그냥 이어 적던 동안에는 `+4 · +10` 이 「이 조커가 두 번 발동했다」와
+ * 구별되지 않았고, 홀로그래픽이 낸 배수가 그 조커 자신의 것으로 읽혔습니다. 효과가 낸
+ * 것에는 아무것도 붙이지 않습니다 — 그것이 그 조커의 값이고, 셋 다 이름을 달면 줄이
+ * 길어지기만 합니다.
+ */
 function triggered(data: Data,
                    events: readonly GameEvent[]): { slot: number; text: string }[] {
   const bySlot = new Map<number, { id: string; parts: string[] }>()
   for (const event of events) {
     if (event.t !== 'JokerTriggered') continue
     const found = bySlot.get(event.slot) ?? { id: event.jokerId, parts: [] }
-    found.parts.push(valueText(event.op, event.chips, event.mult, event.money))
+    const value = valueText(event.op, event.chips, event.mult, event.money)
+    const from = event.source === 'edition' ? t('ui.kind.edition')
+      : event.source === 'counter' ? t('ui.kind.counter') : ''
+    found.parts.push(from === '' ? value : `${value} ${from}`)
     bySlot.set(event.slot, found)
   }
   return [...bySlot.entries()]

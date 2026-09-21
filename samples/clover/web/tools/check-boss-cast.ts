@@ -14,81 +14,16 @@ import { fileURLToPath } from 'url'
 import { chromium } from 'playwright'
 import { createServer } from 'vite'
 import {
-  clickPrimary, forceBoss, grantJoker, openRun, pass, peek, settle, skipLogin, winRound,
+  clickPrimary, grantJoker, openRun, pass, peek, skipLogin, walkToBoss,
 } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const PORT = 5235
 
-/**
- * 상점을 나섭니다. **국면이 바뀔 때까지 다시 누릅니다.**
- *
- * 연출이 도는 중에 누르면 `act` 가 그 누름을 버리고, 버렸다는 것은 화면 어디에도 적히지
- * 않습니다 — 도구가 그것을 「나섰다」로 보고 다음 줄로 넘어가면 그 뒤가 통째로 어긋납니다.
- */
-async function leaveShop(page: import('playwright').Page): Promise<void> {
-  for (let tries = 0; tries < 12; tries++) {
-    if ((await peek(page)).phase !== 'shop') return
-    await settle(page)
-    await clickPrimary(page)
-    await pass(page, 400)
-  }
-  throw new Error('상점을 나서지 못했습니다')
-}
-
-type Page = import('playwright').Page
-
 let bad = 0
 function check(ok: boolean, what: string): void {
   console.log(`  ${ok ? '통과' : '어긋남'}  ${what}`)
   if (!ok) bad++
-}
-
-/**
- * 안테 1의 보스 블라인드까지 갑니다. **그 자리에서 고르기 전에 멈춥니다** — 고르는 순간에
- * 보스가 걸고, 그 순간을 재는 것이 이 도구입니다.
- */
-/**
- * 보스 블라인드를 고르는 화면까지 걸어갑니다. **국면을 보고 걷습니다.**
- *
- * 고르는 것은 부르는 쪽이 합니다 — 고른 다음을 재는 도구와 고르는 그 순간을 재는 도구가
- * 갈리므로, 여기서 눌러 버리면 한쪽이 잴 것을 지나칩니다.
- *
- * 걸음 수를 세어 걷고 있었습니다 — 이기고 · 상점을 나서고 · 고르고를 정해진 횟수만큼
- * 부르는 것이라, 앞에서 한 걸음이 더 있거나 덜 있으면 그만큼 어긋난 자리에서 끝납니다.
- * 조커를 들리고 시작하는 쪽이 그래서 빅 블라인드에 멈춰 있었고, 그 판에는 보스가 없으니
- * 「조커의 차례가 섞이지 않는다」로 끝났습니다.
- */
-async function walkToBoss(page: Page, bossId: string): Promise<void> {
-  await forceBoss(page, bossId)
-  for (let step = 0; step < 16; step++) {
-    const now = await peek(page)
-    if (now.phase === 'blind-select' && now.blind === 3) return
-    // **떠 있는 판을 먼저 걷습니다.** 판이 덮여 있으면 그 아래의 자리를 화면이 알리지
-    // 않고, 누르는 쪽은 「자리를 알리지 않습니다」로 끝납니다.
-    if (now.modalUp === true) {
-      await page.keyboard.press('Escape')
-      await pass(page, 400)
-      continue
-    }
-    if (now.phase === 'shop') {
-      await leaveShop(page)
-      await pass(page, 600)
-      continue
-    }
-    if (now.phase === 'blind-select') {
-      await settle(page)
-      await clickPrimary(page)
-      await settle(page)
-      continue
-    }
-    if (now.phase === 'round') {
-      await winRound(page)
-      continue
-    }
-    await pass(page, 300)
-  }
-  throw new Error(`보스 블라인드에 닿지 못했습니다 (${bossId})`)
 }
 
 async function main(): Promise<number> {

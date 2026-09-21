@@ -145,7 +145,7 @@ describe('재생', () => {
   it('빗나간 조커도 박자를 가집니다', () => {
     const beats = buildTimeline([
       HAND,
-      { t: 'JokerFizzled', slot: 0, jokerId: 'trade_card', num: 1, den: 2 },
+      { t: 'JokerFizzled', uid: 7, slot: 0, jokerId: 'trade_card', num: 1, den: 2 },
     ], FEEL)
 
     // **보여주지 않으면 그 조커가 무엇을 하는지 배우지 못합니다.**

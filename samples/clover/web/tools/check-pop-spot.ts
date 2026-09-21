@@ -12,14 +12,33 @@ import { chromium } from 'playwright'
 import { createServer } from 'vite'
 import type { Page } from 'playwright'
 import {
-  STAGE_H, STAGE_W, clickPrimary, clickSpot, grantJoker, grantMoney, grantTag, heldButton,
-  openRun, packSlot, pass, peek, settle, shopBuySpot, shopSlot, skipLogin, takePayout, winRound,
+  STAGE_H, STAGE_W, clickPrimary, clickSpot, enhanceHand, grantJoker, grantMoney, grantTag,
+  heldButton, openRun, packSlot, pass, peek, playHand, settle, shopBuySpot, shopSlot, skipLogin,
+  takePayout, winRound,
 } from './harness'
+import { EnhancementKind } from '../src/generated/enums/enhancement-kind'
+
+/**
+ * 낸 카드 줄과 손패 줄을 가르는 높이.
+ *
+ * 낸 카드가 350 이고 손패가 608 이며 판이 도는 동안 34픽셀 더 물러납니다 — 그 사이
+ * 어디에 두어도 둘을 가르므로 가운데로 잡습니다.
+ */
+const BETWEEN_ROWS = 480
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const PORT = 5241
 
-interface Pop { when: string; text: string; x: number; y: number; w: number; h: number }
+interface Pop {
+  when: string
+  /** 어느 박자가 띄운 글인가. 박자 밖에서 뜬 것은 빈 값입니다. */
+  beat: string
+  text: string
+  x: number
+  y: number
+  w: number
+  h: number
+}
 
 /** 이 글이 화면 밖으로 나간 변들. 비어 있으면 온전히 들어 있습니다. */
 function clipped(one: Pop): string[] {
@@ -43,11 +62,11 @@ class Watch {
   constructor(private readonly page: Page) {}
 
   async take(when: string): Promise<void> {
-    for (const [text, x, y, w, h] of (await peek(this.page)).pops ?? []) {
+    for (const [text, x, y, w, h, beat] of (await peek(this.page)).pops ?? []) {
       const key = `${text}@${x},${y}`
       if (this.seen.has(key)) continue
       this.seen.add(key)
-      this.all.push({ when, text, x, y, w, h })
+      this.all.push({ when, beat: beat ?? '', text, x, y, w, h })
     }
   }
 }
@@ -102,7 +121,37 @@ async function main(): Promise<number> {
   await winRound(page)
   await watch.take('보스를 깹니다')
 
+  // 3. **손에 든 카드가 낸 값은 그 카드 위에 떠야 합니다.**
+  //
+  // 낸 카드 줄의 높이를 모든 `CardScored` 에 쓰던 동안, `Steel` 이 손에서 낸 배수는 그
+  // 카드에서 340픽셀 위 — 낸 카드 줄 — 에 떴습니다. 잘리지는 않으므로 위의 판정을
+  // 그대로 지났고, 화면에서는 그 값을 낸 것이 낸 카드 중 하나로 읽혔습니다.
+  await atBlindPick(page)
+  await clickSpot(page, 'pick')
+  await settle(page)
+  await pass(page, 800)
+  await enhanceHand(page, EnhancementKind.Steel)
+  await pass(page, 400)
+  const held = new Watch(page)
+  await playHand(page)
+  await settle(page)
+  await held.take('쥔 카드가 냅니다')
+
   let bad = 0
+  // 그 배수는 손패 줄에서 떠야 합니다. 낸 카드 줄의 값과 섞이지 않도록 두 줄 사이를
+  // 가릅니다 — 낸 카드가 350, 손패가 608 이고 판이 도는 동안 34픽셀 더 물러납니다.
+  const steel = held.all.filter(one => one.beat === 'CardScored' && one.text.startsWith('×'))
+  const astray = steel.filter(one => one.y < BETWEEN_ROWS)
+  if (steel.length === 0) {
+    console.log('← 쥔 카드가 낸 값이 하나도 뜨지 않습니다')
+    bad++
+  }
+  for (const one of astray) {
+    console.log(`← 쥔 카드가 낸 ${one.text} 가 낸 카드 줄에 떴습니다 (y=${one.y})`)
+    bad++
+  }
+  console.log(`   쥔 카드가 낸 값 ${steel.length}개 · 낸 카드 줄에 뜬 것 ${astray.length}개`)
+
   for (const one of watch.all) {
     const out = clipped(one)
     if (out.length > 0) bad++
@@ -110,7 +159,7 @@ async function main(): Promise<number> {
       + ` · (${one.x}, ${one.y}) ±(${one.w}, ${one.h})`
       + (out.length > 0 ? ` · ${out.join('·')} 밖` : ''))
   }
-  console.log('표본', watch.all.length, '· 잘린 것', bad)
+  console.log('표본', watch.all.length, '· 어긋난 것', bad)
   await browser.close()
   await server.close()
   return watch.all.length > 0 && bad === 0 ? 0 : 1
