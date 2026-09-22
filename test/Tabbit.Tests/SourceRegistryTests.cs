@@ -63,6 +63,16 @@ public class SourceRegistryTests
     {
         string filename = Path.Combine(Path.GetTempPath(), $"tabbit-skeleton-{Guid.NewGuid():N}.json");
 
+        // The build cache goes somewhere the assertion below is not watching. Left out,
+        // `--cache-dir` means `.tabbit/` beside the working directory - the run writes its
+        // seal and report into the repository root, and this test reads that as a leak.
+        //
+        // It only reads it as one when the directory was not there already, so whether this
+        // test passed came down to whether anything had run the tool in that checkout
+        // before. A machine somebody works on always has it; a fresh clone does not, and
+        // the scheduled build failed here for four weeks while every local run was green.
+        string cache = Path.Combine(Path.GetTempPath(), $"tabbit-cache-{Guid.NewGuid():N}");
+
         // The whole root, before the run. Compared afterwards rather than looking for
         // one extension: the assertion below used to check `*.html` only, having been
         // written when the HTML target was the one at fault, so the C# and TypeScript
@@ -89,7 +99,8 @@ public class SourceRegistryTests
             Assert.Contains("\"FileExtension\": \".tcb\"", skeleton);
             Assert.DoesNotContain("\"Binary\": []", skeleton);
 
-            var ran = TabbitRunner.Invoke("--recipe", filename, "--debug");
+            var ran = TabbitRunner.Invoke(
+                "--recipe", filename, "--debug", "--cache-dir", cache);
             Assert.True(ran.Succeeded,
                 $"The generated recipe did not run.{Environment.NewLine}{ran.Describe()}");
 
@@ -108,6 +119,9 @@ public class SourceRegistryTests
         {
             if (File.Exists(filename))
                 File.Delete(filename);
+
+            if (System.IO.Directory.Exists(cache))
+                System.IO.Directory.Delete(cache, recursive: true);
         }
     }
 
