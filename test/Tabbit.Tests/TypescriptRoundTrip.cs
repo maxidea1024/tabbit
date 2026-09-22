@@ -34,7 +34,12 @@ internal static class TypescriptRoundTrip
     /// </param>
     public static RoundTripResult Run(string scenario, string driver = "ts-check")
     {
-        string workDir = Path.Combine(RepoLayout.OutputDir("_tsroundtrip"), scenario);
+        // **The calling class names it too.** Cleared on the way in, and a scenario belongs
+        // to no class - so two classes running the same one would take turns deleting each
+        // other's tree. The eleven call sites happen to use eleven different scenarios today,
+        // which is not a property anything holds in place; `ConformanceHarness.WorkDir` was
+        // the same shape and the collision there took a year of scheduled builds to name.
+        string workDir = RepoLayout.WorkDir("_tsroundtrip", scenario);
 
         if (Directory.Exists(workDir))
             Directory.Delete(workDir, recursive: true);
