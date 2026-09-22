@@ -28,6 +28,18 @@
     "and `encrypted` have two classes each, which a collection settles. A new test that",
     "converts with an option belongs to a scenario nobody else reads.",
     "",
+    "One place was left behind, and it took a year of scheduled builds to say so.",
+    "ConformanceHarness.WorkDir named the scenario and the language and nothing else, so",
+    "two classes compiling the same pair cleared each other's tree - ReservedWordTests and",
+    "HeaderIncludeTests both build `reserved-words` in C. The loser fails wherever it",
+    "happened to be, most often as a missing directory under a path it had just made. It",
+    "carries the calling class now, the same as RepoLayout.WorkDir.",
+    "",
+    "And the updater servers threw while giving the port back, not while taking it.",
+    "`HttpListener.Close` walks the endpoint table again on the way out and finds the port",
+    "taken, which fails a test whose body already passed. Binding retries because a bind",
+    "that does not happen means no server; unbinding does not, so Dispose swallows it.",
+    "",
     "1,829 tests, 9m08s against 15m53s serial. doc/roadmap.md carries the same numbers."
   ],
   "parallelizeTestCollections": true

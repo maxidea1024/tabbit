@@ -1666,9 +1666,24 @@ internal static class ConformanceHarness
         yield return "/usr/share/kotlin";
     }
 
+    /// <summary>
+    /// A cleared build directory for one language of one scenario.
+    /// </summary>
+    /// <remarks>
+    /// **Named for the calling test class as well.** A scenario belongs to no class, and this
+    /// directory is cleared on the way in - so two classes building the same scenario in the
+    /// same language take turns deleting each other's tree. The failure lands wherever the
+    /// loser happened to be, most often as a missing directory under a path the caller had
+    /// just created.
+    ///
+    /// `RepoLayout.WorkDir` already carries the class name for this reason, and the note in
+    /// `xunit.runner.json` is about this exact property. This one was left behind: the
+    /// scenario names the directory and the language names the folder inside it, which reads
+    /// like enough until a second class compiles the same pair.
+    /// </remarks>
     private static string WorkDir(string scenario, string language)
     {
-        string dir = Path.Combine(RepoLayout.OutputDir("_conformance"), scenario, language);
+        string dir = Path.Combine(RepoLayout.WorkDir("_conformance", scenario), language);
 
         if (Directory.Exists(dir))
             Directory.Delete(dir, recursive: true);
