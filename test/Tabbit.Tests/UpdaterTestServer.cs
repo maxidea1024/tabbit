@@ -125,9 +125,34 @@ internal sealed class UpdaterTestServer : IDisposable
         return port;
     }
 
+    /// <summary>
+    /// Shuts the server down. **Giving the port back is not something a test can fail on.**
+    /// </summary>
+    /// <remarks>
+    /// `HttpListener.Close` walks the endpoint table again on the way out, and on macOS that
+    /// walk throws `Address already in use` when another listener has taken the port since -
+    /// which is exactly what a suite running these servers in parallel arranges. The test
+    /// body has already passed by then; the throw lands in teardown and fails the test that
+    /// was finished.
+    ///
+    /// Binding retries because a bind that does not happen means no server. Unbinding does
+    /// not: the listener is being dropped either way, and the process is about to end.
+    /// A different language failed this way on nearly every scheduled run - C, TypeScript,
+    /// Java, Dart, Ruby - which is the shape of a port collision rather than of a bug in any
+    /// one of them.
+    /// </remarks>
     public void Dispose()
     {
-        _listener.Stop();
-        _listener.Close();
+        try
+        {
+            _listener.Stop();
+            _listener.Close();
+        }
+        catch (HttpListenerException)
+        {
+        }
+        catch (ObjectDisposedException)
+        {
+        }
     }
 }
